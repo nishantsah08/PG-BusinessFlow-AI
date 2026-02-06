@@ -18,7 +18,7 @@ const DeveloperTab = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/agents');
+            const res = await fetch('/api/agents');
             const agents = await res.json();
 
             const newNodes = [];
@@ -154,13 +154,22 @@ const DeveloperTab = () => {
                                         ))}
                                     </div>
                                     <div className="space-y-1">
-                                        {selectedAgent.capabilities.tools?.map(tool => (
+                                        {(selectedAgent.capabilities.registeredTools || selectedAgent.capabilities.tools)?.map(tool => (
                                             <div key={tool} className="flex items-center text-xs text-gray-500">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mr-2"></div>
                                                 <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">{tool}</code>
                                             </div>
                                         ))}
                                     </div>
+
+                                    {selectedAgent.capabilities.triggers && selectedAgent.capabilities.triggers.length > 0 && (
+                                        <div className="mt-3">
+                                            <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Triggers</h5>
+                                            <ul className="list-disc list-inside text-xs text-gray-600 space-y-1">
+                                                {selectedAgent.capabilities.triggers.map(t => <li key={t}>{t}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

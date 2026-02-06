@@ -26,6 +26,89 @@ class MasterAI extends BaseAgent {
         });
 
         this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+        // Session Manager: Map<PhoneNumber, ConversationSession>
+        this.sessions = new Map();
+        this.SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes
+    }
+
+    // --- Session Logic ---
+
+    async getOrCreateSession(phone) {
+        if (this.sessions.has(phone)) {
+            const session = this.sessions.get(phone);
+            // Reset Timeout on activity
+            clearTimeout(session.timeoutId);
+            session.timeoutId = setTimeout(() => this.flushSession(phone), this.SESSION_TIMEOUT_MS);
+            return session;
+        }
+
+        // Create New Session
+        console.log(`[MasterAI] Starting new session for ${phone}`);
+
+        // 1. Load Context from CRM
+        let leadContext = null;
+        let leadId = null;
+        try {
+            const crm = this.subAgents.find(a => a.name === 'CRMAgent');
+            const lookup = await crm.callTool('get_lead_details', { phone });
+
+            if (lookup.status === 'Found') {
+                leadContext = lookup.lead;
+                leadId = lookup.lead.lead_id;
+                console.log(`[MasterAI] Context Loaded: ${leadContext.name} (${leadId})`);
+            } else {
+                // Auto-create Lead
+                console.log(`[MasterAI] New Unknown User. Auto-creating Lead...`);
+                const newLead = await crm.callTool('add_lead', {
+                    name: 'WhatsApp User',
+                    primary_phone: phone,
+                    source: 'WhatsApp'
+                });
+                leadContext = newLead.lead;
+                leadId = newLead.lead.lead_id;
+            }
+        } catch (err) {
+            console.error("[MasterAI] CRM Handshake Failed:", err.message);
+            // Fallback: Proceed without valid CRM link (Lead ID null)
+        }
+
+        const session = {
+            startTime: new Date().toISOString(),
+            leadId: leadId,
+            leadContext: leadContext,
+            messages: [],
+            timeoutId: setTimeout(() => this.flushSession(phone), this.SESSION_TIMEOUT_MS)
+        };
+
+        this.sessions.set(phone, session);
+        return session;
+    }
+
+    async flushSession(phone) {
+        const session = this.sessions.get(phone);
+        if (!session) return;
+
+        console.log(`[MasterAI] Session Timeout for ${phone}. Flushing to CRM...`);
+
+        if (session.leadId && session.messages.length > 0) {
+            try {
+                const crm = this.subAgents.find(a => a.name === 'CRMAgent');
+                await crm.callTool('append_session_log', {
+                    lead_id: session.leadId,
+                    start_time: session.startTime,
+                    end_time: new Date().toISOString(),
+                    messages: session.messages
+                });
+                console.log(`[MasterAI] Session flushed successfully.`);
+            } catch (err) {
+                console.error(`[MasterAI] Failed to flush session:`, err.message);
+            }
+        } else {
+            console.log(`[MasterAI] Empty or unlinked session. dropped.`);
+        }
+
+        this.sessions.delete(phone);
     }
 
     async chat(history) {
@@ -58,7 +141,14 @@ class MasterAI extends BaseAgent {
                 Your Team:
                 ${this.subAgents.map(a => `- ${a.identity.role} (${a.name})`).join('\n')}
                 
-                Always use the available tools to delegate tasks. If you need to speak to the user, just reply.`
+                **Communication Rules**:
+                1. **Direct Reply**: You are chatting directly with the user. Just speak naturally.
+                2. **Memory**: You have access to the conversation history. Use it.
+                3. **CRM Policy**: 
+                   - Do NOT log every "Hi" or "Hello" to the CRM.
+                   - ONLY call CRM tools if you are performing a specific ACTION (e.g. "Create Lead", "Book Visit", "Update Status").
+                   - If you just need to reply, just output text.
+                4. **Tool Use**: If you use a tool, waiting for the result is automatic. You don't need to say "I'm checking".`
                 },
                 ...history
             ];
@@ -85,7 +175,13 @@ class MasterAI extends BaseAgent {
                         const { agent, toolName } = agentMap[fnName];
                         console.log(`MasterAI delegation: Calling ${toolName} on ${agent.name}`);
 
-                        const result = await agent.callTool(toolName, args);
+                        let result;
+                        try {
+                            result = await agent.callTool(toolName, args);
+                        } catch (err) {
+                            console.error(`[MasterAI] Tool Error (${toolName}):`, err.message);
+                            result = { error: err.message, status: "Failed" };
+                        }
 
                         messages.push({
                             role: "tool",
@@ -114,6 +210,48 @@ class MasterAI extends BaseAgent {
         } catch (error) {
             console.error("MasterAI Chat Error:", error);
             return { role: "assistant", content: "I encountered an error connecting to my brain. Please check the logs." };
+        }
+    }
+
+    async process_event(event) {
+        // Generic Message Handler for ANY source (WhatsApp, Email, Portal, etc.)
+        if (event.type === 'WHATSAPP_MESSAGE' || event.type === 'INCOMING_MESSAGE') {
+            const from = event.payload.from;
+            const text = event.payload.text;
+            const source = event.payload.source || 'WhatsApp';
+
+            console.log(`[MasterAI] Processing ${source} from ${from}: ${text}`);
+
+            // 1. Get/Create Session (Manages Context & Timeout)
+            const session = await this.getOrCreateSession(from);
+
+            // 2. Buffer User Message
+            session.messages.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
+
+            // 3. Prepare Context for Brain (System + Memory)
+            // Flatten session messages for LLM
+            const history = session.messages.map(m => ({ role: m.role, content: m.content }));
+
+            // 4. Autonomous Decision (Chat)
+            const response = await this.chat(history);
+
+            // 5. Handle Response
+            if (response && response.content) {
+                // Buffer Assistant Message
+                session.messages.push({ role: 'assistant', content: response.content, timestamp: new Date().toISOString() });
+
+                console.log(`[MasterAI] Brain spoke: "${response.content}". Sending reply via ${source}.`);
+
+                // 6. Send Reply
+                const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
+                if (commsAgent) {
+                    await commsAgent.callTool('send_message', {
+                        channel: source, // 'WhatsApp' or others
+                        recipient: from,
+                        content: response.content
+                    });
+                }
+            }
         }
     }
 }

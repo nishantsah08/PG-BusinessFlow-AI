@@ -7,3 +7,6 @@ dist
 coverage
 build
 .system_generated
+
+*.log
+webhook_log.json
