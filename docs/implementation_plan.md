@@ -334,19 +334,96 @@ The CRM Agent exposes a comprehensive set of tools to support both **Chat (Maste
 
 ## 5. Human Resources Agent (Staff)
 **Role**: Staff Manager.
-**Responsibility**: Hiring, Firing, Compensation Definition (Salary Card).
+**Description**: You manage the people who work for the business. You handle hiring, firing, and define compensation agreements (Salary Cards).
+**Responsibilities**:
+*   **Lifecycle**: Hiring (Creation of Job Descriptions), Firing of staff.
+*   **Leaves**: Manage staff leaves (Advance Leave, Emergency Leave).
+*   **Incentives**: Calculate performance-based incentives (e.g., based on unit occupancy).
+*   **Compensation**: Defines the Salary Card (Salary Agreement).
+*   **Handover**: Passes Salary Card to Finance AI (Salary Agent) for execution ("Once salary is negotiated, it is sent to FinanceAgent for monthly processing").
 
-### Tools
-*   **`hire_staff`**
-    *   *Inputs*: `name`, `designation`, `contact`, `base_salary`.
-*   **`create_salary_card`**
-    *   *Inputs*:
-        *   `staff_id`
-        *   `base_salary`
-        *   `components`: `salary_advance_limit`, `reimbursements_allowed`, `incentives` (logic & amount_per_unit), `allowances` (travel, phone).
-    *   *Action*: Store agreement and notify Finance Agent (Handover).
-*   **`terminate_staff`**
-    *   *Inputs*: `staff_id`, `reason`.
+### 5.1 Salary Card (Schema)
+The definitive agreement for staff compensation. Handed over to Finance Agent.
+
+```json
+{
+  "staff_id": "STF-05",
+  "designation": "Property Manager",
+  "job_description": "Manage day-to-day operations, tenant grievances, and vendor supervision.",
+  "contact": {
+    "primary": "+919876543210",
+    "email": "manager@property.com",
+    "alternate": ["+919988776655"]
+  },
+  "bank_details": {
+    "account_holder": "Raamesh Kumar",
+    "account_number": "1234567890",
+    "ifsc": "HDFC0001234",
+    "bank_name": "HDFC Bank",
+    "upi_id": "raamesh@hdfcbank",
+    "qr_code_image": "https://storage.googleapis.com/bucket/qr_images/stf-05.jpg"
+  },
+  "base_salary": 4000,
+  "components": {
+    "salary_advance_limit": 5000,
+    "reimbursements_allowed": true,
+    "incentives": {
+      "logic": "Units Occupied * Amount Per Unit",
+      "amount_per_unit": 350
+    },
+    "allowances": {
+      "travel": 1000,
+      "phone": 500
+    }
+  },
+  "effective_from": "2024-01-01"
+}
+```
+
+### 5.2 HR Agent API Skills (Exhaustive)
+The HR Agent exposes a comprehensive set of tools to support both **Chat (MasterAI)** and **GUI (Admin Dashboard)** operations.
+
+#### Core Lifecycle & Profile
+*   **`hire_staff`**:
+    *   *Inputs*: `name`, `designation`, `job_description`, `contact` (primary, email, alternate), `base_salary`.
+    *   *Output*: `staff_id` (System Generated).
+*   **`update_staff_profile`**:
+    *   *Inputs*: `staff_id`, `name`, `designation`, `contact`, `job_description`.
+*   **`terminate_staff`**:
+    *   *Inputs*: `staff_id`, `reason`, `last_working_day`.
+    *   *Logic*: Marks status as 'Inactive'. Triggers final settlement workflow.
+*   **`get_staff_details`**:
+    *   *Inputs*: `staff_id`.
+*   **`get_all_staff`**:
+    *   *Inputs*: `status_filter` (Active/Inactive), `designation_filter`.
+
+#### Compensation & Finance Handover
+*   **`create_salary_card`**:
+    *   *Inputs*: `staff_id`, `bank_details`, `base_salary`, `components` (advance limit, reimbursements, incentives, allowances), `effective_from`.
+    *   *Action*: Persist Salary Card and notify Finance Agent.
+*   **`update_salary_card`**:
+    *   *Inputs*: `staff_id`, `new_components`, `reason`.
+    *   *Logic*: Updates the active agreement. Maintains history of changes.
+*   **`get_salary_card`**:
+    *   *Inputs*: `staff_id`.
+    *   *Output*: Current active salary structure.
+
+#### Leave & Attendance Management
+*   **`record_leave`**:
+    *   *Inputs*: `staff_id`, `leave_type` (Advance/Emergency/Casual), `start_date`, `end_date`, `reason`.
+    *   *Logic*: Deducts directly from salary (Advance) or tracking balance (Casual).
+*   **`get_staff_leaves`**:
+    *   *Inputs*: `staff_id`, `month`, `year`.
+*   **`approve_leave_request`** (GUI Workflow):
+    *   *Inputs*: `request_id`, `status` (Approved/Rejected), `approver_note`.
+
+#### Performance & Incentives
+*   **`calculate_incentive`**:
+    *   *Inputs*: `staff_id`, `metric_value` (e.g., Units Occupied count).
+    *   *Logic*: Applies the formula defined in the Salary Card (e.g., `350 * 10`). Returns calculated amount.
+*   **`get_performance_metrics`**:
+    *   *Inputs*: `staff_id`, `month`.
+    *   *Output*: KPI data (e.g., Occupancy rates, Tenant feedback score).
 
 ---
 
