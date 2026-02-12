@@ -547,7 +547,9 @@ class PropertyAI extends BaseAgent {
                 payment_cycle_rules: "1st-5th: Standard; 6th-10th: Standard + 5 Days Rent",
                 notice_period_days: 30,
                 min_stay_months: 6,
-                early_exit_rule: "DEPOSIT_FORFEIT"
+                early_exit_rule: "DEPOSIT_FORFEIT",
+                rent_payment_timing: "ADVANCE",
+                utility_payment_timing: "ARREARS"
             };
         });
 

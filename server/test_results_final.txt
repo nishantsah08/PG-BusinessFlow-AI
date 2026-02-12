@@ -1,0 +1,611 @@
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'FinUser',
+      designation: 'Audit',
+      contact: { primary: '1231231234' }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: { name: 'No Contact' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 45000,
+      bank_details: {
+        account_number: '9876543210',
+        ifsc: 'SBIN0001234',
+        bank_name: 'SBI'
+      },
+      effective_from: '2024-04-01'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_salary_card with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'SalesUser',
+      designation: 'Sales',
+      contact: { primary: '1231230000' }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 20000,
+      bank_details: { account_number: '1', ifsc: '1' },
+      components: { incentives: { logic: 'Standard', amount_per_unit: 100 } }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_salary_card with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+PASS ../testing/hrAgent/generated_tests/contract_tests.test.js
+  HR Agent Contract Tests (Layer 3 - Finance Handover)
+    √ Contract: Salary Card matches Finance Schema (243 ms)
+    √ Contract: Incentive Structure is readable (14 ms)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'John Doe',
+      designation: 'Manager',
+      contact: { primary: '9876543210' },
+      base_salary: 50000
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.error
+    [HRAgent] Error executing tool hire_staff: Error: Missing required fields: name, designation, contact.primary
+        at Object.handler (D:\3\server\src\agents\HRAgent.js:57:23)
+        at HRAgent.handler [as callTool] (D:\3\server\src\agents\BaseAgent.js:32:47)
+        at Object.callTool (D:\3\testing\hrAgent\generated_tests\api_tests.test.js:11:30)
+        at Promise.then.completed (D:\3\server\node_modules\jest-circus\build\utils.js:298:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (D:\3\server\node_modules\jest-circus\build\utils.js:231:10)
+        at _callCircusTest (D:\3\server\node_modules\jest-circus\build\run.js:316:40)
+        at processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at _runTest (D:\3\server\node_modules\jest-circus\build\run.js:252:3)
+        at _runTestsForDescribeBlock (D:\3\server\node_modules\jest-circus\build\run.js:126:9)
+        at _runTestsForDescribeBlock (D:\3\server\node_modules\jest-circus\build\run.js:121:9)
+        at run (D:\3\server\node_modules\jest-circus\build\run.js:71:3)
+        at runAndTransformResultsToJestFormat (D:\3\server\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+        at jestAdapter (D:\3\server\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+        at runTestInternal (D:\3\server\node_modules\jest-runner\build\runTest.js:367:16)
+        at runTest (D:\3\server\node_modules\jest-runner\build\runTest.js:444:34)
+        at Object.worker (D:\3\server\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 33 |[39m         [36mreturn[39m result[33m;[39m
+     [90m 34 |[39m       } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 35 |[39m         console[33m.[39merror([32m`[${this.name}] Error executing tool ${name}:`[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 36 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 37 |[39m       }
+     [90m 38 |[39m     }[0m
+
+      at HRAgent.error [as callTool] (server/src/agents/BaseAgent.js:35:17)
+      at Object.<anonymous> (testing/hrAgent/generated_tests/api_tests.test.js:11:9)
+
+  console.log
+    [HRAgent] Executing tool: get_staff_details with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: { name: 'Test', designation: 'Test', contact: { primary: '000' } }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'John Doe',
+      designation: 'Manager',
+      contact: { primary: '9876543210' },
+      base_salary: 50000
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.error
+    [HRAgent] Error executing tool create_salary_card: Error: Missing required fields: staff_id, base_salary, bank_details (account_number, ifsc)
+        at Object.handler (D:\3\server\src\agents\HRAgent.js:196:23)
+        at HRAgent.handler [as callTool] (D:\3\server\src\agents\BaseAgent.js:32:47)
+        at Object.callTool (D:\3\testing\hrAgent\generated_tests\api_tests.test.js:19:30)
+        at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    [0m [90m 33 |[39m         [36mreturn[39m result[33m;[39m
+     [90m 34 |[39m       } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 35 |[39m         console[33m.[39merror([32m`[${this.name}] Error executing tool ${name}:`[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 36 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 37 |[39m       }
+     [90m 38 |[39m     }[0m
+
+      at HRAgent.error [as callTool] (server/src/agents/BaseAgent.js:35:17)
+      at Object.<anonymous> (testing/hrAgent/generated_tests/api_tests.test.js:19:9)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Jane Doe',
+      designation: 'Assistant',
+      contact: { primary: '9876543210' },
+      base_salary: 30000
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_staff_details with args: { staff_id: 'INVALID-ID' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: terminate_staff with args: { staff_id: 'NON-EXISTENT', reason: 'Test' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.error
+    [HRAgent] Error executing tool terminate_staff: Error: Staff not found.
+        at Object.handler (D:\3\server\src\agents\HRAgent.js:115:37)
+        at HRAgent.handler [as callTool] (D:\3\server\src\agents\BaseAgent.js:32:47)
+        at Object.callTool (D:\3\testing\hrAgent\generated_tests\api_tests.test.js:31:30)
+        at Promise.then.completed (D:\3\server\node_modules\jest-circus\build\utils.js:298:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (D:\3\server\node_modules\jest-circus\build\utils.js:231:10)
+        at _callCircusTest (D:\3\server\node_modules\jest-circus\build\run.js:316:40)
+        at processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at _runTest (D:\3\server\node_modules\jest-circus\build\run.js:252:3)
+        at _runTestsForDescribeBlock (D:\3\server\node_modules\jest-circus\build\run.js:126:9)
+        at _runTestsForDescribeBlock (D:\3\server\node_modules\jest-circus\build\run.js:121:9)
+        at run (D:\3\server\node_modules\jest-circus\build\run.js:71:3)
+        at runAndTransformResultsToJestFormat (D:\3\server\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+        at jestAdapter (D:\3\server\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+        at runTestInternal (D:\3\server\node_modules\jest-runner\build\runTest.js:367:16)
+        at runTest (D:\3\server\node_modules\jest-runner\build\runTest.js:444:34)
+        at Object.worker (D:\3\server\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 33 |[39m         [36mreturn[39m result[33m;[39m
+     [90m 34 |[39m       } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 35 |[39m         console[33m.[39merror([32m`[${this.name}] Error executing tool ${name}:`[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 36 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 37 |[39m       }
+     [90m 38 |[39m     }[0m
+
+      at HRAgent.error [as callTool] (server/src/agents/BaseAgent.js:35:17)
+      at Object.<anonymous> (testing/hrAgent/generated_tests/api_tests.test.js:31:9)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: { name: 'Test', designation: 'Test', contact: { primary: '001' } }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: record_leave with args: {
+      staff_id: 'STF-01',
+      leave_type: 'INVALID_TYPE',
+      start_date: '2024-01-01'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.error
+    [HRAgent] Error executing tool record_leave: Error: Invalid leave_type. Must be one of: ADVANCE, EMERGENCY, CASUAL, SICK
+        at Object.handler (D:\3\server\src\agents\HRAgent.js:269:23)
+        at HRAgent.handler [as callTool] (D:\3\server\src\agents\BaseAgent.js:32:47)
+        at Object.callTool (D:\3\testing\hrAgent\generated_tests\api_tests.test.js:39:30)
+        at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    [0m [90m 33 |[39m         [36mreturn[39m result[33m;[39m
+     [90m 34 |[39m       } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 35 |[39m         console[33m.[39merror([32m`[${this.name}] Error executing tool ${name}:`[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 36 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 37 |[39m       }
+     [90m 38 |[39m     }[0m
+
+      at HRAgent.error [as callTool] (server/src/agents/BaseAgent.js:35:17)
+      at Object.<anonymous> (testing/hrAgent/generated_tests/api_tests.test.js:39:9)
+
+PASS ../testing/hrAgent/generated_tests/api_tests.test.js
+  HR Agent API Tests (Layer 4)
+    √ API: Missing Required Fields (Hire) (310 ms)
+    √ API: Missing Required Fields (Salary Card) (38 ms)
+    √ API: Invalid Staff ID (Get Details) (11 ms)
+    √ API: Invalid Staff ID (Terminate) (70 ms)
+    √ API: Invalid Enum Value (Leave Type) (20 ms)
+
+  console.error
+    [HRAgent] Error executing tool hire_staff: Error: Staff with primary contact 9876543210 already exists.
+        at Object.handler (D:\3\server\src\agents\HRAgent.js:61:23)
+        at HRAgent.handler [as callTool] (D:\3\server\src\agents\BaseAgent.js:32:47)
+        at Object.callTool (D:\3\testing\hrAgent\generated_tests\domain_tests.test.js:36:30)
+        at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    [0m [90m 33 |[39m         [36mreturn[39m result[33m;[39m
+     [90m 34 |[39m       } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 35 |[39m         console[33m.[39merror([32m`[${this.name}] Error executing tool ${name}:`[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 36 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 37 |[39m       }
+     [90m 38 |[39m     }[0m
+
+      at HRAgent.error [as callTool] (server/src/agents/BaseAgent.js:35:17)
+      at Object.<anonymous> (testing/hrAgent/generated_tests/domain_tests.test.js:36:9)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Terminator',
+      designation: 'Robot',
+      contact: { primary: '1112223334' },
+      base_salary: 100
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: terminate_staff with args: { staff_id: 'STF-01', reason: 'Obsolete' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_staff_details with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'T2',
+      designation: 'R2',
+      contact: { primary: '111' },
+      base_salary: 10
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: terminate_staff with args: { staff_id: 'STF-01', reason: 'Once' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: terminate_staff with args: { staff_id: 'STF-01', reason: 'Twice' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.error
+    [HRAgent] Error executing tool terminate_staff: Error: Staff is already terminated.
+        at Object.handler (D:\3\server\src\agents\HRAgent.js:117:60)
+        at HRAgent.handler [as callTool] (D:\3\server\src\agents\BaseAgent.js:32:47)
+        at Object.callTool (D:\3\testing\hrAgent\generated_tests\domain_tests.test.js:68:30)
+        at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    [0m [90m 33 |[39m         [36mreturn[39m result[33m;[39m
+     [90m 34 |[39m       } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 35 |[39m         console[33m.[39merror([32m`[${this.name}] Error executing tool ${name}:`[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 36 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 37 |[39m       }
+     [90m 38 |[39m     }[0m
+
+      at HRAgent.error [as callTool] (server/src/agents/BaseAgent.js:35:17)
+      at Object.<anonymous> (testing/hrAgent/generated_tests/domain_tests.test.js:68:9)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Richie',
+      designation: 'CEO',
+      contact: { primary: '999' },
+      base_salary: 1
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 100000,
+      bank_details: { account_number: '123', ifsc: 'HDFC' },
+      effective_from: '2024-01-01'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_salary_card with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Dupe',
+      designation: 'Dev',
+      contact: { primary: '888' },
+      base_salary: 1
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 10,
+      bank_details: { account_number: '1', ifsc: '1' }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 20,
+      bank_details: { account_number: '1', ifsc: '1' }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.error
+    [HRAgent] Error executing tool create_salary_card: Error: Salary card already exists. Use update_salary_card.
+        at Object.handler (D:\3\server\src\agents\HRAgent.js:204:23)
+        at HRAgent.handler [as callTool] (D:\3\server\src\agents\BaseAgent.js:32:47)
+        at Object.callTool (D:\3\testing\hrAgent\generated_tests\domain_tests.test.js:97:30)
+        at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+    [0m [90m 33 |[39m         [36mreturn[39m result[33m;[39m
+     [90m 34 |[39m       } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 35 |[39m         console[33m.[39merror([32m`[${this.name}] Error executing tool ${name}:`[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 36 |[39m         [36mthrow[39m error[33m;[39m
+     [90m 37 |[39m       }
+     [90m 38 |[39m     }[0m
+
+      at HRAgent.error [as callTool] (server/src/agents/BaseAgent.js:35:17)
+      at Object.<anonymous> (testing/hrAgent/generated_tests/domain_tests.test.js:97:9)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Updater',
+      designation: 'Dev',
+      contact: { primary: '777' },
+      base_salary: 1
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 10,
+      bank_details: { account_number: '1', ifsc: '1' },
+      components: { incentives: { amount_per_unit: 100 } }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: update_salary_card with args: {
+      staff_id: 'STF-01',
+      new_components: { incentives: { amount_per_unit: 200 } },
+      reason: 'Promotion'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_salary_card with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Leaver',
+      designation: 'Dev',
+      contact: { primary: '666' },
+      base_salary: 1
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: record_leave with args: {
+      staff_id: 'STF-01',
+      leave_type: 'CASUAL',
+      start_date: '2024-03-01',
+      end_date: '2024-03-02',
+      reason: 'Vacation'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_staff_leaves with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Approver',
+      designation: 'Boss',
+      contact: { primary: '555' },
+      base_salary: 1
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: record_leave with args: {
+      staff_id: 'STF-01',
+      leave_type: 'SICK',
+      start_date: '2024-03-01',
+      end_date: '2024-03-01',
+      reason: 'Flu'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: approve_leave_request with args: {
+      request_id: 'LEAVE-1',
+      status: 'APPROVED',
+      approver_note: 'Get well soon'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Sales',
+      designation: 'Rep',
+      contact: { primary: '444' },
+      base_salary: 1
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 10000,
+      bank_details: { account_number: '1', ifsc: '1' },
+      components: { incentives: { logic: 'Units * Rate', amount_per_unit: 500 } }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: calculate_incentive with args: { staff_id: 'STF-01', metric_value: 10 }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+PASS ../testing/hrAgent/generated_tests/domain_tests.test.js
+  HR Agent Domain Tests (Layer 1)
+    √ Identity: Hire Staff creates active profile with unique ID (221 ms)
+    √ Identity: Duplicate hire with same primary contact fails (164 ms)
+    √ Identity: Termination transitions state to TERMINATED (11 ms)
+    √ Identity: Cannot terminate already terminated staff (21 ms)
+    √ Compensation: Salary Card creation with valid data succeeds (14 ms)
+    √ Compensation: Duplicate Salary Card creation fails (must use update) (27 ms)
+    √ Compensation: Update Salary Card preserves history (14 ms)
+    √ Leave: Record valid leave succeeds (9 ms)
+    √ Leave: Approve Leave updates status (10 ms)
+    √ Incentive: Calculate Incentive logic correctness (11 ms)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Alice',
+      designation: 'Manager',
+      contact: { primary: '9000090000' },
+      base_salary: 60000
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 60000,
+      bank_details: { account_number: '12345', ifsc: 'ICICI' },
+      components: { allowances: { travel: 2000 } }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_staff_details with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_salary_card with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Bob',
+      designation: 'Worker',
+      contact: { primary: '8000080000' }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: create_salary_card with args: {
+      staff_id: 'STF-01',
+      base_salary: 20000,
+      bank_details: { account_number: '54321', ifsc: 'SBI' }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_salary_card with args: { staff_id: 'STF-01' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: hire_staff with args: {
+      name: 'Charlie',
+      designation: 'Temp',
+      contact: { primary: '7000070000' }
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: record_leave with args: {
+      staff_id: 'STF-01',
+      leave_type: 'SICK',
+      start_date: '2024-01-01',
+      end_date: '2024-01-02',
+      reason: 'Headache'
+    }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: terminate_staff with args: { staff_id: 'STF-01', reason: 'Project End' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_all_staff with args: { status_filter: 'ACTIVE' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [HRAgent] Executing tool: get_all_staff with args: { status_filter: 'TERMINATED' }
+
+      at HRAgent.log [as callTool] (server/src/agents/BaseAgent.js:31:17)
+
+PASS ../testing/hrAgent/generated_tests/integration_tests.test.js
+  HR Agent Integration Tests (Layer 2)
+    √ Flow A: Hiring Pipeline -> Hire, Define Salary, Verify Active (11 ms)
+    √ Flow B: HR-Finance Handover -> Logic Check (7 ms)
+    √ Flow C: Termination Flow -> Hire, Work, Terminate, Leave Fail (11 ms)
+
+Test Suites: 4 passed, 4 total
+Tests:       20 passed, 20 total
+Snapshots:   0 total
+Time:        6.261 s
+Ran all test suites.

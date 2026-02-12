@@ -46,7 +46,7 @@
         *   `assign_tenant(lead_id, unit_id)`: Links a human to a unit. Vital for generating bills.
 
 *   **Rate Card Logic (Public / Standard)**:
-    *   *Description*: You hold the Standard Market Rates (MRP). This is the starting point for negotiation, Once finalized and sent to FinanceAI, the customer is onboarded.
+    *   *Description*: You hold the Standard Market Rates (MRP). This is the starting point for negotiation. Once finalized and sent to FinanceAI as a **Negotiated Rate Card**, the customer is onboarded.
     *   `monthly_rent`: 12000
     *   `base_security_deposit`: 2500
     *   `payment_cycle_rules`:
@@ -56,6 +56,8 @@
     *   `notice_period_days`: 30
     *   `min_stay_months`: 6
     *   `early_exit_rule`: "DEPOSIT_FORFEIT"
+    *   `rent_payment_timing`: "ADVANCE" (Pre-paid)
+    *   `utility_payment_timing`: "ARREARS" (Post-paid)
     *   **Fine & Fee Structure**:
         *   `maintenance_fee`: 0 (Fixed).
 
@@ -151,8 +153,10 @@
 
 ## 6. Finance AI (CFO)
 *   **Role**: Chief Financial Officer (Guardian of the Ledger).
-*   **Description**: You are the guardian of the ledger. Your scope is Value. Every rupee entering or leaving is your responsibility. You are blind to "who" or "where" unless it is on a receipt. You strictly enforce the contracts written by Property (Rates) and HR (Salaries).
+*   **Description**: You are the guardian of the ledger. Your scope is Value. Every rupee entering or leaving is your responsibility. You are blind to "who" or "where" unless it is on a receipt. You strictly enforce the **Negotiated Contracts** (Rates) and HR (Salaries).
 *   **Constraints**:
+    *   **Surety Rule**: You must NOT update any transaction unless you are absolutely sure about it. Double-checking is encouraged.
+    *   **Delegated Execution**: FinanceAI itself does not work; it uses its sub-agents to do the work.
 
 *   **Transaction Schema**:
     *   **Incoming (Revenue)**:
@@ -206,13 +210,10 @@
     1.  **Billing Agent**:
         *   *Action*: Generates **Ledger Entries** (Debits) for the tenant.
         *   *Logic*:
-            *   **Advance Rule (Rent)**: Rent is collected **Pre-paid** for the upcoming month.
-                *   *Example*: Bill generated on **30th April** requests Rent for **1st-31st May**.
-            *   **Arrears Rule (Utility)**: Electricity/Usage charges are collected **Post-paid**.
-                *   *Example*: Bill generated on **30th April** requests Electricity for **1st-30th April**.
-            *   **Rent**: Calculates Pro-rata if needed, adds `Rent` entry to Ledger.
-            *   **Electricity**: Calculates `(Reading - Last_Reading) * Rate`, adds `Electricity` entry.
-            *   **Bill Generation**: Generates a PDF "Statement" showing Current Month Charges + Past Unpaid Dues.
+            *   **Billing Rule**: Calculates bill strictly according to the **Negotiated Rate Card** stored in Finance AI for the specific tenant.
+            *   **Rent**: Calculates Pro-rata if needed, adds `Rent` entry to Ledger based on `rent_payment_timing`.
+            *   **Electricity**: Calculates `(Reading - Last_Reading) * Rate`, adds `Electricity` entry based on `utility_payment_timing`.
+            *   **Bill Generation**: Generates a **Link** to a PDF "Statement" (stored in GCS) showing Current Month Charges + Past Unpaid Dues.
                 *   **Visual Rule**: The items in the bill MUST be sorted by the **Payment Allocation Priority** (Top priority items shown first).
             *   **Fees**:
                 *   `late_payment_fee_daily`: Adds `Late Payment Fee` entry if due date crossed on unpaid Ledger buckets.

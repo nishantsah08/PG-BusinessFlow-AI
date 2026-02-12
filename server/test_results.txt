@@ -1,0 +1,101 @@
+FAIL ../testing/hrAgent/generated_tests/contract_tests.test.js
+  ● Test suite failed to run
+
+    Cannot find module 'D:\3\server\node_modules\baseline-browser-mapping\dist\index.cjs'
+
+      at Object.<anonymous> (server/node_modules/browserslist/index.js:1:11)
+      at Object.require (server/node_modules/@babel/helper-compilation-targets/src/index.ts:1:1)
+      at require (server/node_modules/@babel/core/src/config/resolve-targets.ts:11:1)
+      at getTargets (server/node_modules/@babel/core/src/config/resolve-targets.ts:48:10)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:122:28)
+          at loadPrivatePartialConfig.next (<anonymous>)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:169:12)
+          at loadPartialConfig.next (<anonymous>)
+      at evaluateSync (server/node_modules/gensync/index.js:251:28)
+      at sync (server/node_modules/gensync/index.js:89:14)
+      at fn (server/node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:53:60)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:72:14)
+      at ScriptTransformer._getCacheKey (server/node_modules/@jest/transform/build/ScriptTransformer.js:228:41)
+      at ScriptTransformer._getFileCachePath (server/node_modules/@jest/transform/build/ScriptTransformer.js:289:27)
+      at ScriptTransformer.transformSource (server/node_modules/@jest/transform/build/ScriptTransformer.js:525:32)
+      at ScriptTransformer._transformAndBuildScript (server/node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (server/node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+
+FAIL ../testing/hrAgent/generated_tests/domain_tests.test.js
+  ● Test suite failed to run
+
+    Cannot find module 'D:\3\server\node_modules\baseline-browser-mapping\dist\index.cjs'
+
+      at Object.<anonymous> (server/node_modules/browserslist/index.js:1:11)
+      at Object.require (server/node_modules/@babel/helper-compilation-targets/src/index.ts:1:1)
+      at require (server/node_modules/@babel/core/src/config/resolve-targets.ts:11:1)
+      at getTargets (server/node_modules/@babel/core/src/config/resolve-targets.ts:48:10)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:122:28)
+          at loadPrivatePartialConfig.next (<anonymous>)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:169:12)
+          at loadPartialConfig.next (<anonymous>)
+      at evaluateSync (server/node_modules/gensync/index.js:251:28)
+      at sync (server/node_modules/gensync/index.js:89:14)
+      at fn (server/node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:53:60)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:72:14)
+      at ScriptTransformer._getCacheKey (server/node_modules/@jest/transform/build/ScriptTransformer.js:228:41)
+      at ScriptTransformer._getFileCachePath (server/node_modules/@jest/transform/build/ScriptTransformer.js:289:27)
+      at ScriptTransformer.transformSource (server/node_modules/@jest/transform/build/ScriptTransformer.js:525:32)
+      at ScriptTransformer._transformAndBuildScript (server/node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (server/node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+
+FAIL ../testing/hrAgent/generated_tests/integration_tests.test.js
+  ● Test suite failed to run
+
+    Cannot find module 'D:\3\server\node_modules\baseline-browser-mapping\dist\index.cjs'
+
+      at Object.<anonymous> (server/node_modules/browserslist/index.js:1:11)
+      at Object.require (server/node_modules/@babel/helper-compilation-targets/src/index.ts:1:1)
+      at require (server/node_modules/@babel/core/src/config/resolve-targets.ts:11:1)
+      at getTargets (server/node_modules/@babel/core/src/config/resolve-targets.ts:48:10)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:122:28)
+          at loadPrivatePartialConfig.next (<anonymous>)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:169:12)
+          at loadPartialConfig.next (<anonymous>)
+      at evaluateSync (server/node_modules/gensync/index.js:251:28)
+      at sync (server/node_modules/gensync/index.js:89:14)
+      at fn (server/node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:53:60)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:72:14)
+      at ScriptTransformer._getCacheKey (server/node_modules/@jest/transform/build/ScriptTransformer.js:228:41)
+      at ScriptTransformer._getFileCachePath (server/node_modules/@jest/transform/build/ScriptTransformer.js:289:27)
+      at ScriptTransformer.transformSource (server/node_modules/@jest/transform/build/ScriptTransformer.js:525:32)
+      at ScriptTransformer._transformAndBuildScript (server/node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (server/node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+
+FAIL ../testing/hrAgent/generated_tests/api_tests.test.js
+  ● Test suite failed to run
+
+    Cannot find module 'D:\3\server\node_modules\baseline-browser-mapping\dist\index.cjs'
+
+      at Object.<anonymous> (server/node_modules/browserslist/index.js:1:11)
+      at Object.require (server/node_modules/@babel/helper-compilation-targets/src/index.ts:1:1)
+      at require (server/node_modules/@babel/core/src/config/resolve-targets.ts:11:1)
+      at getTargets (server/node_modules/@babel/core/src/config/resolve-targets.ts:48:10)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:122:28)
+          at loadPrivatePartialConfig.next (<anonymous>)
+      at loadPrivatePartialConfig (server/node_modules/@babel/core/src/config/partial.ts:169:12)
+          at loadPartialConfig.next (<anonymous>)
+      at evaluateSync (server/node_modules/gensync/index.js:251:28)
+      at sync (server/node_modules/gensync/index.js:89:14)
+      at fn (server/node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:53:60)
+      at loadPartialConfigSync (server/node_modules/@babel/core/src/config/index.ts:72:14)
+      at ScriptTransformer._getCacheKey (server/node_modules/@jest/transform/build/ScriptTransformer.js:228:41)
+      at ScriptTransformer._getFileCachePath (server/node_modules/@jest/transform/build/ScriptTransformer.js:289:27)
+      at ScriptTransformer.transformSource (server/node_modules/@jest/transform/build/ScriptTransformer.js:525:32)
+      at ScriptTransformer._transformAndBuildScript (server/node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (server/node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+
+Test Suites: 4 failed, 4 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        2.313 s
+Ran all test suites.

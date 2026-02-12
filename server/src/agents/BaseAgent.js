@@ -26,10 +26,20 @@ class BaseAgent {
   }
 
   async callTool(name, args) {
-    if (this.tools[name]) {
+    const tool = this.tools[name];
+    if (tool) {
+      // Basic Schema Validation (Required Fields)
+      if (tool.schema && tool.schema.required) {
+        for (const req of tool.schema.required) {
+          if (args[req] === undefined || args[req] === null) {
+            throw new Error(`Invalid input for ${name}: missing required property "${req}"`);
+          }
+        }
+      }
+
       try {
         console.log(`[${this.name}] Executing tool: ${name} with args:`, args);
-        const result = await this.tools[name].handler(args);
+        const result = await tool.handler(args);
         return result;
       } catch (error) {
         console.error(`[${this.name}] Error executing tool ${name}:`, error);

@@ -428,39 +428,89 @@ The HR Agent exposes a comprehensive set of tools to support both **Chat (Master
 ---
 
 ## 6. Finance AI (CFO)
-**Role**: Guardian of the Ledger.
-**Sub-Agents**: Billing, Accounting, Salary.
-**Logic**: Strict Schema, Append-Only.
+**Role**: Chief Financial Officer (Guardian of the Ledger).
+**Description**: The guardian of the ledger. Blind to "who" or "where" unless on a receipt. Strictly enforces Property (Rates) and HR (Salaries) contracts.
+**Constraints**:
+*   **Surety Rule**: Must not update any transaction unless absolutely sure (double-check encouraged).
+*   **Delegated only**: FinanceAI itself does not work; it uses its sub-agents (Billing, Accounting, Salary) to do the work.
 
-### Tools
-*   **`record_incoming_txn`** (Generic & Split)
-    *   *Inputs*: `txn_id`, `amount`, `payer_id`, `mode`, `date`, `attachment_path`.
-    *   *Logic*: **Waterfall Allocation Strategy**. Automatically allocate 'amount' to ledger buckets in this priority:
-        1.  **Security Deposit**
-        2.  **Past Dues** (Arrears)
-        3.  **Police Verification Fee**
-        4.  **Rent**
-        5.  **Parking Fee**
-        6.  **Wi-Fi Fee**
-        7.  **Electricity Bill**
-        8.  **Asset Damage Recovery**
-        9.  **Late Payment Fees**
-    *   *Output*: Returns allocation breakdown.
-*   **`record_outgoing_txn`**
-    *   *Inputs*: `category` (OpEx/CapEx), `sub_category`, `work_done`, `property_id`, `amount`, `payee`, `approved_by`, `remarks`.
-*   **`generate_monthly_bills`** (Billing Agent)
-    *   *Trigger*: Monthly.
-    *   *Logic*:
-        *   **Rent**: Pre-paid (Next Month). Pro-rata support.
-        *   **Utilities (Electricity)**: Post-paid (Last Month's usage * Rate).
-        *   **Fines**: Late payment check.
-        *   **Output**: Generates "Statement" sorted by Payment Allocation Priority.
-*   **`process_salary`** (Salary Agent)
-    *   *Inputs*: `staff_id`, `month`.
-    *   *Logic*: Fetch Salary Card from HR -> Calculate Payout (Base + Incentives - Advances).
-*   **`get_ledger`** (Accounting Agent)
-    *   *Inputs*: `payer_id` or `staff_id`.
-    *   *Returns*: Balance sheet (`Previous_Due + New_Bill - Payments`).
+### 6.1 Data Schemas
+#### Transaction Schema
+*   **Incoming (Revenue)**: `txn_id` (IN-XXXX), `amount`, `date` (IST), `payer_id`, `payment_mode` (UPI/Cash/PG/NetBanking), `allocations` (List of objects), `attachment` (GCS Link).
+*   **Outgoing (Expense)**: `txn_id` (OUT-XXXX), `category` (OpEx/CapEx), `sub_category`, `work_done`, `property_id`, `amount`, `date` (IST), `payee`, `payment_mode`, `approved_by`, `remarks`.
+
+#### Ledger Entry Schema (The Bucket)
+*   `entry_id`, `payer_id`, `category` (Rent/Electricity/LateFee), `month_year`, `amount_due`, `amount_paid`, `balance`, `status` (PAID/PENDING/PARTIALLY_PAID).
+
+#### Negotiated Rate Card Schema (Per Tenant Contract)
+*   `lead_id` (Primary Key), `monthly_rent`, `security_deposit`, `rent_payment_timing` (ADVANCE/ARREARS), `utility_payment_timing` (ADVANCE/ARREARS), `effective_from`.
+
+### 6.2 Logic & Waterfall
+*   **Waterfall Strategy**: Incoming payments are allocated to buckets in this priority:
+    1. Security Deposit
+    2. Past Dues (Arrears)
+    3. Police Verification Fee
+    4. Rent
+    5. Parking Fee
+    6. Wi-Fi Fee
+    7. Electricity Bill
+    8. Asset Damage Recovery
+    9. Late Payment Fees
+*   **Billing Rule**: Bills are generated strictly according to the **Negotiated Rate Card** stored in Finance AI.
+    *   **Rent**: Pre-paid (timing set by `rent_payment_timing` in the negotiated card).
+    *   **Electricity**: Post-paid (timing set by `utility_payment_timing` in the negotiated card).
+
+### 6.3 Finance AI API Skills (Exhaustive)
+The Finance AI exposes tools for MasterAI (Chat) and the Admin Dashboard (GUI).
+
+#### Revenue & Collections
+*   **`record_incoming_txn`**:
+    *   *Inputs*: `amount`, `payer_id`, `payment_mode`, `date`, `attachment_url`, `txn_id` (Optional).
+    *   *Logic*: Triggers the **Waterfall Logic** to allocate funds to ledger buckets.
+*   **`get_txn_details`**:
+    *   *Inputs*: `txn_id`.
+    *   *Returns*: Full transaction record including its allocations.
+*   **`get_incoming_txns`**:
+    *   *Inputs*: `payer_id` (Optional), `date_range`, `limit`, `offset`.
+
+#### Expenses & Outgoings
+*   **`record_outgoing_txn`**:
+    *   *Inputs*: `category`, `sub_category`, `work_done`, `property_id`, `amount`, `payee`, `payment_mode`, `approved_by`, `remarks`.
+*   **`get_expenses`**:
+    *   *Inputs*: `property_id` (Optional), `category`, `date_range`.
+
+#### Ledger & Billing
+*   **`get_ledger`**:
+    *   *Inputs*: `payer_id` (Mandatory).
+    *   *Returns*: List of all ledger buckets (debts) and current balances.
+*   **`add_ledger_entry`**:
+    *   *Inputs*: `payer_id`, `category`, `amount_due`, `month_year`, `reason`.
+    *   *Usage*: Used by Billing Agent to create debts.
+*   **`generate_monthly_bills`**:
+    *   *Inputs*: `property_id` (Optional - for bulk), `month`, `year`.
+    *   *Logic*: Directs Billing Agent to calculate dues based on **Negotiated Rates** and Meter Readings.
+    *   *Output*: Returns a list of **GCS Links** to the generated PDF bills.
+*   **`onboard_tenant_contract`**:
+    *   *Inputs*: `lead_id`, `negotiated_rent`, `security_deposit`, `rent_payment_timing`, `utility_payment_timing`, `effective_from`.
+    *   *Purpose*: Stores the final negotiated terms for a tenant.
+*   **`get_tenant_statement`**:
+    *   *Inputs*: `payer_id`, `month_year`.
+    *   *Returns*: A summary of charges and payments for the period.
+
+#### Salary & Staff Finance
+*   **`process_salary_payout`**:
+    *   *Inputs*: `staff_id`, `month`, `year`.
+    *   *Logic*: Directs Salary Agent to calculate payout based on HR Salary Card.
+*   **`record_salary_advance`**:
+    *   *Inputs*: `staff_id`, `amount`, `reason`.
+
+#### Dashboard & Analytics
+*   **`get_financial_summary`**:
+    *   *Inputs*: `date_range`, `property_id` (Optional).
+    *   *Returns*: Total Inflow, Total Outflow, Outstanding Dues.
+*   **`get_defaulters_list`**:
+    *   *Inputs*: `threshold_days`, `limit`.
+    *   *Returns*: Tenants with pending ledger entries beyond the threshold.
 
 ---
 
