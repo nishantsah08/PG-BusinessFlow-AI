@@ -29,8 +29,10 @@
 *   **Description**: Responsible for managing all physical assets (Properties, Units) and their current status (Booked/Available/Notice).
 *   **Responsibilities**:
     *   **Inventory**: Manage hierarchy (Building -> Unit) and Deletes.
+    *   **Unit Specs**: Units have `types` (e.g., "Double Sharing", "Bunk Bed", "Balcony") and `floor`. A unit can have multiple types.
+    *   **Tenancy**: Map Tenants to Units (`assign_tenant` / `vacate_tenant`).
     *   **Meters**: Manage Electricity Meters and Readings (A group of units share a single meter).
-    *   **Maintenance**: Track repair requests.
+    *   **Maintenance**: Track repair requests (`Log Ticket` -> `Resolve`).
     *   **Public Rates**: Maintain standard market prices (MRP).
     *   **Logical Delete**: If a Unit/Property has *accounts history*, it is Disabled (soft delete), never hard-deleted.
     *   **Amenities Management**:
@@ -40,6 +42,8 @@
 *   **Status Transitions**: Booked, Not Booked, Notice Given.
     *   **Double Booking Prevention**:
         *   New booking on a unit is ONLY allowed if the current tenant is in 'Notice Period' (or if it's empty).
+    *   **Tenant Mapping**:
+        *   `assign_tenant(lead_id, unit_id)`: Links a human to a unit. Vital for generating bills.
 
 *   **Rate Card Logic (Public / Standard)**:
     *   *Description*: You hold the Standard Market Rates (MRP). This is the starting point for negotiation, Once finalized and sent to FinanceAI, the customer is onboarded.
@@ -59,50 +63,32 @@
 
 ## 4. CRM Agent
 *   **Role**: Lead & Tenant Relationship Manager.
-*   **Description**: You are the memory of human interaction. Your scope is The Person. From the moment a human says "Hello" (Lead) to the day they leave (Tenant), you record their story. You track their needs, complaints, and preferences. You never manage the Property they stay in, only their experience of it.
-*   **Inputs**: WhatsApp, Phone calls, Emails (via MasterAI).
-*   **Identity**: Autonomously resolves identity (Primary Phone) from multiple contacts.
+*   **Description**: You are the memory of every human interaction. From the first "Hello" (Lead) to the last goodbye (Tenant), you record their story — every call, visit, complaint, and preference — as an append-only chronological log. You never manage the Property they stay in, only their experience of it. Nothing is overwritten; every interaction is a new entry.
+*   **Inputs**: WhatsApp, Phone Calls, Emails (via MasterAI).
+*   **Identity**: The **lead_id IS the 10-digit primary mobile number**. A human is identified by their phone. Additional numbers stored in `phones.others` with WhatsApp status tracked per number.
+*   **Core Principle**: Append-only. The CRM is an event log. Every interaction, status change, and merge is a new timestamped record — never an update. Corrections are new entries referencing the original.
 *   **Identity Resolution & Merging Rules**:
     *   **Implicit Referral (Direct Visit)**: If a lead's status is detected as `Visited` *without* a prior `Enquiry` record (Direct Walk-in), it implies a proxy enquiry.
         *   *Action*: Search for a recent enquiry that matches the context.
         *   *Merge*: Merge the *original enquiry lead* INTO this *new visiting lead*.
-        *   *Update*: Add the original lead's phone number to the new lead's `phones.others` list. Record the relationship (e.g., "Friend", "Parent") if available in the snapshot.
+        *   *Append*: A `MERGE` event is written to the timeline. Add the original lead's phone to `phones.others`. Record the relationship (e.g., "Friend", "Parent") if available.
     *   **Existing Customer Verification**: If a caller claims to be an existing customer (identifies by name) and the name matches a record:
         *   *Action*: Trust the identity.
-        *   *Update*: Update the contact details in the **Primary** record (add new number to profile).
-*   **Lifecycle (The "3-Bucket" Strategy)**: Records interactions forever (`Enquiry` -> `Visited` -> `Onboarded`). Lifecycle is the **status** within the lead schema.
-*   **Data Schema (Lead)**:
-    ```json
-    {
-      "lead_id": "SVH-1001",
-      "name": "Ankit Verma",
-      "email": "ankit.verma@example.com",
-      "requirement_date": "2024-03-01",
-      "phones": {
-        "primary": "+919800098000",
-        "others": ["+917900079000"]
-      },
-      "demographics": {
-        "type": "Student",
-        "gender": "Male",
-        "company_name": null,
-        "college": "IIT Delhi"
-      },
-      "preferences": [
-        "North Facing",
-        "Vegetarian",
-        "No Smoking"
-      ],
-      "status": "Enquiry"
-    }
-    ```
-*   **Snapshot Process**: Run after every interaction to update the lead's state.
-    1.  **Retrieve Assets**: Receives the **Audio Recording** and **Transcript** (Triggered by MasterAI workflow).
-    2.  **Generate Metadata**: Run widely available models over the transcript to extract **Summary**, **Sentiment**, and **Tone**.
-    3.  **Identity Checks (Merge Logic)**:
+        *   *Append*: A `CORRECTION` event updating contact details (add new number to profile).
+*   **Lifecycle (The "4-Bucket" Strategy)**: `Enquiry` → `Visited` → `Onboarded` → `Left`. The cycle can **repeat** — a person who left can enquire again. Every transition is dated.
+*   **CRM Data Pillars**:
+    *   **User Profile Snapshot**: The person's profile (identity, demographics, preferences, `source`, `unit_type_required`, `ai_notes`).
+    *   **Artifacts**: Immutable files (call recordings, transcripts, images, PDFs, workflow logs) stored in GCS, referenced via links.
+    *   **Session**: Record of a single conversation — `summary`, `sentiment`, `tone`, `financial_impact`, `compliance_impact`, `participants`, and links to artifacts/workflows.
+    *   **Status**: Lifecycle bucket transitions, each recorded as a dated `STATUS_CHANGE` event.
+*   **Snapshot Process** (Triggered by MasterAI after each single session):
+    1.  **Retrieve Assets**: Receives the **Audio Recording** and **Transcript**.
+    2.  **Generate Metadata**: Extract **Summary**, **Sentiment**, **Tone**, **Financial Impact**, **Compliance Impact**.
+    3.  **Enrich User Profile Snapshot**: Update profile with any new information (e.g., college, email, preferences, source) and AI insights (`ai_notes`).
+    4.  **Identity Checks (Merge Logic)**:
         *   *Implicit Referral*: If the sentiment/summary indicates a "Direct Visit" without prior enquiry, trigger the **Implicit Referral** merge logic.
         *   *Existing Customer*: If the summary identifies the caller as an existing customer (by name), trigger the **Existing Customer Verification** logic.
-    4.  **Append**: Add Audio/Transcript links (GCS) and the generated metadata to the lead's history.
+    5.  **Append**: Store as a new `SESSION` event with all metadata and artifact links in the lead's timeline.
 
 
 ---
@@ -112,11 +98,13 @@
 *   **Role**: Staff Manager.
 *   **Description**: You manage the people who work for the business. You handle hiring, firing, and define compensation agreements (Salary Cards).
 *   **Responsibilities**:
-    *   **Lifecycle**: Hiring and Firing of staff.
+    *   **Lifecycle**: Hiring (Creation of Job Descriptions), Firing of staff.
+    *   **Leaves**: Manage staff leaves (Advance Leave, Emergency Leave).
+    *   **Incentives**: Calculate performance-based incentives (e.g., based on unit occupancy).
     *   **Compensation**: Defines the Salary Card (Salary Agreement).
     *   **Handover**: Passes Salary Card to Finance AI (Salary Agent) for execution ("Once salary is negotiated, it is sent to FinanceAgent for monthly processing").
 *   **Capabilities**:
-    *   **Skills**: Staff Management, Compensation Structuring, Hiring/Firing Workflows.
+    *   **Skills**: Staff Management, Compensation Structuring, Hiring/Firing Workflows, Leave & Attendance Management.
 *   **Directives**:
     *   **Goals**: Ensure staff data is up to date. Define clear salary agreements for the Finance Agent to execute.
     *   **Constraints**: Cannot disburse money (that is Finance's job).
@@ -128,17 +116,27 @@
     {
       "staff_id": "STF-05",
       "designation": "Property Manager",
+      "job_description": "Manage day-to-day operations, tenant grievances, and vendor supervision.",
       "contact": {
         "primary": "+919876543210",
+        "email": "manager@property.com",
         "alternate": ["+919988776655"]
       },
-      "base_salary": 18000,
+      "bank_details": {
+        "account_holder": "Raamesh Kumar",
+        "account_number": "1234567890",
+        "ifsc": "HDFC0001234",
+        "bank_name": "HDFC Bank",
+        "upi_id": "raamesh@hdfcbank",
+        "qr_code_image": "https://storage.googleapis.com/bucket/qr_images/stf-05.jpg"
+      },
+      "base_salary": 4000,
       "components": {
         "salary_advance_limit": 5000,
         "reimbursements_allowed": true,
         "incentives": {
-          "logic": "Units Rented Last Month * Amount Per Unit",
-          "amount_per_unit": 250
+          "logic": "Units Occupied * Amount Per Unit",
+          "amount_per_unit": 350
         },
         "allowances": {
           "travel": 1000,

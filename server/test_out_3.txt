@@ -1,0 +1,26 @@
+  console.log
+    [CRMAgent] Executing tool: add_lead with args: { name: 'Lifecycle Tester', primary_phone: '9000090000' }
+
+      at CRMAgent.callTool (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [CRMAgent] Executing tool: change_status with args: { lead_id: '9000090000', to_status: 'Onboarded', reason: 'Skip' }
+
+      at CRMAgent.callTool (server/src/agents/BaseAgent.js:31:17)
+
+  console.log
+    [CRMAgent] Executing tool: change_status with args: { lead_id: '9000090000', to_status: 'Left', reason: 'Skip' }
+
+      at CRMAgent.callTool (server/src/agents/BaseAgent.js:31:17)
+
+PASS ../testing/crmAgent/generated_tests/lifecycle.test.js
+  CRM Agent: Lifecycle State Machine
+    √ INV-09: Invalid Transitions (Regression Lock) (65 ms)
+    ○ skipped INV-09: Valid Lifecycle Flow
+    ○ skipped INV-10: Status Sync
+
+Test Suites: 1 passed, 1 total
+Tests:       2 skipped, 1 passed, 3 total
+Snapshots:   0 total
+Time:        0.932 s, estimated 2 s
+Ran all test suites matching /..\\testing\\crmAgent\\generated_tests\\lifecycle.test.js/i with tests matching "INV-09: Invalid Transitions".
