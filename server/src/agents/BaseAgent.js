@@ -1,5 +1,8 @@
-class BaseAgent {
+const EventEmitter = require('events');
+
+class BaseAgent extends EventEmitter {
   constructor(config = {}) {
+    super();
     this.name = config.name || 'UnknownAgent';
     // Rich metadata schema
     this.identity = config.identity || {}; // { systemName, personaName, role, description }
@@ -39,10 +42,26 @@ class BaseAgent {
 
       try {
         console.log(`[${this.name}] Executing tool: ${name} with args:`, args);
-        const result = await tool.handler(args);
+        // Default: Emit tool execution start event
+        this.emit('tool_start', { agent: this.name, tool: name, args });
+
+        // Enforce 60s Timeout (System Policy)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Tool execution timed out after 60000ms`)), 60000)
+        );
+
+        const result = await Promise.race([
+          tool.handler(args),
+          timeoutPromise
+        ]);
+
+        // Default: Emit tool execution success event
+        this.emit('tool_end', { agent: this.name, tool: name, result });
+
         return result;
       } catch (error) {
         console.error(`[${this.name}] Error executing tool ${name}:`, error);
+        this.emit('tool_error', { agent: this.name, tool: name, error });
         throw error;
       }
     }

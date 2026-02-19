@@ -24,40 +24,54 @@ Implement the complete Agent System (v3.7) with a **Dynamic Workflow Engine**, a
 
 ## 2. Master AI (Orchestrator)
 **Persona**: Kalyani (Head of Operations & Sales)
-**Role**: Dynamic Workflow Engine & Orchestrator. Rewrite policies/workflows on the fly. Maintains **Conversation Memory**.
+**Role**: Dynamic Workflow Engine & Orchestrator.
+**Architectural Decision**: MasterAI is a **Pure Logic Engine**. Infrastructure is offloaded to specialized APIs.
 
-### Tools
-*   **`add_workflow`**
-    *   *Purpose*: Create or update dynamic workflows.
-    *   *Inputs*: `trigger_event`, `steps` (List of tool calls/logic).
-*   **`trigger_workflow`**
-    *   *Purpose*: Execute a specific workflow based on an event.
-    *   *Inputs*: `event_type`, `payload`.
-*   **`get_execution_logs`**
-    *   *Purpose*: Retrieve logs of past workflow executions for debugging.
+### 2.1 Webhook Gateway Service (The "Ears")
+*   **Component**: Independent Express.js App.
+*   **Role**: Receive, Validate, and Push to Bus. Returns 200 OK immediately.
+*   **API Endpoints (To be implemented)**:
+    *   `POST /webhooks/whatsapp`
+        *   *Input**: Raw JSON from Meta.
+        *   *Logic*: Verify Signature -> Push `message.received` event -> Return 200.
+    *   `POST /webhooks/email` (Postmark/SendGrid)
+    *   `POST /webhooks/razorpay` (Payment Gateway)
+    *   `GET /health`
 
-### Universal Messaging & Memory Architecture
-*   **Scope**: Applies to ALL incoming communication (WhatsApp, Email, SMS, Portal Chat).
+### 2.2 Event Bus & System APIs (The "Nerves")
+*   **Component**: Shared Module / sidecar.
+*   **Role**: Transport & Reliability.
+*   **System APIs**:
+    *   `publish_event(topic, payload)`
+    *   `subscribe(topic, callback)`
+    *   `get_dead_letter_queue()`
+    *   `retry_event(event_id)`
+
+### 2.3 MasterAI Logic Tools (The "Brain")
+MasterAI use these internal tools to control the flow.
+*   **`add_workflow`**: Create/Update dynamic policy.
+*   **`trigger_workflow`**: Manually execute a flow.
+*   **`get_session_state(user_id)`**: Fetch current context from Memory Store (Phase 1: Local, Phase 2: Redis).
+*   **`update_session_state(user_id, data)`**: Commit state changes.
+*   **`emit_command(agent, tool, args)`**: Execute a synchronous MCP call to an agent.
+
+### 2.4 Universal Messaging & Memory Architecture
+*   **Scope**: Applies to ALL incoming communication.
 *   **Session Management**:
     *   **Start Time**: Every session MUST have a `session_start_time` (IST).
-    *   **Timeout**: 15 Minutes. If no interaction > 15 mins, flushed to CRM.
-*   **Workflow Tracking**:
-    *   **Execution**: Every workflow execution has a unique ID and `start_time`.
-    *   **Storage (Final Phase)**: Full execution logs (steps, inputs, outputs) are stored in **GCP Bucket**.
-    *   **CRM Link**: The CRM only stores the `workflow_id`, `status`, `summary`, and a **Link** to the GCP log.
-*   **Incoming Message Logic**:
-    1.  **Identify & Enrich**:
-        *   Check if Lead exists in CRM.
-        *   **If Exists**: Pull **ALL** data (Profile + Past History) into MasterAI context for "Rich Conversation".
-        *   **If New**: Create new Lead Profile immediately.
-    2.  **Link**: Update Lead's `chat_session_link` to point to the current active memory.
-    3.  **Buffer**: Append message to the In-Memory Session.
+    *   **Timeout**: **60 Seconds** (Unified).
+    *   **Inactivity**: 15 Minutes.
+*   **Incoming Message Logic (The "Loop")**:
+    1.  **Gateway**: Receives HTTP -> Pushes Event.
+    2.  **Logic Engine**: Reacts to Event -> Fetches State -> Decides Action.
+    3.  **Action**: Calls Agent Tool (MCP).
+    4.  **Response**: Agent completes -> Emits Event -> Logic Engine updates State.
 
-### Pre-defined Workflows (To be implemented)
-1.  **Bill Calculation**: 
+### 2.5 Pre-defined Workflows
+1.  **Bill Calculation**:
     *   *Trigger*: Monthly (End of Month).
     *   *Steps*: Fetch Active Tenants -> Calculate Itemised Bill (Rent + Utility + Fines) -> Send via WhatsApp.
-2.  **Payment Acknowledgement**: 
+2.  **Payment Acknowledgement**:
     *   *Trigger*: `payment_received` event.
     *   *Steps*: Verify Transaction -> Send "Thank You" message via WhatsApp.
 
@@ -124,19 +138,23 @@ Implement the complete Agent System (v3.7) with a **Dynamic Workflow Engine**, a
 **Role**: Lead & Tenant Relationship Manager.
 **Description**: The memory of every human interaction. From the first "Hello" (Lead) to the last goodbye (Tenant), you record their story — every call, visit, complaint, and preference — as an append-only chronological log. You never manage the Property they stay in, only their experience of it. Nothing is overwritten; every interaction is a new entry, so one can always trace exactly how things progressed over time.
 **Inputs**: WhatsApp, Phone Calls, Emails (all routed via MasterAI).
-**Core Principle**: Append-only. The CRM is an event log, not a mutable table. Every interaction is a new timestamped record — never an update to an existing one. Corrections are new entries referencing the original.
+**Core Principle**:
+*   **Timeline**: STRICTLY Append-only. Event log.
+*   **Snapshot**: Mutable Projection. Updated in-place.
 
 ---
 
 ### 4.1 User Profile Snapshot (The Person)
-The User Profile Snapshot is the **profile of a human and their requirement**. It captures who they are and what they are looking for, not what happened to them (that's the timeline's job).
+The User Profile Snapshot is the **profile of a human and their requirement**.
 
-**Identity Rule**: The **lead_id IS the 10-digit primary mobile number** (e.g., `9800098000`). The CRM is about humans, and a human is identified by their phone. Additional numbers are stored in `phones.others`, but the primary number is the permanent key.
+**Identity Rule**: The **lead_id IS the 10-digit primary mobile number** (e.g., `9800098000`).
+*   **Constraint**: If number changes, it is treated as a new Identity (or requires complex admin merge). We accept this risk for simplicity of `lead_id = phone`.
 
 ```json
 {
   "lead_id": "9800098000",
   "name": "Ankit Verma",
+  "profile_type": "Customer",
   "email": "ankit.verma@example.com",
   "source": {
     "category": "Google Business Listing",
@@ -177,6 +195,10 @@ The User Profile Snapshot is the **profile of a human and their requirement**. I
 > **`ai_notes`** (Dynamic): A free-form object where the CRM AI **autonomously** adds observations it extracts from conversations that help build a richer profile. Keys are invented by the AI on the fly — there is no fixed schema. Examples: `budget_sensitivity`, `move_in_urgency`, `personality`, `family_situation`, `negotiation_style`. Updated during the Snapshot Process whenever new insights surface.
 >
 > **`unit_type_required`**: What type of accommodation the lead is looking for. E.g., `Single Room`, `Double Sharing`, `Triple Sharing`, `1BHK`, `2BHK`. Updated during Snapshot Process if the lead changes their requirement.
+>
+> **`profile_type`**: Determines the user's role in the system.
+> *   `Customer`: Default. Full context history loaded.
+> *   `Staff` / `CEO`: Internal users. No history context loaded. Created/Updated via HR Agent sync.
 >
 > **`status` is a convenience field**: The "real" status lives in the timeline as `STATUS_CHANGE` events (e.g., Enquiry→Visited on Feb 20, Visited→Onboarded on Mar 5). The `status` field on the snapshot is just a shortcut so you don't have to scan the entire timeline every time. It is always kept in sync with the latest `STATUS_CHANGE` event.
 
@@ -387,6 +409,7 @@ The HR Agent exposes a comprehensive set of tools to support both **Chat (Master
 *   **`hire_staff`**:
     *   *Inputs*: `name`, `designation`, `job_description`, `contact` (primary, email, alternate), `base_salary`.
     *   *Output*: `staff_id` (System Generated).
+    *   *Side Effect*: Emits `staff.hired` event. MasterAI receives it and calls `CRM_Agent.add_lead` to set `profile_type="Staff"`.
 *   **`update_staff_profile`**:
     *   *Inputs*: `staff_id`, `name`, `designation`, `contact`, `job_description`.
 *   **`terminate_staff`**:
@@ -515,25 +538,105 @@ The Finance AI exposes tools for MasterAI (Chat) and the Admin Dashboard (GUI).
 ---
 
 ## 7. Communications AI (Gateway)
-**Role**: Messaging Gateway (WhatsApp/Email) & Telephony (SIP Trunk).
-**Logic**: Formatting & Tone Adaptation.
+*   **Role**: Communications AI is the system’s communication gateway that connects users to the platform through channels such as WhatsApp, Email, Voice calls, and future communication methods.
+*   **Description**:
+    *   It handles communication only.
+    *   All decisions always come from MasterAI.
+    *   Its multimodal.
+*   **Responsibilities**:
+    *   Receiving messages or calls from external channels.
+    *   Sending messages when instructed.
+    *   Converting communication into system events.
+    *   Converting system responses into user-facing communication.
+    *   Formatting messages for the correct channel.
+    *   Ensuring delivery succeeds or retrying if needed.
+    *   Securely managing external provider connections.
+*   **Internal Structure**:
+    *   CommunicationsAI contains adapters, not agents.
+    *   Adapters are connectors to external communication systems.
+    *   These adapters do not contain intelligence or decision logic.
+    *   They only allow the system to interact with external platforms.
+*   **Adapters**:
+    *   **WhatsApp Adapter — Must Be Able To**:
+        *   Send messages.
+        *   Receive messages.
+        *   Send media.
+        *   Report delivery status.
+        *   Notify system when new message arrives.
+        *   Securely authenticate with provider.
+    *   **Email Adapter — Must Be Able To**:
+        *   Send emails.
+        *   Receive emails.
+        *   Handle attachments.
+        *   Detect replies and threads.
+        *   Report delivery success or failure.
+        *   Securely authenticate.
+    *   **Voice Adapter — Description**:
+        *   The Voice Adapter enables the system to handle voice calls from different sources such as SIP, browser calls, app calls, or telecom providers.
+        *   It standardizes all voice interactions so the rest of the system sees every call in a consistent format.
+        *   It does not generate speech or understand speech itself. Those functions are handled by an external voice renderer.
+        *   **We are only working with sip adapter right now.**
+    *   **SIP Voice Adapter — Must Be Able To**:
+        *   Accept calls.
+        *   End calls.
+        *   Detect missed calls.
+        *   Detect waiting calls.
+        *   Provide transcripts.
+        *   Provide call recordings.
+    *   **SIP Voice Adapter — Special Capabilities**:
+        *   **Pre-Call Context**: Before answering, it should fetch basic caller context so the system already knows who is calling. It should be able to call MasterAI and inject this context into the external voice system.
+        *   **Live Context Access**: During a call, it must be able to request additional information from the system when needed. This should be exposed by the adapter for the external system to consume.
+*   **Core Principle**:
+    *   CommunicationsAI handles communication, not decisions.
+    *   CommunicationsAI is a channel-agnostic gateway that connects external communication systems to MasterAI through standardized events.
 
-### Tools
-*   **`send_message`**
-    *   *Inputs*: `channel` (WhatsApp/Email), `recipient`, `content`, `tone` (Transactional/Marketing/Formal).
-    *   *Logic*:
-        *   If `tone` == 'Formal': Add signature.
-        *   If `tone` == 'Casual': Add simulated emojis.
-*   **`update_api_config`**
-    *   *Purpose*: Update/Rotate API keys securely without redeploying.
-*   **`process_voice_interaction`** (SIP Trunk Sub-Agent)
-    *   *Inputs*: `audio_stream` or `recording_url`.
-    *   *Output*: Generates **Audio Recording** and **Transcript** (passed to MasterAI -> CRM).
-*   **`relay_event`** (Internal)
-    *   *Purpose*: Forward incoming messages to MasterAI for processing.
-    *   *Mechanism*: 
-        *   **Ingestion Only**: Pushes event to MasterAI Context.
-        *   **Autonomous Action**: MasterAI decides *if* and *when* to call `CRMAgent.log_interaction` or `CommunicationsAI.send_message`. No hardcoded scripts.
+### 7.1 WhatsApp Adapter API Skills (Exhaustive)
+The WhatsApp Adapter exposes a comprehensive set of tools for MasterAI to manage messaging.
+
+#### Outbound Messaging
+*   **`send_text_message`**:
+    *   *Inputs*: `recipient_phone`, `content`, `preview_url` (Boolean).
+    *   *Function*: Sends a standard text message. Handles formatting (bold, italics) automatically.
+*   **`send_media_message`**:
+    *   *Inputs*: `recipient_phone`, `media_type` (image/document/audio/video), `media_url`, `caption`.
+    *   *Function*: Sends a media file. Supported types: JPG, PNG, PDF, MP4, MP3.
+*   **`send_template_message`**:
+    *   *Inputs*: `recipient_phone`, `template_name`, `language_code`, `components` (List of variables for header/body/buttons).
+    *   *Function*: Sends a pre-approved template message (Required for business-initiated conversations).
+*   **`send_location_message`**:
+    *   *Inputs*: `recipient_phone`, `latitude`, `longitude`, `name`, `address`.
+    *   *Function*: Sends a location pin.
+*   **`send_contact_message`**:
+    *   *Inputs*: `recipient_phone`, `contact_name`, `contact_phone`.
+    *   *Function*: Sends a vCard contact.
+*   **`send_interactive_message`**:
+    *   *Inputs*: `recipient_phone`, `type` (list/button), `header`, `body`, `footer`, `action` (sections/buttons).
+    *   *Function*: Sends a message with clickable buttons or a list menu.
+
+#### Inbound Event Processing (Webhooks)
+*   **`handle_incoming_message`**:
+    *   *Trigger*: Webhook from Meta.
+    *   *Function*: Parses incoming JSON, normalizes it to a system event (`message.received`), and forwards it to MasterAI.
+*   **`handle_delivery_status`**:
+    *   *Trigger*: Webhook from Meta.
+    *   *Function*: Updates message status (sent/delivered/read) in the system.
+*   **`download_media`**:
+    *   *Inputs*: `media_id`.
+    *   *Function*: Retrieves the actual media file from Meta's servers and uploads it to GCS.
+
+#### Session & Contact Management
+*   **`check_contact_status`**:
+    *   *Inputs*: `phone_number`.
+    *   *Function*: Verifies if a phone number is a valid WhatsApp account.
+*   **`mark_message_as_read`**:
+    *   *Inputs*: `message_id`.
+    *   *Function*: Sends a 'read' receipt to the sender.
+*   **`get_business_profile`**:
+    *   *Function*: Retrieves the current business profile settings (about, address, email, websites).
+*   **`update_business_profile`**:
+    *   *Inputs*: `about`, `address`, `email`, `websites`, `profile_picture_url`.
+    *   *Function*: Updates the WhatsApp Business profile details.
+
 
 ---
 

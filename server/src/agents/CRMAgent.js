@@ -41,6 +41,7 @@ class CRMAgent extends BaseAgent {
             properties: {
                 name: { type: 'string' },
                 primary_phone: { type: 'string' },
+                profile_type: { type: 'string', enum: ['Customer', 'Staff', 'CEO'] },
                 email: { type: 'string' },
                 source: { type: 'object' },
                 demographics: { type: 'object' },
@@ -56,6 +57,11 @@ class CRMAgent extends BaseAgent {
             // Check for existing lead (Primary or Secondary)
             const existing = await this._findLeadByPhone(leadId);
             if (existing) {
+                // If it exists but we are explicitly setting profile_type (e.g. converting to Staff), allow update?
+                // For now, strict conflict as per original logic, but HRAgent might hit this if staff was already a lead.
+                // If it's HRAgent calling, we might want to Update instead of Conflict.
+                // But this tool is 'add_lead'. 'update_lead_snapshot' should be used for updates.
+                // HR Agent logic should handle "If exists, update profile_type".
                 return {
                     status: "Conflict",
                     message: "Lead already exists with this phone number",
@@ -67,6 +73,7 @@ class CRMAgent extends BaseAgent {
             const lead = {
                 lead_id: leadId,
                 name: args.name,
+                profile_type: args.profile_type || 'Customer',
                 email: args.email || null,
                 phones: {
                     primary: { number: leadId, whatsapp: true },
@@ -215,7 +222,8 @@ class CRMAgent extends BaseAgent {
                 preferences: { type: 'array', items: { type: 'string' } },
                 email: { type: 'string' },
                 source: { type: 'object' },
-                ai_notes: { type: 'object' }
+                ai_notes: { type: 'object' },
+                profile_type: { type: 'string', enum: ['Customer', 'Staff', 'CEO'] }
             },
             required: ['lead_id']
         }, async (args) => {
@@ -227,6 +235,7 @@ class CRMAgent extends BaseAgent {
             if (args.email) lead.email = args.email;
             if (args.source) lead.source = args.source;
             if (args.ai_notes) lead.ai_notes = { ...lead.ai_notes, ...args.ai_notes };
+            if (args.profile_type) lead.profile_type = args.profile_type;
 
             return { status: "Snapshot Updated", lead_id: args.lead_id };
         });
@@ -278,7 +287,7 @@ class CRMAgent extends BaseAgent {
             properties: {
                 lead_id: { type: 'string' },
                 interaction_type: { type: 'string' },
-                participants: { type: 'array' },
+                participants: { type: 'array', items: { type: 'string' } },
                 summary: { type: 'string' },
                 sentiment: { type: 'string' },
                 tone: { type: 'string' },

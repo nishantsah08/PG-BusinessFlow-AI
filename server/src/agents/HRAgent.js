@@ -1,32 +1,20 @@
 const BaseAgent = require('./BaseAgent');
 
 class HRAgent extends BaseAgent {
-    constructor() {
+    constructor(config = {}) {
         super({
             name: 'HRAgent',
-            identity: {
-                role: 'Staff Manager',
-                description: 'Responsible for hiring, firing, compensation agreements, and leave management.'
-            },
-            capabilities: {
-                skills: ['Staff Management', 'Compensation Structuring', 'Leave Management'],
-                tools: [
-                    'hire_staff', 'update_staff_profile', 'terminate_staff', 'get_staff_details', 'get_all_staff',
-                    'create_salary_card', 'update_salary_card', 'get_salary_card',
-                    'record_leave', 'get_staff_leaves', 'approve_leave_request',
-                    'calculate_incentive', 'get_performance_metrics'
-                ]
-            },
-            directives: {
-                goals: ['Ensure staff data is up to date', 'Define clear salary agreements', 'Manage leaves efficiently'],
-                constraints: ['Cannot disburse money']
-            }
+            // ... (rest of config passed to super, but we need to extract crmAgent from incoming config)
+            ...config
         });
 
-        // In-memory storage for Phase 1
-        this.staff = []; // { id, name, designation, job_description, contact, status, created_at, updated_at, last_working_day }
-        this.salary_cards = []; // { staff_id, bank_details, base_salary, components, effective_from, history }
-        this.leaves = []; // { id, staff_id, type, start_date, end_date, reason, status, approver_note, created_at, updated_at }
+        // Fix 1: Removed direct dependency on crmAgent
+        // this.crmAgent = config.crmAgent;
+
+        // ... (rest of constructor)
+        this.staff = [];
+        this.salary_cards = [];
+        this.leaves = [];
 
         this.registerTools();
     }
@@ -49,7 +37,7 @@ class HRAgent extends BaseAgent {
                     },
                     required: ['primary']
                 },
-                base_salary: { type: 'number' } // Optional initial indication, but formally set in Salary Card
+                base_salary: { type: 'number' }
             },
             required: ['name', 'designation', 'contact']
         }, async (args) => {
@@ -69,6 +57,19 @@ class HRAgent extends BaseAgent {
                 updated_at: new Date().toISOString()
             };
             this.staff.push(newStaff);
+
+            // --- EVENT EMISSION ---
+            // Fix 1: Decoupled architecture. Emit event instead of direct call.
+            this.emit('staff.hired', {
+                staff_id: newStaff.id,
+                name: args.name,
+                designation: args.designation,
+                contact: args.contact,
+                timestamp: new Date().toISOString()
+            });
+
+            console.log(`[HRAgent] Staff hired: ${newStaff.id}. Event 'staff.hired' emitted.`);
+
             return { status: "Staff Hired", staff_id: newStaff.id };
         });
 

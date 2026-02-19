@@ -15,12 +15,39 @@
 
 ## 2. Master AI (Orchestrator)
 *   **Identity**: `MasterAI` (Persona: **Kalyani**)
-*   **Role**: Head of Operations & Sales (Orchestrator).
-*   **Description**: You are the central intelligence that binds the system. Your scope is unlimited operational awareness but zero direct execution. You never touch a database or send a message directly; you wield your specialized team to do so. You have the unique power to rewrite the system's "policies" (workflows) on the fly (Add/Delete/Modify workflows dynamically). If a workflow for the task already exists, you have to strictly follow it.
-*   **Trigger**: Receives events from ANY AI, the Portal Chat Window, or when something is scheduled.
-*   **Workflow**:
-    1.  **Bill Calculation**: Calculate itemised bill for each tenant at the end of the month and send it to them using WhatsApp.
-    2.  **Payment Acknowledgement**: Everytime you receive payment, send them thanks using WhatsApp.
+*   **Role**: Head of Operations & Sales (Central Controller).
+*   **Core Concept**:
+    *   **Hub & Spoke Model**: The system consists of isolated, containerized agents (Finance, Property, CRM, HR). Master AI is the central brain.
+    *   **Decomposition (The "Clean Architecture")**:
+        *   **Brain**: `MasterAI` (Pure Business Logic).
+        *   **Ears/Mouth**: `WebhookService` (Gateway for HTTP/Webhooks).
+        *   **Nerves**: `EventBus` (Pub/Sub Infrastructure).
+        *   **Memory**: `SessionService` (State Store).
+    *   **Orchestration**: Master AI invokes the specific skill sets of agents to fulfill tasks.
+*   **Execution Modes**:
+    1.  **Direct Invocation**: Master AI directly calls an agent's skill using **Synchronous MCP**.
+    2.  **Workflow/Policy Execution**: Master AI follows a structured "Business Process".
+*   **Communication Architecture (Hybrid - ADR-001)**:
+    *   **Downstream (Control)**: Master AI -> Agents via **Synchronous MCP** (e.g., `await crm.add_lead()`).
+    *   **Upstream (Report)**: Agents -> Master AI via **Asynchronous Events** (e.g., `invoice.generated`). Master AI subscribes to the Event Bus.
+*   **Policies & Workflows**:
+    *   **Strict Adherence**: Executed autonomously once approved.
+    *   **Validation**: User validation required only at creation/update.
+*   **Session Management & Persistence**:
+    *   **Session Key**: The User's **Primary Phone Number** (`lead_id`).
+    *   **Phased Persistence**:
+        *   **Phase 1**: In-Memory / Local JSON.
+        *   **Phase 2**: Redis / Firestore.
+    *   **Timeout**: **60 Seconds** (Unified System Timeout).
+    *   **Inactivity**: Session closes after 15 minutes.
+*   **Guardrails**:
+    *   **Timeout Handling**: If an agent call hangs for >60s, cancel.
+    *   **Business Guardrails**: CEO escalation for critical/out-of-scope actions.
+    *   **Persona Integrity**: Master AI acts strictly as "Kalyani" to customers (hides internals).
+    *   **Atomic Workflows (Transactional Safety)**:
+        *   **Rule**: Multi-step workflows (e.g., Tenant Onboarding = Assign Unit + Record Payment) must be **Atomic**.
+        *   **Compensation Logic**: If Step `N` fails, MasterAI must execute "UndoTool" for Steps `1...N-1` to revert the system to a clean state.
+        *   **No Half-Done States**: A workflow is either `COMPLETED` or `ROLLED_BACK`.
 
 ---
 
@@ -39,7 +66,7 @@
         *   Properties have amenities associated at creation.
         *   Units inherit these amenities (subset possible).
         *   *Customer Query*: When asked for facilities, quote the Property-level amenities.
-*   **Status Transitions**: Booked, Not Booked, Notice Given.
+*   **Status Transitions**: `AVAILABLE`, `BOOKED`, `NOTICE`.
     *   **Double Booking Prevention**:
         *   New booking on a unit is ONLY allowed if the current tenant is in 'Notice Period' (or if it's empty).
     *   **Tenant Mapping**:
@@ -68,7 +95,9 @@
 *   **Description**: You are the memory of every human interaction. From the first "Hello" (Lead) to the last goodbye (Tenant), you record their story — every call, visit, complaint, and preference — as an append-only chronological log. You never manage the Property they stay in, only their experience of it. Nothing is overwritten; every interaction is a new entry.
 *   **Inputs**: WhatsApp, Phone Calls, Emails (via MasterAI).
 *   **Identity**: The **lead_id IS the 10-digit primary mobile number**. A human is identified by their phone. Additional numbers stored in `phones.others` with WhatsApp status tracked per number.
-*   **Core Principle**: Append-only. The CRM is an event log. Every interaction, status change, and merge is a new timestamped record — never an update. Corrections are new entries referencing the original.
+*   **Core Principle**:
+    *   **Timeline**: STRICTLY Append-only. Every interaction is a new timestamped event.
+    *   **Snapshot**: Mutable Projection. Can be updated in-place to reflect the "Current Best Truth" derived from the timeline.
 *   **Identity Resolution & Merging Rules**:
     *   **Implicit Referral (Direct Visit)**: If a lead's status is detected as `Visited` *without* a prior `Enquiry` record (Direct Walk-in), it implies a proxy enquiry.
         *   *Action*: Search for a recent enquiry that matches the context.
@@ -79,7 +108,8 @@
         *   *Append*: A `CORRECTION` event updating contact details (add new number to profile).
 *   **Lifecycle (The "4-Bucket" Strategy)**: `Enquiry` → `Visited` → `Onboarded` → `Left`. The cycle can **repeat** — a person who left can enquire again. Every transition is dated.
 *   **CRM Data Pillars**:
-    *   **User Profile Snapshot**: The person's profile (identity, demographics, preferences, `source`, `unit_type_required`, `ai_notes`).
+    *   **User Profile Snapshot**: The person's profile (identity, demographics, preferences, `source`, `unit_type_required`, `ai_notes`, `profile_type`).
+        *   **`profile_type`**: "Customer" (Default), "Staff", "CEO". Used to determine permissions and context loading rules.
     *   **Artifacts**: Immutable files (call recordings, transcripts, images, PDFs, workflow logs) stored in GCS, referenced via links.
     *   **Session**: Record of a single conversation — `summary`, `sentiment`, `tone`, `financial_impact`, `compliance_impact`, `participants`, and links to artifacts/workflows.
     *   **Status**: Lifecycle bucket transitions, each recorded as a dated `STATUS_CHANGE` event.
@@ -101,6 +131,7 @@
 *   **Description**: You manage the people who work for the business. You handle hiring, firing, and define compensation agreements (Salary Cards).
 *   **Responsibilities**:
     *   **Lifecycle**: Hiring (Creation of Job Descriptions), Firing of staff.
+        *   *Sync Rule*: When a new staff member is hired, HR Agent emits a `staff.hired` event. MasterAI listens for this event and calls **CRM Agent** to create/update the profile with `profile_type = "Staff"`.
     *   **Leaves**: Manage staff leaves (Advance Leave, Emergency Leave).
     *   **Incentives**: Calculate performance-based incentives (e.g., based on unit occupancy).
     *   **Compensation**: Defines the Salary Card (Salary Agreement).
@@ -153,7 +184,9 @@
 
 ## 6. Finance AI (CFO)
 *   **Role**: Chief Financial Officer (Guardian of the Ledger).
-*   **Description**: You are the guardian of the ledger. Your scope is Value. Every rupee entering or leaving is your responsibility. You are blind to "who" or "where" unless it is on a receipt. You strictly enforce the **Negotiated Contracts** (Rates) and HR (Salaries).
+*   **Description**: You are the guardian of the ledger. Your scope is Value.
+    *   **Demographic Blindness**: You do NOT care about names, genders, or preferences.
+    *   **Account Awareness**: You DO care about the `lead_id` (Phone Number) as the Account Key for the ledger.
 *   **Constraints**:
     *   **Surety Rule**: You must NOT update any transaction unless you are absolutely sure about it. Double-checking is encouraged.
     *   **Delegated Execution**: FinanceAI itself does not work; it uses its sub-agents to do the work.
@@ -228,16 +261,56 @@
 ---
 
 ## 7. Communications AI (Gateway)
-*   **Role**: Communications Gateway.
-*   **Description**: Responsible for sending and receiving messages via WhatsApp and Email. Acts only on instructions from MasterAI.
-*   **Inputs**: Channel (WhatsApp/Email) and message from MasterAI.
-*   **Capabilities**:
-    *   **Formatting**: Add message formatting and emojis.
-    *   **Tone Awareness**: Messages adapt based on context (Transactional vs Marketing vs Formal).
-    *   **API Management**: Responsible for loading/rotating API Keys securely.
-*   **Sub-Agents**:
-    *   **WhatsApp Agent**: Handles sending/receiving via WhatsApp.
-    *   **Email Agent**: Handles sending/receiving via Email.
-    *   **SIP Trunk Sub-Agent**:
-        *   *Role*: Telephony Gateway.
-        *   *Output*: Provides **Audio Recording** and **Transcript** (via MasterAI) for processing.
+*   **Role**: Communications AI is the system’s communication gateway that connects users to the platform through channels such as WhatsApp, Email, Voice calls, and future communication methods.
+*   **Description**:
+    *   It handles communication only.
+    *   All decisions always come from MasterAI.
+    *   Its multimodal.
+*   **Responsibilities**:
+    *   Receiving messages or calls from external channels.
+    *   Sending messages when instructed.
+    *   Converting communication into system events.
+    *   Converting system responses into user-facing communication.
+    *   Formatting messages for the correct channel.
+    *   Ensuring delivery succeeds or retrying if needed.
+    *   Securely managing external provider connections.
+*   **Internal Structure**:
+    *   CommunicationsAI contains adapters, not agents.
+    *   Adapters are connectors to external communication systems.
+    *   These adapters do not contain intelligence or decision logic.
+    *   They only allow the system to interact with external platforms.
+*   **Adapters**:
+    *   **WhatsApp Adapter — Must Be Able To**:
+        *   Send messages.
+        *   Receive messages.
+        *   Send media.
+        *   Report delivery status.
+        *   Notify system when new message arrives.
+        *   Securely authenticate with provider.
+    *   **Email Adapter — Must Be Able To**:
+        *   Send emails.
+        *   Receive emails.
+        *   Handle attachments.
+        *   Detect replies and threads.
+        *   Report delivery success or failure.
+        *   Securely authenticate.
+    *   **Voice Adapter — Description**:
+        *   The Voice Adapter enables the system to handle voice calls from different sources such as SIP, browser calls, app calls, or telecom providers.
+        *   It standardizes all voice interactions so the rest of the system sees every call in a consistent format.
+        *   It does not generate speech or understand speech itself. Those functions are handled by an external voice renderer.
+        *   **We are only working with sip adapter right now.**
+    *   **SIP Voice Adapter — Must Be Able To**:
+        *   Accept calls.
+        *   End calls.
+        *   Detect missed calls.
+        *   Detect waiting calls.
+        *   Provide transcripts.
+        *   Provide call recordings.
+    *   **SIP Voice Adapter — Special Capabilities**:
+        *   **Pre-Call Context**: Before answering, it should fetch basic caller context so the system already knows who is calling. It should be able to call MasterAI and inject this context into the external voice system.
+        *   **Live Context Access**: During a call, it must be able to request additional information from the system when needed. This should be exposed by the adapter for the external system to consume.
+*   **Core Principle**:
+    *   CommunicationsAI handles communication, not decisions.
+    *   CommunicationsAI is a channel-agnostic gateway that connects external communication systems to MasterAI through standardized events.
+
+
