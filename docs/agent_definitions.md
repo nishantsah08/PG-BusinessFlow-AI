@@ -37,7 +37,7 @@
     *   **Session Key**: The User's **Primary Phone Number** (`lead_id`).
     *   **Phased Persistence**:
         *   **Phase 1**: In-Memory / Local JSON.
-        *   **Phase 2**: Redis / Firestore.
+        *   **Phase 2**: Firestore.
     *   **Timeout**: **60 Seconds** (Unified System Timeout).
     *   **Inactivity**: Session closes after 15 minutes.
 *   **Guardrails**:

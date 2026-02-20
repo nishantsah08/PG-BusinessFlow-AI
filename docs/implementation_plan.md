@@ -22,58 +22,145 @@ Implement the complete Agent System (v3.7) with a **Dynamic Workflow Engine**, a
 
 ---
 
-## 2. Master AI (Orchestrator)
+## 2. Master AI (Orchestrator) (Phase 1)
 **Persona**: Kalyani (Head of Operations & Sales)
 **Role**: Dynamic Workflow Engine & Orchestrator.
 **Architectural Decision**: MasterAI is a **Pure Logic Engine**. Infrastructure is offloaded to specialized APIs.
 
-### 2.1 Webhook Gateway Service (The "Ears")
-*   **Component**: Independent Express.js App.
-*   **Role**: Receive, Validate, and Push to Bus. Returns 200 OK immediately.
-*   **API Endpoints (To be implemented)**:
-    *   `POST /webhooks/whatsapp`
-        *   *Input**: Raw JSON from Meta.
-        *   *Logic*: Verify Signature -> Push `message.received` event -> Return 200.
-    *   `POST /webhooks/email` (Postmark/SendGrid)
-    *   `POST /webhooks/razorpay` (Payment Gateway)
-    *   `GET /health`
+### 2.1 Core Responsibilities
+*   **Context Management**:
+    *   **Start of Interaction**: Fetches Context (User Profile + History) from **CRM Agent**.
+    *   **End of Interaction**: Updates Context (New Information + Decisions) in **CRM Agent**.
+    *   **Role-Based Loading**:
+        *   **Customer**: Loads standard CRM profile options.
+        *   **Staff**: Loads task list and restricted permissions.
+        *   **CEO**: Loads full dashboard stats and override capabilities.
+*   **Decision Engine**:
+    *   Analyzes incoming **Events** (Webhook/Timer) + **Context**.
+    *   Selects the appropriate **Workflow** or **Direct Tool**.
+    *   Orchestrates **Atomic Business Transactions** (e.g., Booking = Update Unit + Record Payment).
+*   **Guardrails**:
+    *   Enforces "Kalyani" persona integrity.
+    *   Manages system timeouts (60s) and retry logic.
+    *   **Phase 1**: Simulates all external dependencies (Payment/Email/WhatsApp) via mock events.
 
-### 2.2 Event Bus & System APIs (The "Nerves")
-*   **Component**: Shared Module / sidecar.
-*   **Role**: Transport & Reliability.
-*   **System APIs**:
-    *   `publish_event(topic, payload)`
-    *   `subscribe(topic, callback)`
-    *   `get_dead_letter_queue()`
-    *   `retry_event(event_id)`
+### 2.2 Master AI API Skills (Exhaustive)
+MasterAI exposes tools for **Internal Logic Control** and **Admin Dashboard (GUI/CLI)**.
 
-### 2.3 MasterAI Logic Tools (The "Brain")
-MasterAI use these internal tools to control the flow.
-*   **`add_workflow`**: Create/Update dynamic policy.
-*   **`trigger_workflow`**: Manually execute a flow.
-*   **`get_session_state(user_id)`**: Fetch current context from Memory Store (Phase 1: Local, Phase 2: Redis).
-*   **`update_session_state(user_id, data)`**: Commit state changes.
-*   **`emit_command(agent, tool, args)`**: Execute a synchronous MCP call to an agent.
+#### Chat / Logic Tools (Internal MCP)
+These tools are used by the MasterAI Logic Engine to control the flow of the system.
+*   **`get_session_context`**:
+    *   *Inputs*: `user_id` (Phone Number).
+    *   *Returns*: `{ profile: {...}, last_session: {...}, active_workflows: [...] }`
+    *   *Purpose*: Loads the "Brain" with memory before processing a message.
+*   **`update_session_context`**:
+    *   *Inputs*: `user_id`, `data` (Key-Value pairs).
+    *   *Purpose*: Updates short-term memory during a conversation (e.g., "User is currently booking a visit").
+*   **`eval_rule`**:
+    *   *Inputs*: `rule_expression`, `context` (Object).
+    *   *Returns*: Boolean.
+    *   *Purpose*: Evaluates dynamic business rules (e.g., "Is User VIP?").
+*   **`trigger_workflow`**:
+    *   *Inputs*: `workflow_id`, `context` (Object).
+    *   *Purpose*: Manually initiates a named business process (e.g., `trigger_workflow("onboard_tenant", { lead_id: "..." })`).
+*   **`emit_system_event`**:
+    *   *Inputs*: `event_type`, `payload`.
+    *   *Purpose*: Publishes an event to the Event Bus (e.g., `payment.received`).
 
-### 2.4 Universal Messaging & Memory Architecture
-*   **Scope**: Applies to ALL incoming communication.
-*   **Session Management**:
-    *   **Start Time**: Every session MUST have a `session_start_time` (IST).
-    *   **Timeout**: **60 Seconds** (Unified).
-    *   **Inactivity**: 15 Minutes.
-*   **Incoming Message Logic (The "Loop")**:
-    1.  **Gateway**: Receives HTTP -> Pushes Event.
-    2.  **Logic Engine**: Reacts to Event -> Fetches State -> Decides Action.
-    3.  **Action**: Calls Agent Tool (MCP).
-    4.  **Response**: Agent completes -> Emits Event -> Logic Engine updates State.
+#### GUI / Admin Tools (Dashboard)
+These tools are used by the Admin Panel to monitor, manage, and verify the Orchestrator.
 
-### 2.5 Pre-defined Workflows
-1.  **Bill Calculation**:
-    *   *Trigger*: Monthly (End of Month).
-    *   *Steps*: Fetch Active Tenants -> Calculate Itemised Bill (Rent + Utility + Fines) -> Send via WhatsApp.
-2.  **Payment Acknowledgement**:
-    *   *Trigger*: `payment_received` event.
-    *   *Steps*: Verify Transaction -> Send "Thank You" message via WhatsApp.
+**System Monitoring & Control**:
+*   **`get_system_health`**:
+    *   *Returns*: Status of all connected agents (Online/Offline), Message Queue depth, Error rates.
+*   **`agent_control`**:
+    *   *Inputs*: `agent_name`, `action` (restart/disable/quarantine).
+    *   *Purpose*: **Health Enforcement**. Allows MasterAI to isolate or reboot misbehaving agents.
+*   **`reset_system_state`**:
+    *   *Purpose*: **Phase 1 Only**. Clears all in-memory sessions and workflows to start fresh.
+*   **`set_simulated_time`**:
+    *   *Inputs*: `timestamp` (ISO 8601).
+    *   *Purpose*: **Phase 1 Only**. Fast-forwards system time to test timeouts and scheduled events.
+*   **`toggle_mock_failure_mode`**:
+    *   *Inputs*: `agent_name`, `failure_rate` (0.0 - 1.0).
+    *   *Purpose*: **Phase 1 Only**. Simulates random failures in specific agents to test MasterAI's retry/recovery logic.
+
+**Event Management (The "Nerves" - Gap Fill)**:
+*   **`register_event_handler`**:
+    *   *Inputs*: `event_type`, `workflow_id` (or Callback URL).
+    *   *Purpose*: **Subscription Interface**. Dynamically binds an event (e.g., `payment.received`) to a specific workflow.
+*   **`replay_event`**:
+    *   *Inputs*: `event_id`.
+    *   *Purpose*: Re-processes a specific past event (e.g., if a workflow bug caused it to be mishandled).
+
+**Workflow Operations (Runtime)**:
+*   **`list_active_workflows`**:
+    *   *Inputs*: `filter` (e.g., "pending_approval", "failed").
+    *   *Returns*: List of seemingly "stuck" or active multi-step workflows.
+*   **`get_workflow_details`**:
+    *   *Inputs*: `workflow_instance_id`.
+    *   *Returns*: Current step, history of steps executed, current variable state.
+*   **`pause_workflow`**:
+    *   *Inputs*: `workflow_instance_id`.
+    *   *Purpose*: Temporarily halts a workflow for manual inspection.
+*   **`resume_workflow`**:
+    *   *Inputs*: `workflow_instance_id`.
+    *   *Purpose*: Resumes a paused workflow from the last successful step.
+*   **`cancel_workflow`**:
+    *   *Inputs*: `workflow_instance_id`, `reason`.
+    *   *Purpose*: Forcefully stops a stuck workflow.
+*   **`retry_workflow_step`**:
+    *   *Inputs*: `workflow_instance_id`, `step_id`.
+    *   *Purpose*: Retries a failed step (e.g., after fixing a bug or network issue).
+
+**Transaction & Session Management (Logic Enforcers)**:
+*   **`execute_compensation`**:
+    *   *Inputs*: `workflow_instance_id`, `start_step_id`.
+    *   *Purpose*: **Transaction Compensation**. Triggers the "Undo" logic (Rollback) for a failed multi-step workflow.
+*   **`finalize_session`**:
+    *   *Inputs*: `session_id`, `reason`.
+    *   *Purpose*: **Session Hook**. Forces the closure of a session and triggers the **CRM Snapshot Process**.
+*   **`escalate_to_human`**:
+    *   *Inputs*: `context`, `urgency` (Low/High/Critical), `reason`.
+    *   *Purpose*: **Escalation Channel**. Pauses automation and flags for human (CEO/Manager) review.
+
+**Agent & Skill Discovery (Dynamic Usage)**:
+*   **`discover_agent_skills`**:
+    *   *Inputs*: `agent_name` (Optional).
+    *   *Returns*: JSON Schema of all available tools and their input requirements.
+    *   *Purpose*: **Skill Discovery**. Allows MasterAI to validate tool calls against current agent capabilities before execution.
+
+**Observability & Debugging**:
+*   **`get_recent_events`**:
+    *   *Inputs*: `limit`, `topic_filter`.
+    *   *Returns*: Raw log of events published to the Event Bus.
+*   **`get_decision_history`**:
+    *   *Inputs*: `workflow_instance_id`.
+    *   *Returns*: Log of why MasterAI made specific decisions (Rule evaluations, branch choices).
+*   **`inject_mock_event`**:
+    *   *Inputs*: `event_type`, `payload`.
+    *   *Purpose*: Simulates an external event (e.g., pretend "Razorpay Webhook" arrived) for testing.
+
+**Configuration & Policy Management (Validation at Creation/Update)**:
+*   **`define_workflow`**:
+    *   *Inputs*: `workflow_id`, `trigger_event`, `steps` (Array), `validation_rules`.
+    *   *Purpose*: Creates a new standardized business process.
+    *   *Validation*: User must approve the logic here. Once defined, it is executed autonomously.
+*   **`update_workflow`**:
+    *   *Inputs*: `workflow_id`, `new_steps`.
+    *   *Purpose*: Updates an existing flow. Requires re-validation by User.
+*   **`update_system_rule`**:
+    *   *Inputs*: `rule_key`, `value` (e.g., `global_timeout_ms`).
+    *   *Purpose*: Hot-swap logic parameters.
+
+### 2.3 Phase 1 Implementation Details
+*   **Storage**:
+    *   Use `data/sessions.json` for active session state (simulating Firestore).
+    *   Use `data/workflows.json` for workflow definitions and active instance tracking.
+*   **Mocking**:
+    *   **Auth**: No real JWT/OAuth. Trust all local requests for Phase 1.
+    *   **Time**: Use system time, but allow "Time Travel" via a debug tool for testing expiry logic.
+    *   **Dependencies**: All external APIs (WhatsApp/Email/Payment) are mocked via `console.log` and return success immediately.
 
 ---
 
