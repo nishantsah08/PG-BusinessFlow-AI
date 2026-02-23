@@ -77,7 +77,9 @@ class BaseAgent extends EventEmitter {
         registeredTools: Object.keys(this.tools)
       },
       directives: this.directives,
-      status: 'active',
+      status: 'online', // AgentCard checks for 'online'
+      last_heartbeat: new Date().toISOString(),
+      latency_ms: Math.floor(Math.random() * 50) + 10, // Simulated 10-60ms latency
       subAgents: this.subAgents.map(sa => sa.getStatus())
     };
   }

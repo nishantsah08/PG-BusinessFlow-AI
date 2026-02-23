@@ -1,0 +1,294 @@
+FAIL src/components/dashboard/AgentDashboard.test.jsx
+  AgentDashboard architecture rendering
+    √ renders empty state if no agents returned (106 ms)
+    √ renders success state and renders AgentCards (79 ms)
+    × optimistically reverts toggle and shows toast on API failure (1079 ms)
+    × invokes restarting payload (1061 ms)
+
+  ● AgentDashboard architecture rendering › optimistically reverts toggle and shows toast on API failure
+
+    expect(element).toHaveAttribute("data-state", "offline") // element.getAttribute("data-state") === "offline"
+
+    Expected the element to have attribute:
+      data-state="offline"
+    Received:
+      data-state="online"
+
+    Ignored nodes: comments, script, style
+    [36m<html>[39m
+      [36m<head />[39m
+      [36m<body>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"h-full w-full bg-gray-50 flex flex-col"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0"[39m
+            [36m>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mAgent Dashboard[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-sm text-gray-500 mt-1"[39m
+              [36m>[39m
+                [0mSystem agent status and control[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 p-6 overflow-y-auto"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden p-4 flex flex-col justify-between h-full"[39m
+                  [33mdata-processing[39m=[32m"false"[39m
+                  [33mdata-state[39m=[32m"online"[39m
+                  [33mdata-testid[39m=[32m"card-FINANCE_AGENT"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex justify-between items-start mb-4"[39m
+                  [36m>[39m
+                    [36m<div>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-lg font-semibold text-gray-900 flex items-center"[39m
+                      [36m>[39m
+                        [0mFINANCE_AGENT[0m
+                      [36m</h3>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center mt-1"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"h-2 w-2 rounded-full mr-2 bg-green-500"[39m
+                        [36m/>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"text-sm text-gray-600 capitalize"[39m
+                        [36m>[39m
+                          [0mOnline[0m
+                        [36m</span>[39m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex space-x-2"[39m
+                    [36m>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"p-2 rounded-md border transition-colors bg-red-50 text-red-700 border-red-200 hover:bg-red-100 disabled:opacity-50"[39m
+                        [33mdata-testid[39m=[32m"toggle-FINANCE_AGENT"[39m
+                        [33mtitle[39m=[32m"Disable Agent"[39m
+                      [36m>[39m
+                        [36m<svg[39m
+                          [33mdata-testid[39m=[32m"Power"[39m
+                        [36m/>[39m
+                      [36m</button>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"p-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-md hover:bg-gray-100 disabled:opacity-50 transition-colors"[39m
+                        [33mdata-testid[39m=[32m"restart-FINANCE_AGENT"[39m
+                        [33mtitle[39m=[32m"Restart Agent"[39m
+                      [36m>[39m
+                        [36m<svg[39m
+                          [33mdata-testid[39m=[32m"RotateCcw"[39m
+                        [36m/>[39m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"space-y-2 text-sm"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex justify-between border-b border-gray-50 pb-2"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"text-gray-500"[39m
+                      [36m>[39m
+                        [0mLast Heartbeat[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"font-mono text-gray-700"[39m
+                      [36m>[39m
+                        [0mN/A[0m
+                      [36m</span>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex justify-between border-b border-gray-50 pb-2"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"text-gray-500"[39m
+                      [36m>[39m
+                        [0mLatency[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"font-mono text-gray-700"[39m
+                      [36m>[39m
+                        [0mN/A[0m
+                      [36m</span>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</body>[39m
+    [36m</html>[39m
+
+    [0m [90m 93 |[39m         [90m// Optimistic UX sets it to green/offline while we wait[39m
+     [90m 94 |[39m         [36mawait[39m waitFor(() [33m=>[39m {
+    [31m[1m>[22m[39m[90m 95 |[39m             expect(screen[33m.[39mgetByTestId([32m'card-FINANCE_AGENT'[39m))[33m.[39mtoHaveAttribute([32m'data-state'[39m[33m,[39m [32m'offline'[39m)[33m;[39m
+     [90m    |[39m                                                              [31m[1m^[22m[39m
+     [90m 96 |[39m         })[33m;[39m
+     [90m 97 |[39m
+     [90m 98 |[39m         [90m// It should revert back to red when the request resolves as failed, and drop a toast[39m[0m
+
+      at toHaveAttribute (src/components/dashboard/AgentDashboard.test.jsx:95:62)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+
+  ● AgentDashboard architecture rendering › invokes restarting payload
+
+    expect(element).toHaveAttribute("data-state", "online") // element.getAttribute("data-state") === "online"
+
+    Expected the element to have attribute:
+      data-state="online"
+    Received:
+      data-state="offline"
+
+    Ignored nodes: comments, script, style
+    [36m<html>[39m
+      [36m<head />[39m
+      [36m<body>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"h-full w-full bg-gray-50 flex flex-col"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0"[39m
+            [36m>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mAgent Dashboard[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-sm text-gray-500 mt-1"[39m
+              [36m>[39m
+                [0mSystem agent status and control[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 p-6 overflow-y-auto"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden p-4 flex flex-col justify-between h-full"[39m
+                  [33mdata-processing[39m=[32m"false"[39m
+                  [33mdata-state[39m=[32m"offline"[39m
+                  [33mdata-testid[39m=[32m"card-CEO_AGENT"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex justify-between items-start mb-4"[39m
+                  [36m>[39m
+                    [36m<div>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-lg font-semibold text-gray-900 flex items-center"[39m
+                      [36m>[39m
+                        [0mCEO_AGENT[0m
+                      [36m</h3>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center mt-1"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"h-2 w-2 rounded-full mr-2 bg-red-500"[39m
+                        [36m/>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"text-sm text-gray-600 capitalize"[39m
+                        [36m>[39m
+                          [0monline[0m
+                        [36m</span>[39m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex space-x-2"[39m
+                    [36m>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"p-2 rounded-md border transition-colors bg-green-50 text-green-700 border-green-200 hover:bg-green-100 disabled:opacity-50"[39m
+                        [33mdata-testid[39m=[32m"toggle-CEO_AGENT"[39m
+                        [33mtitle[39m=[32m"Enable Agent"[39m
+                      [36m>[39m
+                        [36m<svg[39m
+                          [33mdata-testid[39m=[32m"Power"[39m
+                        [36m/>[39m
+                      [36m</button>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"p-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-md hover:bg-gray-100 disabled:opacity-50 transition-colors"[39m
+                        [33mdata-testid[39m=[32m"restart-CEO_AGENT"[39m
+                        [33mtitle[39m=[32m"Restart Agent"[39m
+                      [36m>[39m
+                        [36m<svg[39m
+                          [33mdata-testid[39m=[32m"RotateCcw"[39m
+                        [36m/>[39m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"space-y-2 text-sm"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex justify-between border-b border-gray-50 pb-2"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"text-gray-500"[39m
+                      [36m>[39m
+                        [0mLast Heartbeat[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"font-mono text-gray-700"[39m
+                      [36m>[39m
+                        [0mN/A[0m
+                      [36m</span>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex justify-between border-b border-gray-50 pb-2"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"text-gray-500"[39m
+                      [36m>[39m
+                        [0mLatency[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"font-mono text-gray-700"[39m
+                      [36m>[39m
+                        [0mN/A[0m
+                      [36m</span>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</body>[39m
+    [36m</html>[39m
+
+    [0m [90m 152 |[39m         [90m// It should now be online according to the refresh mock[39m
+     [90m 153 |[39m         [36mawait[39m waitFor(() [33m=>[39m {
+    [31m[1m>[22m[39m[90m 154 |[39m             expect(screen[33m.[39mgetByTestId([32m'card-CEO_AGENT'[39m))[33m.[39mtoHaveAttribute([32m'data-state'[39m[33m,[39m [32m'online'[39m)[33m;[39m
+     [90m     |[39m                                                          [31m[1m^[22m[39m
+     [90m 155 |[39m         })[33m;[39m
+     [90m 156 |[39m
+     [90m 157 |[39m         [90m// It should have called the API twice (control endpoint + refresh)[39m[0m
+
+      at toHaveAttribute (src/components/dashboard/AgentDashboard.test.jsx:154:58)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 2 passed, 4 total
+Snapshots:   0 total
+Time:        5.756 s
+Ran all test suites matching src/components/dashboard/AgentDashboard.test.jsx.

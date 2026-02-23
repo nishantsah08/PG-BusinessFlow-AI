@@ -32,6 +32,19 @@ class MasterAI extends BaseAgent {
         this.SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes
     }
 
+    _emitSystemEvent(eventType, correlationId, payload = {}) {
+        const event = {
+            event_id: require('crypto').randomUUID(),
+            event_type: eventType,
+            event_version: "v1",
+            timestamp: new Date().toISOString(),
+            source: { type: "agent", name: this.name },
+            correlation: { correlation_id: correlationId || "system" },
+            payload: payload
+        };
+        this.emit('system_event', event);
+    }
+
     // --- Session Logic ---
 
     async getOrCreateSession(phone) {
@@ -88,6 +101,8 @@ class MasterAI extends BaseAgent {
     async flushSession(phone) {
         const session = this.sessions.get(phone);
         if (!session) return;
+
+        this._emitSystemEvent('session.closed', session.leadId || phone, { phone, messageCount: session.messages.length });
 
         console.log(`[MasterAI] Session Timeout for ${phone}. Flushing to CRM...`);
 
@@ -153,6 +168,8 @@ class MasterAI extends BaseAgent {
                 ...history
             ];
 
+            this._emitSystemEvent('decision.requested', null, { historyLength: history.length });
+
             // 1. First call to LLM
             const runner = await this.openai.chat.completions.create({
                 model: "gpt-4o-mini",
@@ -162,6 +179,8 @@ class MasterAI extends BaseAgent {
             });
 
             const message = runner.choices[0].message;
+
+            this._emitSystemEvent('decision.generated', null, { responseRole: message.role, hasToolCalls: !!message.tool_calls });
 
             // 2. Handle Tool Calls
             if (message.tool_calls) {
@@ -177,9 +196,12 @@ class MasterAI extends BaseAgent {
 
                         let result;
                         try {
+                            this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name });
                             result = await agent.callTool(toolName, args);
+                            this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result });
                         } catch (err) {
                             console.error(`[MasterAI] Tool Error (${toolName}):`, err.message);
+                            this._emitSystemEvent('tool.error', null, { tool: toolName, error: err.message });
                             result = { error: err.message, status: "Failed" };
                         }
 
@@ -209,6 +231,7 @@ class MasterAI extends BaseAgent {
 
         } catch (error) {
             console.error("MasterAI Chat Error:", error);
+            this._emitSystemEvent('error', null, { error: error.message });
             return { role: "assistant", content: "I encountered an error connecting to my brain. Please check the logs." };
         }
     }
@@ -224,6 +247,8 @@ class MasterAI extends BaseAgent {
 
             // 1. Get/Create Session (Manages Context & Timeout)
             const session = await this.getOrCreateSession(from);
+
+            this._emitSystemEvent('workflow.started', session.leadId || from, { source, from });
 
             // 2. Buffer User Message
             session.messages.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
@@ -252,6 +277,8 @@ class MasterAI extends BaseAgent {
                     });
                 }
             }
+
+            this._emitSystemEvent('workflow.ended', session.leadId || from, { source, from });
         }
     }
 }

@@ -76,7 +76,7 @@ class CommunicationsAI extends BaseAgent {
                 recipient_phone: { type: 'string' },
                 template_name: { type: 'string' },
                 language_code: { type: 'string' },
-                components: { type: 'array' }
+                components: { type: 'array', items: { type: 'object' } }
             },
             required: ['recipient_phone', 'template_name']
         }, async (args) => {
@@ -159,7 +159,7 @@ class CommunicationsAI extends BaseAgent {
                 about: { type: 'string' },
                 address: { type: 'string' },
                 email: { type: 'string' },
-                websites: { type: 'array' },
+                websites: { type: 'array', items: { type: 'string' } },
                 profile_picture_url: { type: 'string' }
             }
         }, async (args) => {

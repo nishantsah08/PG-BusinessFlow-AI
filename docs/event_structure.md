@@ -351,3 +351,10 @@ The **Routing Engine** is the internal message broker responsible for receiving,
 *   **Phase 1 (Local)**: Implemented as an in-process `EventEmitter` or lightweight message bus.
 *   **Phase 2 (Cloud)**: Replaced by **Google Cloud Pub/Sub**.
 *   **Rule**: No agent or adapter communicates directly — all traffic flows through the Routing Engine (with the **Sole Exception** of MasterAI's synchronous MCP control calls).
+
+## 27. Client-Side Streaming Endpoint
+[UPDATED — System observability architecture upgrade to pure event-driven UI updates, replacing polling]
+- **Endpoint**: `GET /api/system/events/stream`
+- **Mechanism**: Server-Sent Events (SSE)
+- **Purpose**: Provides real-time forwarding of internal events to connected UI clients.
+- **Heartbeat**: 20 seconds ping interval tracking active clients.
