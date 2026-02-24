@@ -4,6 +4,15 @@ import { UIProvider } from '../../context/UIContext';
 import NotificationSystem from '../common/NotificationSystem';
 import AgentDashboard from './AgentDashboard';
 
+// Mock ResizeObserver for ReactFlow
+class ResizeObserver {
+    observe() { }
+    unobserve() { }
+    disconnect() { }
+}
+window.ResizeObserver = ResizeObserver;
+
+// Mock the real-time websocket hook
 jest.mock('../../hooks/useRealtimeSource', () => jest.fn(() => ({ connected: true, error: null })));
 
 const renderWithContext = (component) => {
@@ -39,7 +48,7 @@ describe('AgentDashboard architecture rendering', () => {
         expect(await screen.findByText(/No agents currently registered/i)).toBeInTheDocument();
     });
 
-    it('renders success state and renders AgentCards', async () => {
+    it('renders success state and renders ReactFlow nodes (Master, Bus, Agents)', async () => {
         global.fetch.mockResolvedValueOnce({
             ok: true,
             status: 200,
@@ -55,14 +64,21 @@ describe('AgentDashboard architecture rendering', () => {
             })
         });
 
-        renderWithContext(<AgentDashboard />);
+        // We wrap render in act when working with heavy useEffects (like ReactFlow nodes creation)
+        await act(async () => {
+            renderWithContext(<AgentDashboard />);
+        });
 
+        // Ensure nodes render text content properly
         expect(await screen.findByText('CRM_AGENT')).toBeInTheDocument();
-
         expect(screen.getByText('HR_AGENT')).toBeInTheDocument();
+
+        // Ensure architectural anchor nodes are mounted
+        expect(screen.getByText('Master AI')).toBeInTheDocument();
+        expect(screen.getByText('Event Bus')).toBeInTheDocument();
     });
 
-    it('optimistically reverts toggle and shows toast on API failure', async () => {
+    it('optimistically reverts toggle and shows toast on API failure within AgentNode', async () => {
         // Initial Fetch
         global.fetch.mockResolvedValueOnce({
             ok: true,
@@ -76,7 +92,10 @@ describe('AgentDashboard architecture rendering', () => {
             })
         });
 
-        renderWithContext(<AgentDashboard />);
+        await act(async () => {
+            renderWithContext(<AgentDashboard />);
+        });
+
         expect(await screen.findByTestId('card-FINANCE_AGENT')).toHaveAttribute('data-state', 'online');
 
         // Setup the Action Failure mock as a deferred promise
@@ -115,7 +134,7 @@ describe('AgentDashboard architecture rendering', () => {
         });
     });
 
-    it('invokes restarting payload', async () => {
+    it('invokes restarting payload within AgentNode', async () => {
         // Initial Fetch
         global.fetch.mockResolvedValueOnce({
             ok: true,
@@ -129,7 +148,9 @@ describe('AgentDashboard architecture rendering', () => {
             })
         });
 
-        renderWithContext(<AgentDashboard />);
+        await act(async () => {
+            renderWithContext(<AgentDashboard />);
+        });
 
         expect(await screen.findByText('CEO_AGENT')).toBeInTheDocument();
 

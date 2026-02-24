@@ -10,16 +10,19 @@ Provide a high-level orchestration interface to view and manage all system agent
 - Allow restarting an agent process
 - Adhere strictly to 5-state rendering
 - Never communicate directly with any agent
+- **Render an architectural diagram (ReactFlow) showing Master AI, the Event Bus, and Agent nodes and their relationships.**
 
 ## Inputs
 None directly. Data is fetched from `GET /api/system/agents`. User input is supplied via toggle and restart buttons on child cards.
 
 ## Outputs
-- `AgentCard` UI components per agent.
+- `ReactFlow` diagram rendering nodes (`MasterNode`, `AgentNode`, `BusNode`).
+- `AgentCard` UI components embedded inside `AgentNode`s.
 - `apiClient` requests to MasterAI for state changes.
 - UI Toasts for action failures or successes.
 
 ## Dependencies
+- `reactflow` for interactive node-based architecture diagrams.
 - `StateWrapper` for UI consistency.
 - `useUI` context for toast notifications.
 - `apiClient` for ALL actions and queries.
