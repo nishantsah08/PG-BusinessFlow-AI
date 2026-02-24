@@ -34,7 +34,9 @@
     *   **Strict Adherence**: Executed autonomously once approved.
     *   **Validation**: User validation required only at creation/update.
 *   **Session Management & Persistence**:
-    *   **Session Key**: The User's **Primary Phone Number** (`lead_id`).
+    *   **Identity Source**: MasterAI distinguishes user authority based on how the session is created and the CRM profile:
+        *   **Phone Number (`lead_id`) via CommunicationsAI**: MasterAI Maps this to a CRM profile. By default, the user is strictly treated as an external lead/tenant, and MasterAI acts as the human persona `Kalyani`, hiding all internal system concepts. However, if the CRM profile indicates `profile_type: "CEO"`, MasterAI grants full transparent system admin access. If `profile_type: "Staff"`, the strict guardrail remains to prevent confusing staff with technical orchestration details.
+        *   **Email ID via Dashboard**: Initiated via the Portal Chat Window (Dashboard Login). If the email matches the business owner (CEO), MasterAI identifies them as the system admin and will transparently discuss orchestrations, logs, and its internal sub-agent team. Other internal staff emails will fall back to the strict "Kalyani" guardrail.
     *   **Phased Persistence**:
         *   **Phase 1**: In-Memory / Local JSON.
         *   **Phase 2**: Firestore.

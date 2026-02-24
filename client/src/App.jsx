@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { UIProvider } from './context/UIContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import GlobalLoader from './components/common/GlobalLoader';
 import NotificationSystem from './components/common/NotificationSystem';
@@ -9,6 +11,7 @@ import Shell from './components/layout/Shell';
 // Pages
 import ControlPanel from './pages/ControlPanel';
 import AgentDashboard from './components/dashboard/AgentDashboard';
+import LoginPage from './pages/LoginPage';
 
 // Placeholder Pages for routing
 const Placeholder = ({ title }) => (
@@ -20,34 +23,59 @@ const Placeholder = ({ title }) => (
     </div>
 );
 
+// Protected Route Wrapper
+const ProtectedRoute = ({ children }) => {
+    const { user } = useAuth();
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+    return children;
+};
+
 function App() {
+    // Use a placeholder Google Client ID since it's just meant for the frontend UI. 
+    // The dev bypass will allow immediate testing.
+    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "739328227651-placeholder.apps.googleusercontent.com";
+
     return (
-        <ErrorBoundary>
-            <UIProvider>
-                <BrowserRouter>
-                    <GlobalLoader />
-                    <NotificationSystem />
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            <AuthProvider>
+                <ErrorBoundary>
+                    <UIProvider>
+                        <BrowserRouter>
+                            <GlobalLoader />
+                            <NotificationSystem />
 
-                    <Routes>
-                        <Route path="/" element={<Shell />}>
-                            {/* Redirect root to Control Panel initially */}
-                            <Route index element={<Navigate to="/master" replace />} />
+                            <Routes>
+                                {/* Public Login Route */}
+                                <Route path="/login" element={<LoginPage />} />
 
-                            {/* Phase 2: Control Panel */}
-                            <Route path="master" element={<ControlPanel />} />
+                                {/* Protected Application Routes */}
+                                <Route path="/" element={
+                                    <ProtectedRoute>
+                                        <Shell />
+                                    </ProtectedRoute>
+                                }>
+                                    {/* Redirect root to Control Panel initially */}
+                                    <Route index element={<Navigate to="/master" replace />} />
 
-                            {/* Phase 3: Agent Dashboard */}
-                            <Route path="dashboard" element={<AgentDashboard />} />
+                                    {/* Phase 2: Control Panel */}
+                                    <Route path="master" element={<ControlPanel />} />
 
-                            {/* Phase 4: Workflow Monitor */}
-                            <Route path="monitor" element={<Placeholder title="Workflow Monitor" />} />
+                                    {/* Phase 3: Agent Dashboard */}
+                                    <Route path="dashboard" element={<AgentDashboard />} />
 
-                            <Route path="*" element={<Navigate to="/" replace />} />
-                        </Route>
-                    </Routes>
-                </BrowserRouter>
-            </UIProvider>
-        </ErrorBoundary>
+                                    {/* Phase 4: Workflow Monitor */}
+                                    <Route path="monitor" element={<Placeholder title="Workflow Monitor" />} />
+
+                                    <Route path="*" element={<Navigate to="/" replace />} />
+                                </Route>
+                            </Routes>
+                        </BrowserRouter>
+                    </UIProvider>
+                </ErrorBoundary>
+            </AuthProvider>
+        </GoogleOAuthProvider>
     );
 }
 

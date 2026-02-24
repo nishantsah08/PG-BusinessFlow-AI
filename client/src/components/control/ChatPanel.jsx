@@ -3,6 +3,7 @@ import { Send, Bot, User, Trash2 } from 'lucide-react';
 import apiClient from '../../api/client';
 import StateWrapper from '../common/StateWrapper';
 import RequestLogItem from './RequestLogItem';
+import { useAuth } from '../../context/AuthContext';
 
 /**
  * ChatPanel Component
@@ -15,6 +16,7 @@ import RequestLogItem from './RequestLogItem';
  * 4. Renders RequestLogItem for transparency.
  */
 const ChatPanel = ({ onLogRequest }) => {
+    const { user } = useAuth();
     // 5-state management
     const [status, setStatus] = useState('empty'); // 'empty' | 'loading' | 'success' | 'error'
     const [errorMsg, setErrorMsg] = useState(null);
@@ -48,7 +50,7 @@ const ChatPanel = ({ onLogRequest }) => {
 
         try {
             // STRICT RULE: Fetch via apiClient ONLY mapped to /api/master_ai
-            const response = await apiClient.post('/api/master_ai/chat', { message: userText });
+            const response = await apiClient.post('/api/master_ai/chat', { message: userText, user: user });
 
             // STRICT RULE: Transparency logging
             onLogRequest({

@@ -108,7 +108,7 @@ app.get('/api/system/agents', (req, res) => {
 
 // 2. Chat with Master AI
 const chatHandler = async (req, res) => {
-    const { message, messages } = req.body;
+    const { message, messages, user } = req.body;
     let inputMessages = messages;
     if (message && !messages) {
         inputMessages = [{ role: 'user', content: message }];
@@ -116,7 +116,7 @@ const chatHandler = async (req, res) => {
     if (!inputMessages) return res.status(400).json({ error: "No messages provided" });
 
     try {
-        const response = await masterAI.chat(inputMessages);
+        const response = await masterAI.chat(inputMessages, user);
         res.json({ success: true, data: response });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -145,10 +145,56 @@ app.get('/api/master_ai/trace/:id', (req, res) => {
     });
 });
 
-// 2.3 Agent Control Mock
+// 2.3 Agent Control API
 app.post('/api/system/agent/control', (req, res) => {
-    // Simulate successful action
-    res.json({ success: true });
+    try {
+        const { agent_name, action } = req.body;
+
+        if (!agent_name || !action) {
+            return res.status(400).json({ success: false, error: 'Missing agent_name or action' });
+        }
+
+        const agent = allAgents.find(a => a.name === agent_name);
+
+        if (!agent) {
+            return res.status(404).json({ success: false, error: `Agent ${agent_name} not found` });
+        }
+
+        switch (action) {
+            case 'enable':
+                if (typeof agent.enable === 'function') {
+                    agent.enable();
+                } else {
+                    agent.status = 'online';
+                }
+                console.log(`[Agent Control] Enabled ${agent_name}, status is now ${agent.status}`);
+                break;
+            case 'disable':
+                if (typeof agent.disable === 'function') {
+                    agent.disable();
+                } else {
+                    agent.status = 'offline';
+                }
+                console.log(`[Agent Control] Disabled ${agent_name}, status is now ${agent.status}`);
+                break;
+            case 'restart':
+                if (typeof agent.restart === 'function') {
+                    agent.restart();
+                } else {
+                    agent.status = 'offline';
+                    setTimeout(() => { agent.status = 'online'; }, 1000);
+                }
+                console.log(`[Agent Control] Restarted ${agent_name}, status will change shortly`);
+                break;
+            default:
+                return res.status(400).json({ success: false, error: `Unknown action: ${action}` });
+        }
+
+        res.json({ success: true, status: agent.status || 'unknown' });
+    } catch (error) {
+        console.error('Agent Control Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 // 3. Verify OpenAI (Test Endpoint)

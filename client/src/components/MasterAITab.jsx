@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const MasterAITab = () => {
+    const { user } = useAuth();
     const [messages, setMessages] = useState([
         { role: 'assistant', content: 'Hello! I am Kalyani, your Head of Operations & Sales. How can I help you today?' }
     ]);
@@ -21,7 +23,10 @@ const MasterAITab = () => {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: newMessages.map(m => ({ role: m.role, content: m.content })) })
+                body: JSON.stringify({
+                    messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+                    user: user
+                })
             });
             const data = await response.json();
             setMessages([...newMessages, { role: data.role, content: data.content }]);

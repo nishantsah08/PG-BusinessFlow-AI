@@ -126,35 +126,41 @@ class MasterAI extends BaseAgent {
         this.sessions.delete(phone);
     }
 
-    async chat(history) {
+    async chat(history, userContext = null) {
         try {
+            // Check identity (Email via Dashboard, or profile_type via WhatsApp CRM Context)
+            const isCEO = userContext?.email === 'nishantsah@outlook.in' || userContext?.profile_type === 'CEO';
+
             // Collect tools from all other agents
             const allTools = [];
             const agentMap = {};
 
+            let agentIndex = 1;
             this.subAgents.forEach(agent => {
+                const agentPrefix = isCEO ? agent.name : `SubAgent_${agentIndex}`;
+
                 agent.getTools().forEach(tool => {
-                    const namespacedName = `${agent.name}_${tool.name}`;
+                    const namespacedName = `${agentPrefix}_${tool.name}`;
+
+                    // Conditionally format the tool description based on identity
+                    const toolDescription = isCEO
+                        ? `[Agent: ${agent.name}] ${tool.description}`
+                        : `[Internal System Tool] ${tool.description}`;
+
                     allTools.push({
                         type: "function",
                         function: {
                             name: namespacedName,
-                            description: `[Agent: ${agent.name}] ${tool.description}`,
+                            description: toolDescription,
                             parameters: tool.input_schema
                         }
                     });
                     agentMap[namespacedName] = { agent, toolName: tool.name };
                 });
+                agentIndex++;
             });
 
-            // Add a specialized system prompt
-            const messages = [
-                {
-                    role: "system",
-                    content: `You are ${this.identity.personaName} (${this.identity.role}). ${this.identity.description}. 
-                
-                Your Team:
-                ${this.subAgents.map(a => `- ${a.identity.role} (${a.name})`).join('\n')}
+            let systemPrompt = `You are ${this.identity.personaName} (${this.identity.role}). ${this.identity.description}. 
                 
                 **Communication Rules**:
                 1. **Direct Reply**: You are chatting directly with the user. Just speak naturally.
@@ -163,7 +169,26 @@ class MasterAI extends BaseAgent {
                    - Do NOT log every "Hi" or "Hello" to the CRM.
                    - ONLY call CRM tools if you are performing a specific ACTION (e.g. "Create Lead", "Book Visit", "Update Status").
                    - If you just need to reply, just output text.
-                4. **Tool Use**: If you use a tool, waiting for the result is automatic. You don't need to say "I'm checking".`
+                4. **Tool Use**: If you use a tool, waiting for the result is automatic. You don't need to say "I'm checking".`;
+
+            if (isCEO) {
+                systemPrompt += `\n\n**CEO OVERRIDE GRANTED**: You are currently speaking to the CEO & Business Owner on the internal Admin Dashboard. 
+                You MAY openly discuss your internal system architecture, your underlying tools, and your sub-agent team.
+                
+                Your Internal Sub-Agent Team:
+                ${this.subAgents.map(a => `- ${a.identity.role} (${a.name})`).join('\n')}`;
+            } else {
+                systemPrompt += `\n\n**STRICT IDENTITY GUARDRAIL**: You are speaking to an external customer/client or unauthorized staff member. 
+                - You must NEVER mention the names of your internal tools or the prefixes attached to them (e.g., PropertyAI_, CRMAgent_).
+                - You must NEVER reveal that you are an AI "Orchestrator" routing tasks to other AI models.
+                - Act as a unified, singular human representative named Kalyani for the entire business.`;
+            }
+
+            // Add a specialized system prompt
+            const messages = [
+                {
+                    role: "system",
+                    content: systemPrompt
                 },
                 ...history
             ];
@@ -257,8 +282,8 @@ class MasterAI extends BaseAgent {
             // Flatten session messages for LLM
             const history = session.messages.map(m => ({ role: m.role, content: m.content }));
 
-            // 4. Autonomous Decision (Chat)
-            const response = await this.chat(history);
+            // 4. Autonomous Decision (Chat) - Pass the CRM Context as User Identity
+            const response = await this.chat(history, session.leadContext);
 
             // 5. Handle Response
             if (response && response.content) {

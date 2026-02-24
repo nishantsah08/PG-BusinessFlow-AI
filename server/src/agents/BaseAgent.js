@@ -11,9 +11,27 @@ class BaseAgent extends EventEmitter {
     this.hierarchy = config.hierarchy || {}; // { supervisor, subAgents }
 
     this.tools = {};
+    this.status = 'online';
 
     // Sub-agents are now passed via config or hierarchy
     this.subAgents = Array.isArray(this.hierarchy.subAgents) ? this.hierarchy.subAgents : [];
+  }
+
+  enable() {
+    this.status = 'online';
+    this.emit('status_change', { agent: this.name, status: this.status });
+  }
+
+  disable() {
+    this.status = 'offline';
+    this.emit('status_change', { agent: this.name, status: this.status });
+  }
+
+  restart() {
+    this.disable();
+    setTimeout(() => {
+      this.enable();
+    }, 1000);
   }
 
   registerTool(name, description, schema, handler) {
@@ -77,7 +95,7 @@ class BaseAgent extends EventEmitter {
         registeredTools: Object.keys(this.tools)
       },
       directives: this.directives,
-      status: 'online', // AgentCard checks for 'online'
+      status: this.status,
       last_heartbeat: new Date().toISOString(),
       latency_ms: Math.floor(Math.random() * 50) + 10, // Simulated 10-60ms latency
       subAgents: this.subAgents.map(sa => sa.getStatus())
