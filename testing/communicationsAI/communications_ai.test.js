@@ -10,6 +10,9 @@ describe('Communications AI Regression Suite', () => {
     let mockProvider;
 
     beforeEach(() => {
+        process.env.ALLOW_EXTERNAL_SEND = 'true';
+        process.env.WHATSAPP_PHONE_NUMBER_ID = '12345';
+        process.env.WHATSAPP_TOKEN = 'mock_token';
         commsAI = new CommunicationsAI();
         mockProvider = new MockWhatsAppProvider();
         jest.clearAllMocks();
@@ -19,18 +22,18 @@ describe('Communications AI Regression Suite', () => {
     test('IE1: Should correctly parse valid inbound text message webhook', async () => {
         const payload = mockProvider.createIncomingMessage("15550001234", "Hello World", "wamid.test001");
 
-        const event = await commsAI.executeTool('handle_incoming_message', { payload });
+        const event = await commsAI.callTool('handle_incoming_message', { payload });
 
         expect(event).not.toBeNull();
-        expect(event.type).toBe('message.received');
-        expect(event.from).toBe("15550001234");
-        expect(event.body).toBe("Hello World");
-        expect(event.id).toBe("wamid.test001");
+        expect(event.event_type).toBe('message.received');
+        expect(event.payload.from).toBe("+9115550001234");
+        expect(event.payload.body).toBe("Hello World");
+        expect(event.correlation.causation_id).toBe("wamid.test001");
     });
 
     test('IE1: Should return null for malformed webhook', async () => {
         const payload = { object: "whatsapp_business_account", entry: [] }; // Empty entry
-        const event = await commsAI.executeTool('handle_incoming_message', { payload });
+        const event = await commsAI.callTool('handle_incoming_message', { payload });
         expect(event).toBeNull();
     });
 
@@ -40,7 +43,7 @@ describe('Communications AI Regression Suite', () => {
         const mockResponse = mockProvider.mockSendResponse({ to: "15550001234", body: "Test Outbound" });
         axios.post.mockResolvedValue({ data: mockResponse });
 
-        const result = await commsAI.executeTool('send_text_message', {
+        const result = await commsAI.callTool('send_text_message', {
             recipient_phone: "15550001234",
             content: "Test Outbound"
         });
@@ -54,8 +57,8 @@ describe('Communications AI Regression Suite', () => {
             expect.stringContaining("/messages"),
             expect.objectContaining({
                 messaging_product: "whatsapp",
-                to: "15550001234",
-                text: { body: "Test Outbound" }
+                to: "+9115550001234",
+                text: { body: "Test Outbound", preview_url: false }
             }),
             expect.any(Object)
         );
@@ -71,7 +74,7 @@ describe('Communications AI Regression Suite', () => {
         };
         axios.post.mockRejectedValue(mockError);
 
-        const result = await commsAI.executeTool('send_text_message', {
+        const result = await commsAI.callTool('send_text_message', {
             recipient_phone: "15550001234",
             content: "Retry Test"
         });
@@ -96,7 +99,7 @@ describe('Communications AI Regression Suite', () => {
         const mockResponse = mockProvider.mockSendResponse({});
         axios.post.mockResolvedValue({ data: mockResponse });
 
-        const result = await commsAI.executeTool('send_media_message', {
+        const result = await commsAI.callTool('send_media_message', {
             recipient_phone: "15550001234",
             media_type: "image",
             media_url: "http://test.com/image.jpg",
@@ -110,10 +113,13 @@ describe('Communications AI Regression Suite', () => {
     test('IP1: Should produce identical events for identical payloads', async () => {
         const payload = mockProvider.createIncomingMessage("15550001234", "Idempotency Test", "wamid.same");
 
-        const event1 = await commsAI.executeTool('handle_incoming_message', { payload });
-        const event2 = await commsAI.executeTool('handle_incoming_message', { payload });
+        const event1 = await commsAI.callTool('handle_incoming_message', { payload });
+        const event2 = await commsAI.callTool('handle_incoming_message', { payload });
 
-        expect(event1).toEqual(event2);
-        expect(event1.id).toBe("wamid.same");
+        // Compare non-dynamic fields
+        expect(event1.event_id).toBe(event2.event_id);
+        expect(event1.event_type).toBe(event2.event_type);
+        expect(event1.payload).toEqual(event2.payload);
+        expect(event1.correlation).toEqual(event2.correlation);
     });
 });

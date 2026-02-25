@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const TimeAuthorityService = require('../services/TimeAuthorityService');
 
 class BaseAgent extends EventEmitter {
   constructor(config = {}) {
@@ -96,7 +97,7 @@ class BaseAgent extends EventEmitter {
       },
       directives: this.directives,
       status: this.status,
-      last_heartbeat: new Date().toISOString(),
+      last_heartbeat: TimeAuthorityService.nowIST(),
       latency_ms: Math.floor(Math.random() * 50) + 10, // Simulated 10-60ms latency
       subAgents: this.subAgents.map(sa => sa.getStatus())
     };

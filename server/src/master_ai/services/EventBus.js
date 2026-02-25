@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const TimeAuthorityService = require('../../services/TimeAuthorityService');
 
 class EventBus extends EventEmitter {
     constructor() {
@@ -13,7 +14,7 @@ class EventBus extends EventEmitter {
             id: eventId,
             topic,
             payload,
-            timestamp: new Date().toISOString()
+            timestamp: TimeAuthorityService.nowIST()
         };
 
         this.eventHistory.push(event);

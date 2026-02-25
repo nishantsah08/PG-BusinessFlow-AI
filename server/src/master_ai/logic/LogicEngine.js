@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const TimeAuthorityService = require('../../services/TimeAuthorityService');
+const { formatInTimeZone } = require('date-fns-tz');
 
 class LogicEngine {
     constructor(eventBus, sessionService) {
@@ -62,7 +64,7 @@ class LogicEngine {
             steps,
             validationRules,
             version: 1,
-            createdAt: new Date(this._now()).toISOString(),
+            createdAt: formatInTimeZone(new Date(this._now()), 'Asia/Kolkata', "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
             // Phase 2: optional deadline (absolute ms), stepTimeout (ms per step)
             deadline: options.deadline || null,
             stepTimeout: options.stepTimeout || null
@@ -76,7 +78,7 @@ class LogicEngine {
         if (!this.workflows[id]) throw new Error(`Workflow ${id} not found`);
         this.workflows[id].steps = newSteps;
         this.workflows[id].version++;
-        this.workflows[id].updatedAt = new Date(this._now()).toISOString();
+        this.workflows[id].updatedAt = formatInTimeZone(new Date(this._now()), 'Asia/Kolkata', "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         this.saveWorkflows();
         console.log(`Workflow updated: ${id}`);
         return true;
@@ -177,7 +179,7 @@ class LogicEngine {
             instance.history.push({
                 step: currentStep,
                 status: 'SUCCESS',
-                timestamp: new Date(this._now())
+                timestamp: formatInTimeZone(new Date(this._now()), 'Asia/Kolkata', "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
             });
             instance.stepIndex++;
 
@@ -248,7 +250,7 @@ class LogicEngine {
                     originalStep: entry.step.name,
                     compensationStep: compStep,
                     status: 'UNDONE',
-                    timestamp: new Date(this._now())
+                    timestamp: formatInTimeZone(new Date(this._now()), 'Asia/Kolkata', "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
                 });
             } catch (compError) {
                 console.error(`[Compensation] FAILED to undo ${entry.step.name}:`, compError);
@@ -257,7 +259,7 @@ class LogicEngine {
                     compensationStep: compStep,
                     status: 'UNDO_FAILED',
                     error: compError.message,
-                    timestamp: new Date(this._now())
+                    timestamp: formatInTimeZone(new Date(this._now()), 'Asia/Kolkata', "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
                 });
                 instance.status = 'COMPENSATION_FAILED';
                 instance.error = `Compensation failed at: ${entry.step.name}`;

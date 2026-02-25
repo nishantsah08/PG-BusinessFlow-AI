@@ -7,13 +7,14 @@ const CRMAgent = require('./agents/CRMAgent');
 const HRAgent = require('./agents/HRAgent');
 const FinanceAI = require('./agents/FinanceAI');
 const CommunicationsAI = require('./agents/CommunicationsAI');
+const TimeAuthorityService = require('./services/TimeAuthorityService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Startup Check
 try {
-    require('fs').writeFileSync('startup.txt', 'Fresh Run Server Started at ' + new Date().toISOString());
+    require('fs').writeFileSync('startup.txt', 'Fresh Run Server Started at ' + TimeAuthorityService.nowIST());
 
     // Redirect Console to File
     const fs = require('fs');
@@ -68,7 +69,7 @@ masterAI.on('system_event', (event) => {
 // Periodic heartbeat to keep connections alive
 setInterval(() => {
     sseClients.forEach(client => {
-        client.res.write(`event: ping\ndata: {"time": "${new Date().toISOString()}"}\n\n`);
+        client.res.write(`event: ping\ndata: {"time": "${TimeAuthorityService.nowIST()}"}\n\n`);
     });
 }, 20000);
 
@@ -82,7 +83,7 @@ app.get('/api/system/events/stream', (req, res) => {
     res.flushHeaders();
 
     // Send an initial connection event
-    res.write(`data: ${JSON.stringify({ event_type: 'stream.connected', timestamp: new Date().toISOString() })}\n\n`);
+    res.write(`data: ${JSON.stringify({ event_type: 'stream.connected', timestamp: TimeAuthorityService.nowIST() })}\n\n`);
 
     const clientId = Date.now();
     const newClient = { id: clientId, res };

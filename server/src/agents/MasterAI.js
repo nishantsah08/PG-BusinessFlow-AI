@@ -1,6 +1,8 @@
 const BaseAgent = require('./BaseAgent');
 const OpenAI = require('openai');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
+const TimeAuthorityService = require('../services/TimeAuthorityService');
+const DateFormatterService = require('../services/DateFormatterService');
 
 class MasterAI extends BaseAgent {
     constructor(otherAgents = []) {
@@ -38,7 +40,7 @@ class MasterAI extends BaseAgent {
             event_id: require('crypto').randomUUID(),
             event_type: eventType,
             event_version: "v1",
-            timestamp: new Date().toISOString(),
+            timestamp: TimeAuthorityService.nowIST(),
             source: { type: "agent", name: this.name },
             correlation: { correlation_id: correlationId || "system" },
             payload: payload
@@ -141,7 +143,7 @@ class MasterAI extends BaseAgent {
         }
 
         const session = {
-            startTime: new Date().toISOString(),
+            startTime: TimeAuthorityService.nowIST(),
             sessionKey: sessionKey,
             leadId: leadId,
             leadContext: leadContext,
@@ -419,10 +421,33 @@ Rules:
                     model: "gpt-4o-mini",
                     messages: messages
                 });
-                return finalResponse.choices[0].message;
+                const finalMessage = finalResponse.choices[0].message;
+                const timestampIST = TimeAuthorityService.nowIST();
+                const display = DateFormatterService.format(
+                    timestampIST,
+                    userContext?.timezone || 'Asia/Kolkata',
+                    userContext?.date_format || 'DD-MM-YYYY'
+                );
+
+                return {
+                    ...finalMessage,
+                    timestamp_ist: timestampIST,
+                    ...display
+                };
             }
 
-            return message;
+            const timestampIST = TimeAuthorityService.nowIST();
+            const display = DateFormatterService.format(
+                timestampIST,
+                userContext?.timezone || 'Asia/Kolkata',
+                userContext?.date_format || 'DD-MM-YYYY'
+            );
+
+            return {
+                ...message,
+                timestamp_ist: timestampIST,
+                ...display
+            };
 
         } catch (error) {
             console.error("MasterAI Chat Error:", error);
@@ -456,7 +481,7 @@ Rules:
             this._emitSystemEvent('workflow.started', session.leadId || from, { source, from });
 
             // 2. Buffer User Message
-            session.messages.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
+            session.messages.push({ role: 'user', content: text, timestamp: TimeAuthorityService.nowIST() });
 
             // 3. Prepare Context for Brain (System + Memory)
             // Flatten session messages for LLM
@@ -468,7 +493,7 @@ Rules:
             // 5. Handle Response
             if (response && response.content) {
                 // Buffer Assistant Message
-                session.messages.push({ role: 'assistant', content: response.content, timestamp: new Date().toISOString() });
+                session.messages.push({ role: 'assistant', content: response.content, timestamp: TimeAuthorityService.nowIST() });
 
                 console.log(`[MasterAI] Brain spoke: "${response.content}". Sending reply via ${source}.`);
 

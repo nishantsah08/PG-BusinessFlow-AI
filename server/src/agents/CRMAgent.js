@@ -1,5 +1,6 @@
 const BaseAgent = require('./BaseAgent');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
+const TimeAuthorityService = require('../services/TimeAuthorityService');
 
 class CRMAgent extends BaseAgent {
     constructor() {
@@ -75,7 +76,7 @@ class CRMAgent extends BaseAgent {
                 };
             }
 
-            const now = new Date().toISOString();
+            const now = TimeAuthorityService.nowIST();
             const lead = {
                 lead_id: leadId,
                 name: args.name,
@@ -92,7 +93,9 @@ class CRMAgent extends BaseAgent {
                 requirement_date: args.requirement_date || null,
                 ai_notes: args.notes || {},
                 status: 'Enquiry',
-                created_at: now
+                created_at: now,
+                timezone: args.timezone || 'Asia/Kolkata',
+                date_format: args.date_format || 'DD-MM-YYYY'
             };
 
             this.leads.set(leadId, lead);
@@ -149,7 +152,7 @@ class CRMAgent extends BaseAgent {
                 from: fromStatus,
                 to: toStatus,
                 reason: args.reason,
-                changed_at: new Date().toISOString()
+                changed_at: TimeAuthorityService.nowIST()
             });
 
             return { status: "Status Updated", previous: fromStatus, current: toStatus };
@@ -171,7 +174,7 @@ class CRMAgent extends BaseAgent {
                 from: lead.status,
                 to: 'Archived',
                 reason: args.reason || 'Manual Archive',
-                changed_at: new Date().toISOString()
+                changed_at: TimeAuthorityService.nowIST()
             });
             return { status: "Lead Archived", lead_id: args.lead_id };
         });
@@ -199,8 +202,8 @@ class CRMAgent extends BaseAgent {
             const targetTimeline = this.timelines.get(args.target_lead_id);
             targetTimeline.push(...sourceTimeline);
 
-            // Re-sort timeline by timestamp
-            targetTimeline.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            // Re-sort timeline by timestamp (Sorting must use timestamp_ist as per spec)
+            targetTimeline.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
             // 3. Log Merge Event
             this._logEvent(args.target_lead_id, 'MERGE', {
@@ -229,7 +232,9 @@ class CRMAgent extends BaseAgent {
                 email: { type: 'string' },
                 source: { type: 'object' },
                 ai_notes: { type: 'object' },
-                profile_type: { type: 'string', enum: ['Customer', 'Staff', 'CEO'] }
+                profile_type: { type: 'string', enum: ['Customer', 'Staff', 'CEO'] },
+                timezone: { type: 'string' },
+                date_format: { type: 'string' }
             },
             required: ['lead_id']
         }, async (args) => {
@@ -242,6 +247,8 @@ class CRMAgent extends BaseAgent {
             if (args.source) lead.source = args.source;
             if (args.ai_notes) lead.ai_notes = { ...lead.ai_notes, ...args.ai_notes };
             if (args.profile_type) lead.profile_type = args.profile_type;
+            if (args.timezone) lead.timezone = args.timezone;
+            if (args.date_format) lead.date_format = args.date_format;
 
             return { status: "Snapshot Updated", lead_id: args.lead_id };
         });
@@ -360,7 +367,7 @@ class CRMAgent extends BaseAgent {
                 events = events.filter(e => e.type === args.type_filter);
             }
             // Sort by Date Descending
-            events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            events.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 
             if (args.limit) events = events.slice(0, args.limit);
 
@@ -485,7 +492,7 @@ class CRMAgent extends BaseAgent {
         }, async (args) => {
             const allLeads = Array.from(this.leads.values());
             // Sort by Created At for now (Ideal: Last Interaction Date)
-            allLeads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            allLeads.sort((a, b) => b.created_at.localeCompare(a.created_at));
             return { leads: allLeads.slice(0, args.limit || 10) };
         });
 
@@ -605,7 +612,7 @@ class CRMAgent extends BaseAgent {
 
         const event = {
             event_id: `EVT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            timestamp: new Date().toISOString(),
+            timestamp: TimeAuthorityService.nowIST(),
             type: type,
             ...data
         };

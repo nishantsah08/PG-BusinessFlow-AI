@@ -1,5 +1,6 @@
 const BaseAgent = require('./BaseAgent');
 const WhatsAppAdapter = require('./WhatsAppAdapter');
+const TimeAuthorityService = require('../services/TimeAuthorityService');
 
 class CommunicationsAI extends BaseAgent {
     constructor() {
@@ -189,8 +190,8 @@ class CommunicationsAI extends BaseAgent {
             if (!rawEvent) return null;
 
             // Enshrine System Reliability Layer
-            const processingTime = new Date().toISOString();
-            const receivedAt = rawEvent.timestamp ? new Date(rawEvent.timestamp * 1000).toISOString() : processingTime;
+            const processingTime = TimeAuthorityService.nowIST();
+            const receivedAt = rawEvent.timestamp ? TimeAuthorityService.toIST(new Date(rawEvent.timestamp * 1000)) : processingTime;
 
             // IS2: Expired Timestamp Check (5 minute tolerance)
             const eventTime = new Date(receivedAt).getTime();
@@ -261,7 +262,7 @@ class CommunicationsAI extends BaseAgent {
             if (!statusEvent) return null;
 
             // Enshrine System Reliability Layer
-            const processingTime = new Date().toISOString();
+            const processingTime = TimeAuthorityService.nowIST();
 
             return {
                 event_id: `evt_status_${statusEvent.id}_${statusEvent.status}`, // Deterministic ID for Status
@@ -277,7 +278,7 @@ class CommunicationsAI extends BaseAgent {
                 },
                 payload: statusEvent,
                 observability: {
-                    received_at: statusEvent.timestamp ? new Date(statusEvent.timestamp * 1000).toISOString() : processingTime,
+                    received_at: statusEvent.timestamp ? TimeAuthorityService.toIST(new Date(statusEvent.timestamp * 1000)) : processingTime,
                     processed_at: processingTime
                 }
             };

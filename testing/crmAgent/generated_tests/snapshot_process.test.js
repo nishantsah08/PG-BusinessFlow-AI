@@ -1,4 +1,5 @@
 const CRMAgent = require('../../../server/src/agents/CRMAgent');
+const TimeAuthorityService = require('../../../server/src/services/TimeAuthorityService');
 
 describe('CRM Agent: Snapshot Process (Session)', () => {
     let agent;
@@ -54,7 +55,7 @@ describe('CRM Agent: Snapshot Process (Session)', () => {
         const timeline = await agent.callTool('get_timeline', { lead_id: ID });
         const session = timeline.events.find(e => e.type === 'SESSION');
 
-        // Basic ISO Valid check
-        expect(new Date(session.timestamp).toISOString()).toBe(session.timestamp);
+        // Basic IST Valid check
+        expect(TimeAuthorityService.validateIST(session.timestamp)).toBe(true);
     });
 });

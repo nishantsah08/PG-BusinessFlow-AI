@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const TimeAuthorityService = require('../../services/TimeAuthorityService');
 
 class SessionService {
     constructor() {
@@ -38,7 +39,7 @@ class SessionService {
         if (!this.sessions[userId]) {
             this.sessions[userId] = {
                 userId,
-                createdAt: new Date().toISOString(),
+                createdAt: TimeAuthorityService.nowIST(),
                 state: {},
                 history: []
             };
@@ -46,7 +47,7 @@ class SessionService {
 
         // Merge state
         this.sessions[userId].state = { ...this.sessions[userId].state, ...data };
-        this.sessions[userId].updatedAt = new Date().toISOString();
+        this.sessions[userId].updatedAt = TimeAuthorityService.nowIST();
 
         this.saveSessions();
         return this.sessions[userId];
@@ -56,7 +57,7 @@ class SessionService {
         if (!this.sessions[userId]) return;
         this.sessions[userId].history.push({
             ...interaction,
-            timestamp: new Date().toISOString()
+            timestamp: TimeAuthorityService.nowIST()
         });
         this.saveSessions();
     }
@@ -65,7 +66,7 @@ class SessionService {
         if (this.sessions[userId]) {
             // Logic to archive or reset session could go here
             console.log(`Finalizing session for ${userId}. Reason: ${reason}`);
-            this.sessions[userId].lastFinalized = new Date().toISOString();
+            this.sessions[userId].lastFinalized = TimeAuthorityService.nowIST();
             this.saveSessions();
             return true;
         }
