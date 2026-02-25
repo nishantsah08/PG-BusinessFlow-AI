@@ -138,3 +138,50 @@ These scenarios validate engine-level resilience guarantees added in Phase-2. Al
     *   **User Visible Output:** NONE (workflow rejected before any user interaction)
     *   **Logs Generated:** Workflow creation → deadline check → `DEADLINE_EXPIRED` → workflow `FAILED` → zero tool call entries
     *   **Failure Handling:** Deadline enforced per invariant §6 (Expired Workflow Immutability). Stale operations prevented entirely.
+
+## 5. Session Context Scenarios
+
+*   **SCN-SESSION-001: Known User Context Load**
+    *   Returning customer messages via WhatsApp → CRM lookup returns profile with 5+ past sessions → session created with last 3 → system prompt includes conversation history.
+
+    **Expected Integration Result**
+    *   **Agents Called:** CRM (get_lead_by_phone → Found, get_timeline → 3 SESSION events)
+    *   **Final System State:** Session created with `leadContext` populated, `recentSessions.length === 3`, system prompt contains `Recent Conversation History`
+    *   **User Visible Output:** Kalyani responds with awareness of past conversations (e.g., references previous booking discussion)
+    *   **Failure Handling:** N/A (happy path)
+
+*   **SCN-SESSION-002: Unknown User Deferred Lead**
+    *   Unknown number messages → temp lead → conversation about rooms → session timeout → AI classifies as business-relevant → CRM lead created + session logged.
+
+    **Expected Integration Result**
+    *   **Agents Called:** CRM (get_lead_by_phone → Not Found) at session start. At flush: LLM classification → CRM (add_lead, log_session)
+    *   **Final System State:** No CRM lead during conversation. After flush: lead exists with AI-extracted name + session event with summary/sentiment
+    *   **User Visible Output:** Kalyani responds normally during conversation. No user-visible output at flush.
+    *   **Failure Handling:** If LLM classification fails, session drops. If CRM write fails, `flush.failed` event emitted (Failure Policy §2.2).
+
+*   **SCN-SESSION-003: Spam Filtered**
+    *   Unknown number sends "wrong number" → temp lead → session timeout → AI classifies as not relevant → no CRM write.
+
+    **Expected Integration Result**
+    *   **Agents Called:** CRM (get_lead_by_phone → Not Found) at start. At flush: LLM classification only. ZERO CRM write calls.
+    *   **Final System State:** No CRM lead created. Session silently deleted.
+    *   **User Visible Output:** Kalyani responds to "wrong number" naturally. No follow-up.
+    *   **Failure Handling:** N/A — dropping irrelevant sessions is the desired behavior.
+
+*   **SCN-SESSION-F01: CRM Down During Session Init**
+    *   Returning customer messages → CRM throws on lookup → session created with empty context → Kalyani responds generically → no crash, zero retries.
+
+    **Expected Integration Result**
+    *   **Agents Called:** CRM (get_lead_by_phone → throws). ZERO retry calls.
+    *   **Final System State:** Session exists with `leadContext: null`, `recentSessions: []`. No crash.
+    *   **User Visible Output:** Kalyani responds generically without personalization (no name, no history)
+    *   **Failure Handling:** Fail fast per Failure Policy §2.1. Zero retries. System degrades gracefully.
+
+*   **SCN-SESSION-F02: Flush CRM Failure**
+    *   Business-relevant conversation classified → `add_lead` throws → `flush.failed` event emitted → DLQ captures payload for later recovery.
+
+    **Expected Integration Result**
+    *   **Agents Called:** LLM classification (success) → CRM (add_lead → throws). ZERO retry calls.
+    *   **Final System State:** No CRM lead created. `flush.failed` event emitted with `verdict` + `messages` payload. Session deleted.
+    *   **User Visible Output:** NONE (flush happens after session timeout, user is already gone)
+    *   **Failure Handling:** Data Plane safety per Failure Policy §2.2. Event payload preserved for DLQ recovery.

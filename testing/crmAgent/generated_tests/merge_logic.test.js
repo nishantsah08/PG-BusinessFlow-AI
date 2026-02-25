@@ -2,8 +2,8 @@ const CRMAgent = require('../../../server/src/agents/CRMAgent');
 
 describe('CRM Agent: Merge Logic', () => {
     let agent;
-    const SOURCE_ID = '1111111111';
-    const TARGET_ID = '2222222222';
+    const SOURCE_ID = '+911111111111';
+    const TARGET_ID = '+912222222222';
 
     beforeEach(async () => {
         agent = new CRMAgent();

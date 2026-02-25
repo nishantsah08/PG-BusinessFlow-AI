@@ -1,4 +1,5 @@
 const axios = require('axios');
+const PhoneNormalizationService = require('../services/PhoneNormalizationService');
 
 class WhatsAppAdapter {
     constructor() {
@@ -39,7 +40,7 @@ class WhatsAppAdapter {
         return this._send('messages', {
             messaging_product: "whatsapp",
             recipient_type: "individual",
-            to: to,
+            to: PhoneNormalizationService.normalizeToE164(to),
             type: "text",
             text: { preview_url, body }
         });
@@ -49,7 +50,7 @@ class WhatsAppAdapter {
         return this._send('messages', {
             messaging_product: "whatsapp",
             recipient_type: "individual",
-            to: to,
+            to: PhoneNormalizationService.normalizeToE164(to),
             type: type,
             [type]: { link, caption }
         });
@@ -59,7 +60,7 @@ class WhatsAppAdapter {
         return this._send('messages', {
             messaging_product: "whatsapp",
             recipient_type: "individual",
-            to: to,
+            to: PhoneNormalizationService.normalizeToE164(to),
             type: "template",
             template: {
                 name: name,
@@ -73,23 +74,25 @@ class WhatsAppAdapter {
         return this._send('messages', {
             messaging_product: "whatsapp",
             recipient_type: "individual",
-            to: to,
+            to: PhoneNormalizationService.normalizeToE164(to),
             type: "location",
             location: { latitude, longitude, name, address }
         });
     }
 
     async sendContactMessage(to, contactName, contactPhone) {
+        const normContactPhone = PhoneNormalizationService.normalizeToE164(contactPhone);
+        const normTo = PhoneNormalizationService.normalizeToE164(to);
         // Simple vCard construction
-        const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${contactName}\nTEL;type=CELL;waid=${contactPhone}:${contactPhone}\nEND:VCARD`;
+        const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${contactName}\nTEL;type=CELL;waid=${normContactPhone}:${normContactPhone}\nEND:VCARD`;
         return this._send('messages', {
             messaging_product: "whatsapp",
             recipient_type: "individual",
-            to: to,
+            to: normTo,
             type: "contacts",
             contacts: [{
                 name: { formatted_name: contactName, first_name: contactName },
-                phones: [{ phone: contactPhone, type: "CELL", wa_id: contactPhone }],
+                phones: [{ phone: normContactPhone, type: "CELL", wa_id: normContactPhone }],
                 org: {}
             }]
         });
@@ -99,7 +102,7 @@ class WhatsAppAdapter {
         const message = {
             messaging_product: "whatsapp",
             recipient_type: "individual",
-            to: to,
+            to: PhoneNormalizationService.normalizeToE164(to),
             type: "interactive",
             interactive: {
                 type: type,
@@ -151,13 +154,12 @@ class WhatsAppAdapter {
 
     // --- Utility ---
 
-    // Note: This is an implementation helper, not a direct API call to send
     async checkContactStatus(phone) {
         try {
             // Requires a different endpoint structure usually, effectively contacts endpoint
             const response = await axios.post(`${this.baseUrl}/contacts`, {
                 messaging_product: "whatsapp",
-                contacts: [phone]
+                contacts: [PhoneNormalizationService.normalizeToE164(phone)]
             }, {
                 headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' }
             });
@@ -208,7 +210,7 @@ class WhatsAppAdapter {
             // Normalize to system event check structure (Integration Layer will wrap this in actual Event)
             return {
                 type: 'message.received',
-                from: message.from,
+                from: PhoneNormalizationService.normalizeToE164(message.from),
                 id: message.id,
                 timestamp: message.timestamp,
                 body: message.text?.body || null,

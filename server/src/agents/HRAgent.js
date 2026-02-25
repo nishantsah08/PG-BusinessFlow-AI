@@ -1,4 +1,5 @@
 const BaseAgent = require('./BaseAgent');
+const PhoneNormalizationService = require('../services/PhoneNormalizationService');
 
 class HRAgent extends BaseAgent {
     constructor(config = {}) {
@@ -43,6 +44,15 @@ class HRAgent extends BaseAgent {
         }, async (args) => {
             if (!args.name || !args.designation || !args.contact || !args.contact.primary) {
                 throw new Error("Missing required fields: name, designation, contact.primary");
+            }
+
+            try {
+                args.contact.primary = PhoneNormalizationService.normalizeToE164(args.contact.primary);
+                if (args.contact.alternate) {
+                    args.contact.alternate = args.contact.alternate.map(p => PhoneNormalizationService.normalizeToE164(p));
+                }
+            } catch (err) {
+                return { status: "Invalid Input", message: "Invalid phone number format provided in contacts" };
             }
 
             if (this.staff.some(s => s.contact.primary === args.contact.primary && s.status !== 'TERMINATED')) {

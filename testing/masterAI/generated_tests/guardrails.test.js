@@ -46,11 +46,11 @@ describe('Identity-Based Guardrails (MasterAI)', () => {
 
         // The prompt MUST contain the strict guardrail
         expect(systemPrompt).toContain('STRICT IDENTITY GUARDRAIL');
-        expect(systemPrompt).toContain('NEVER mention the names of your internal tools');
-        expect(systemPrompt).toContain('Act as a unified, singular human representative named Kalyani for the entire business.');
+        expect(systemPrompt).toContain('must NOT mention internal tools');
+        expect(systemPrompt).toContain('Act as a unified, singular human representative named Kalyani');
     });
 
-    test('GRD-02: Non-CEO Staff User (Email & WhatsApp) -> Internal Architecture Hidden', async () => {
+    test('GRD-02: Non-CEO Staff User (Email & WhatsApp) -> STAFF MODE (Not CEO Override)', async () => {
         const history = [{ role: 'user', content: 'What are the names of the AI agents?' }];
 
         // Test via Email Dashboard Context
@@ -59,9 +59,9 @@ describe('Identity-Based Guardrails (MasterAI)', () => {
         const payloadMessagesEmail = JSON.parse(responseEmail.content);
         const systemPromptEmail = payloadMessagesEmail.find(m => m.role === 'system').content;
 
-        // Staff are explicitly blocked from AI architectural secrets
+        // Staff now get STAFF MODE, not STRICT IDENTITY GUARDRAIL
         expect(systemPromptEmail).not.toContain('CEO OVERRIDE GRANTED');
-        expect(systemPromptEmail).toContain('STRICT IDENTITY GUARDRAIL');
+        expect(systemPromptEmail).toContain('STAFF MODE');
 
         // Test via WhatsApp CRM Context
         const userContextWhatsApp = { profile_type: 'Staff', name: 'Sales Rep' };
@@ -70,7 +70,7 @@ describe('Identity-Based Guardrails (MasterAI)', () => {
         const systemPromptWhatsApp = payloadMessagesWhatsApp.find(m => m.role === 'system').content;
 
         expect(systemPromptWhatsApp).not.toContain('CEO OVERRIDE GRANTED');
-        expect(systemPromptWhatsApp).toContain('STRICT IDENTITY GUARDRAIL');
+        expect(systemPromptWhatsApp).toContain('STAFF MODE');
     });
 
     test('GRD-03: CEO User (Email & WhatsApp) -> Internal Architecture Exposed', async () => {
@@ -88,6 +88,7 @@ describe('Identity-Based Guardrails (MasterAI)', () => {
         expect(systemPromptEmail).toContain('Your Internal Sub-Agent Team:');
         expect(systemPromptEmail).toContain('Inventory & Asset Manager (PropertyAI)');
         expect(systemPromptEmail).not.toContain('STRICT IDENTITY GUARDRAIL');
+        expect(systemPromptEmail).not.toContain('STAFF MODE');
 
         // Test via WhatsApp CRM Context
         const userContextWhatsApp = { profile_type: 'CEO', name: 'Nishant Sah' };
@@ -98,5 +99,64 @@ describe('Identity-Based Guardrails (MasterAI)', () => {
         expect(systemPromptWhatsApp).toContain('CEO OVERRIDE GRANTED');
         expect(systemPromptWhatsApp).toContain('Your Internal Sub-Agent Team:');
         expect(systemPromptWhatsApp).not.toContain('STRICT IDENTITY GUARDRAIL');
+        expect(systemPromptWhatsApp).not.toContain('STAFF MODE');
+    });
+
+    test('GRD-04: Staff user → system prompt contains STAFF MODE operational access', async () => {
+        const history = [{ role: 'user', content: 'What is the current occupancy?' }];
+        const userContext = { profile_type: 'Staff' };
+        const response = await masterAI.chat(history, userContext);
+        const payloadMessages = JSON.parse(response.content);
+        const systemPrompt = payloadMessages.find(m => m.role === 'system').content;
+
+        expect(systemPrompt).toContain('STAFF MODE');
+        expect(systemPrompt).toContain('occupancy rates');
+        expect(systemPrompt).toContain('pending maintenance');
+        expect(systemPrompt).toContain('task lists');
+    });
+
+    test('GRD-05: Staff user → system prompt does NOT contain AI architecture', async () => {
+        const history = [{ role: 'user', content: 'Tell me about your AI system' }];
+        const userContext = { profile_type: 'Staff' };
+        const response = await masterAI.chat(history, userContext);
+        const payloadMessages = JSON.parse(response.content);
+        const systemPrompt = payloadMessages.find(m => m.role === 'system').content;
+
+        expect(systemPrompt).not.toContain('CEO OVERRIDE GRANTED');
+        expect(systemPrompt).not.toContain('Sub-Agent Team');
+        expect(systemPrompt).toContain('must NOT reveal AI architecture');
+    });
+
+    test('GRD-06: Customer user → system prompt contains specific share/don\'t-share rules', async () => {
+        const history = [{ role: 'user', content: 'Hi' }];
+        const response = await masterAI.chat(history, null); // null = anonymous customer
+        const payloadMessages = JSON.parse(response.content);
+        const systemPrompt = payloadMessages.find(m => m.role === 'system').content;
+
+        expect(systemPrompt).toContain('STRICT IDENTITY GUARDRAIL');
+        expect(systemPrompt).toContain('pricing');
+        expect(systemPrompt).toContain('amenities');
+        expect(systemPrompt).toContain('must NOT share');
+        expect(systemPrompt).toContain('other tenants');
+    });
+
+    test('GRD-07: Known user with history → system prompt contains Recent Conversation History', async () => {
+        const history = [{ role: 'user', content: 'Any update?' }];
+        const userContext = {
+            profile_type: 'Customer',
+            recentSessions: [
+                { timestamp: '2026-02-20T12:00:00Z', summary: 'Confirmed booking for B-204.', sentiment: 'Positive' },
+                { timestamp: '2026-02-05T10:00:00Z', summary: 'Complained about noise.', sentiment: 'Negative' }
+            ]
+        };
+        const response = await masterAI.chat(history, userContext);
+        const payloadMessages = JSON.parse(response.content);
+        const systemPrompt = payloadMessages.find(m => m.role === 'system').content;
+
+        expect(systemPrompt).toContain('Recent Conversation History');
+        expect(systemPrompt).toContain('Confirmed booking for B-204.');
+        expect(systemPrompt).toContain('Complained about noise.');
+        expect(systemPrompt).toContain('Positive');
+        expect(systemPrompt).toContain('Negative');
     });
 });

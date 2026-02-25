@@ -9,9 +9,9 @@ describe('CRM Agent: Adversarial Scenarios', () => {
 
     test('ADV-01: 3 Numbers / 1 Person (Merge Chain)', async () => {
         // A, B, C are same person.
-        const A = '1000000000';
-        const B = '2000000000';
-        const C = '3000000000';
+        const A = '+911000000000';
+        const B = '+912000000000';
+        const C = '+913000000000';
 
         await agent.callTool('add_lead', { name: 'User A', primary_phone: A });
         await agent.callTool('add_lead', { name: 'User B', primary_phone: B });

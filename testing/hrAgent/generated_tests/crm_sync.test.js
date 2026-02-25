@@ -11,7 +11,7 @@ describe('HR Agent: CRM Sync Logic (Event-Driven)', () => {
         const hireArgs = {
             name: "New Staff",
             designation: "Guard",
-            contact: { primary: "1234567890", email: "test@test.com" },
+            contact: { primary: "+911234567890", email: "test@test.com" },
             base_salary: 10000
         };
 
@@ -23,7 +23,7 @@ describe('HR Agent: CRM Sync Logic (Event-Driven)', () => {
         expect(eventSpy).toHaveBeenCalledWith(expect.objectContaining({
             name: "New Staff",
             designation: "Guard",
-            contact: expect.objectContaining({ primary: "1234567890" }),
+            contact: expect.objectContaining({ primary: "+911234567890" }),
             staff_id: expect.stringMatching(/^STF-\d+$/)
         }));
     });

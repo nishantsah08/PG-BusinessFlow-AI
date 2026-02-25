@@ -1,5 +1,6 @@
 const BaseAgent = require('./BaseAgent');
 const OpenAI = require('openai');
+const PhoneNormalizationService = require('../services/PhoneNormalizationService');
 
 class MasterAI extends BaseAgent {
     constructor(otherAgents = []) {
@@ -47,89 +48,239 @@ class MasterAI extends BaseAgent {
 
     // --- Session Logic ---
 
-    async getOrCreateSession(phone) {
-        if (this.sessions.has(phone)) {
-            const session = this.sessions.get(phone);
+    async getOrCreateSession(identifier) {
+        // Determine lookup strategy: phone number (string) or email (object { email })
+        const isEmailLookup = typeof identifier === 'object' && identifier.email;
+        let phone = null;
+        let email = null;
+
+        if (isEmailLookup) {
+            email = identifier.email;
+        } else {
+            try {
+                phone = PhoneNormalizationService.normalizeToE164(identifier);
+            } catch (err) {
+                console.error(`[MasterAI] Invalid phone number rejected: ${identifier}`);
+                throw err;
+            }
+        }
+
+        const sessionKey = phone || email;
+
+        if (this.sessions.has(sessionKey)) {
+            const session = this.sessions.get(sessionKey);
             // Reset Timeout on activity
             clearTimeout(session.timeoutId);
-            session.timeoutId = setTimeout(() => this.flushSession(phone), this.SESSION_TIMEOUT_MS);
+            session.timeoutId = setTimeout(() => this.flushSession(sessionKey), this.SESSION_TIMEOUT_MS);
             return session;
         }
 
         // Create New Session
-        console.log(`[MasterAI] Starting new session for ${phone}`);
+        console.log(`[MasterAI] Starting new session for ${sessionKey}`);
 
-        // 1. Load Context from CRM
         let leadContext = null;
         let leadId = null;
+        let recentSessions = [];
+
         try {
             const crm = this.subAgents.find(a => a.name === 'CRMAgent');
-            const lookup = await crm.callTool('get_lead_details', { phone });
+            let lookup = { status: 'Not Found' };
+
+            // Step 1: CRM Lookup — phone first, then email (§2.1 Fail Fast, Zero Retries)
+            if (phone) {
+                try {
+                    lookup = await crm.callTool('get_lead_by_phone', { phone });
+                } catch (err) {
+                    console.error("[MasterAI] CRM Phone Lookup Failed:", err.message);
+                }
+            }
+
+            if (lookup.status !== 'Found' && email) {
+                try {
+                    lookup = await crm.callTool('get_lead_by_email', { email });
+                } catch (err) {
+                    console.error("[MasterAI] CRM Email Lookup Failed:", err.message);
+                }
+            }
 
             if (lookup.status === 'Found') {
                 leadContext = lookup.lead;
                 leadId = lookup.lead.lead_id;
                 console.log(`[MasterAI] Context Loaded: ${leadContext.name} (${leadId})`);
+
+                // Step 2: Load last 3 conversations for known users (§2.1 Fail Fast)
+                try {
+                    const timeline = await crm.callTool('get_timeline', {
+                        lead_id: leadId,
+                        limit: 3,
+                        type_filter: 'SESSION'
+                    });
+                    recentSessions = timeline.events || [];
+                    if (recentSessions.length > 0) {
+                        console.log(`[MasterAI] Loaded ${recentSessions.length} recent session(s) for ${leadId}`);
+                    }
+                } catch (err) {
+                    console.error("[MasterAI] Timeline Load Failed:", err.message);
+                    recentSessions = []; // Degrade: no history, but session still works
+                }
             } else {
-                // Auto-create Lead
-                console.log(`[MasterAI] New Unknown User. Auto-creating Lead...`);
-                const newLead = await crm.callTool('add_lead', {
-                    name: 'WhatsApp User',
-                    primary_phone: phone,
-                    source: 'WhatsApp'
-                });
-                leadContext = newLead.lead;
-                leadId = newLead.lead.lead_id;
+                // Step 3: Deferred lead creation — temporary in-memory lead
+                console.log(`[MasterAI] New Unknown User. Creating temporary context...`);
+                leadContext = {
+                    lead_id: null,
+                    name: null,
+                    phone: phone,
+                    email: email,
+                    isTemporary: true,
+                    profile_type: 'Customer'
+                };
             }
         } catch (err) {
             console.error("[MasterAI] CRM Handshake Failed:", err.message);
-            // Fallback: Proceed without valid CRM link (Lead ID null)
+            // Fallback: Proceed without CRM link (Failure Policy §2.1)
         }
 
         const session = {
             startTime: new Date().toISOString(),
+            sessionKey: sessionKey,
             leadId: leadId,
             leadContext: leadContext,
+            recentSessions: recentSessions,
             messages: [],
-            timeoutId: setTimeout(() => this.flushSession(phone), this.SESSION_TIMEOUT_MS)
+            timeoutId: setTimeout(() => this.flushSession(sessionKey), this.SESSION_TIMEOUT_MS)
         };
 
-        this.sessions.set(phone, session);
+        this.sessions.set(sessionKey, session);
         return session;
     }
 
-    async flushSession(phone) {
-        const session = this.sessions.get(phone);
+    async flushSession(sessionKey) {
+        // sessionKey can be E.164 phone or email
+        // Try to normalize if it looks like a phone, otherwise use as-is
+        let key = sessionKey;
+        if (typeof sessionKey === 'string' && !sessionKey.includes('@')) {
+            try {
+                key = PhoneNormalizationService.normalizeToE164(sessionKey);
+            } catch (err) {
+                // Not a phone — use as-is (email)
+            }
+        }
+
+        const session = this.sessions.get(key);
         if (!session) return;
 
-        this._emitSystemEvent('session.closed', session.leadId || phone, { phone, messageCount: session.messages.length });
+        this._emitSystemEvent('session.closed', session.leadId || key, { sessionKey: key, messageCount: session.messages.length });
 
-        console.log(`[MasterAI] Session Timeout for ${phone}. Flushing to CRM...`);
+        console.log(`[MasterAI] Session Timeout for ${key}. Processing flush...`);
 
-        if (session.leadId && session.messages.length > 0) {
+        if (session.leadContext?.isTemporary) {
+            // --- DEFERRED LEAD: AI-Judged Flush ---
+            if (session.messages.length > 0) {
+                try {
+                    // Step 1: Ask LLM to classify the conversation
+                    const classificationPrompt = `Analyze this conversation and respond with ONLY a JSON object:
+{
+  "is_business_relevant": true/false,
+  "reason": "one line explanation",
+  "extracted_name": "name if mentioned, else null",
+  "summary": "2-3 line conversation summary",
+  "sentiment": "Positive/Neutral/Negative",
+  "tone": "Formal/Casual/Urgent"
+}
+
+Rules:
+- Business-relevant = about our PG/hostel, rooms, rent, visits, complaints, payments, maintenance
+- NOT relevant = wrong number, spam, random chat, greetings with no follow-up, unrelated questions`;
+
+                    const classification = await this.openai.chat.completions.create({
+                        model: "gpt-4o-mini",
+                        messages: [
+                            { role: "system", content: classificationPrompt },
+                            ...session.messages.map(m => ({ role: m.role, content: m.content }))
+                        ]
+                    });
+
+                    const verdict = JSON.parse(classification.choices[0].message.content);
+
+                    // Step 2: If relevant → CRM snapshot process
+                    if (verdict.is_business_relevant) {
+                        try {
+                            const crm = this.subAgents.find(a => a.name === 'CRMAgent');
+                            const phone = session.leadContext.phone;
+
+                            const newLead = await crm.callTool('add_lead', {
+                                name: verdict.extracted_name || 'WhatsApp User',
+                                primary_phone: phone,
+                                source: { category: 'WhatsApp', detail: 'Auto-created after conversation' }
+                            });
+
+                            if (newLead.status === 'Lead Created' || newLead.status === 'Conflict') {
+                                const leadId = newLead.lead_id || phone;
+                                await crm.callTool('log_session', {
+                                    lead_id: leadId,
+                                    interaction_type: 'WhatsApp Conversation',
+                                    participants: [phone, 'MasterAI'],
+                                    summary: verdict.summary,
+                                    sentiment: verdict.sentiment,
+                                    tone: verdict.tone,
+                                    financial_impact: 'None',
+                                    compliance_impact: 'None',
+                                    links: { artifacts: [] }
+                                });
+                                console.log(`[MasterAI] Deferred lead created and session logged for ${phone} (Reason: ${verdict.reason})`);
+                            }
+                        } catch (crmErr) {
+                            // DATA PLANE: Don't lose classified data (Failure Policy §2.2)
+                            console.error("[MasterAI] Flush CRM Write Failed:", crmErr.message);
+                            this._emitSystemEvent('flush.failed', key, {
+                                phone: session.leadContext.phone,
+                                verdict: verdict,
+                                messages: session.messages,
+                                error: crmErr.message
+                            });
+                        }
+                    } else {
+                        console.log(`[MasterAI] Session dropped (not business-relevant): ${verdict.reason}`);
+                    }
+                } catch (llmErr) {
+                    // LLM classification failed — can't determine relevance, drop session
+                    console.error("[MasterAI] Flush Classification Failed:", llmErr.message);
+                }
+            } else {
+                console.log(`[MasterAI] Empty temp session dropped.`);
+            }
+        } else if (session.leadId && session.messages.length > 0) {
+            // --- KNOWN USER: Standard flush (existing behavior) ---
             try {
                 const crm = this.subAgents.find(a => a.name === 'CRMAgent');
-                await crm.callTool('append_session_log', {
+                await crm.callTool('log_session', {
                     lead_id: session.leadId,
-                    start_time: session.startTime,
-                    end_time: new Date().toISOString(),
-                    messages: session.messages
+                    interaction_type: 'WhatsApp Conversation',
+                    participants: [key, 'MasterAI'],
+                    summary: `Session with ${session.messages.length} messages.`,
+                    sentiment: 'Neutral',
+                    tone: 'Neutral',
+                    financial_impact: 'None',
+                    compliance_impact: 'None',
+                    links: { artifacts: [] }
                 });
                 console.log(`[MasterAI] Session flushed successfully.`);
             } catch (err) {
                 console.error(`[MasterAI] Failed to flush session:`, err.message);
             }
         } else {
-            console.log(`[MasterAI] Empty or unlinked session. dropped.`);
+            console.log(`[MasterAI] Empty or unlinked session. Dropped.`);
         }
 
-        this.sessions.delete(phone);
+        this.sessions.delete(key);
     }
 
     async chat(history, userContext = null) {
         try {
             // Check identity (Email via Dashboard, or profile_type via WhatsApp CRM Context)
             const isCEO = userContext?.email === 'nishantsah@outlook.in' || userContext?.profile_type === 'CEO';
+            const isStaff = !isCEO && (userContext?.profile_type === 'Staff'
+                || (userContext?.email && userContext?.email !== 'nishantsah@outlook.in'));
 
             // Collect tools from all other agents
             const allTools = [];
@@ -177,11 +328,30 @@ class MasterAI extends BaseAgent {
                 
                 Your Internal Sub-Agent Team:
                 ${this.subAgents.map(a => `- ${a.identity.role} (${a.name})`).join('\n')}`;
+            } else if (isStaff) {
+                systemPrompt += `\n\n**STAFF MODE**: You are speaking to an internal team member.
+                - You MAY share operational details: occupancy rates, pending maintenance, tenant status, collection summaries, and task lists.
+                - You MAY share schedules, pending approvals, and workflow statuses.
+                - You must NOT reveal AI architecture, sub-agent names, tool prefixes, or system internals.
+                - You must NOT share individual tenant financial details (specific amounts, payment history) unless the staff member's role requires it.
+                - You must NOT reveal that you are an AI "Orchestrator" routing tasks to other AI models.
+                - Act as Kalyani, the Head of Operations. Treat this as a professional internal conversation.`;
             } else {
-                systemPrompt += `\n\n**STRICT IDENTITY GUARDRAIL**: You are speaking to an external customer/client or unauthorized staff member. 
-                - You must NEVER mention the names of your internal tools or the prefixes attached to them (e.g., PropertyAI_, CRMAgent_).
-                - You must NEVER reveal that you are an AI "Orchestrator" routing tasks to other AI models.
-                - Act as a unified, singular human representative named Kalyani for the entire business.`;
+                systemPrompt += `\n\n**STRICT IDENTITY GUARDRAIL**: You are speaking to an external customer or prospective tenant.
+                - Act as a unified, singular human representative named Kalyani.
+                - You MAY share: available room types, pricing (public rate card), amenities, location details, visit scheduling, their own booking status, their own payment dues.
+                - You must NOT share: other tenants' information, internal staff details, occupancy numbers, business revenue, operational costs, or any internal metrics.
+                - You must NOT mention internal tools, AI agents, tool prefixes (e.g., PropertyAI_, CRMAgent_), or system architecture.
+                - You must NOT reveal that you are an AI "Orchestrator" routing tasks to other AI models.
+                - Keep responses warm, helpful, and sales-oriented.`;
+            }
+
+            // Inject recent conversation history for known users
+            if (userContext?.recentSessions && userContext.recentSessions.length > 0) {
+                systemPrompt += `\n\n**Recent Conversation History (last ${userContext.recentSessions.length}):**\n`;
+                for (const s of userContext.recentSessions) {
+                    systemPrompt += `- [${s.timestamp}] ${s.summary || 'No summary'} (Sentiment: ${s.sentiment || 'N/A'})\n`;
+                }
             }
 
             // Add a specialized system prompt
@@ -263,10 +433,20 @@ class MasterAI extends BaseAgent {
 
     async process_event(event) {
         // Generic Message Handler for ANY source (WhatsApp, Email, Portal, etc.)
-        if (event.type === 'WHATSAPP_MESSAGE' || event.type === 'INCOMING_MESSAGE') {
-            const from = event.payload.from;
-            const text = event.payload.text;
-            const source = event.payload.source || 'WhatsApp';
+        if (event.event_type === 'message.received') {
+            const from = event.payload?.from;
+            let text = event.payload?.body;
+            const source = event.context?.channel || 'Unknown';
+            const msgType = event.payload?.raw?.type;
+
+            if (!text && event.payload.media) {
+                text = `[User sent a ${msgType || 'media'} file]`;
+            }
+
+            if (!text) {
+                console.log(`[MasterAI] Ignoring empty/unsupported message from ${from}`);
+                return;
+            }
 
             console.log(`[MasterAI] Processing ${source} from ${from}: ${text}`);
 
@@ -294,10 +474,17 @@ class MasterAI extends BaseAgent {
 
                 // 6. Send Reply
                 const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
-                if (commsAgent) {
-                    await commsAgent.callTool('send_message', {
-                        channel: source, // 'WhatsApp' or others
-                        recipient: from,
+                const normFrom = PhoneNormalizationService.normalizeToE164(from);
+
+                if (commsAgent && source === 'whatsapp') {
+                    await commsAgent.callTool('send_text_message', {
+                        recipient_phone: normFrom,
+                        content: response.content
+                    });
+                } else if (commsAgent) {
+                    // Fallback for other channels if supported later, or assume generic send_message
+                    await commsAgent.callTool('send_text_message', {
+                        recipient_phone: normFrom,
                         content: response.content
                     });
                 }

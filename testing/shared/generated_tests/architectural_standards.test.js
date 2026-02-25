@@ -110,35 +110,35 @@ describe('Architectural Invariants (ADR-001)', () => {
         let crmAgent;
         beforeEach(async () => {
             crmAgent = new CRMAgent();
-            await crmAgent.callTool('add_lead', { name: "Test User", primary_phone: "9999999999" });
+            await crmAgent.callTool('add_lead', { name: "Test User", primary_phone: "+919999999999" });
         });
 
         test('Snapshot should be MUTABLE (update in-place)', async () => {
             // Initial state
-            const leadBefore = await crmAgent.callTool('get_lead_by_phone', { phone: "9999999999" });
+            const leadBefore = await crmAgent.callTool('get_lead_by_phone', { phone: "+919999999999" });
             expect(leadBefore.lead.profile_type).toBe('Customer');
 
             // Update
-            await crmAgent.callTool('update_lead_snapshot', { lead_id: "9999999999", profile_type: 'Staff' });
+            await crmAgent.callTool('update_lead_snapshot', { lead_id: "+919999999999", profile_type: 'Staff' });
 
             // Check state (same lead_id, changed property)
-            const leadAfter = await crmAgent.callTool('get_lead_by_phone', { phone: "9999999999" });
+            const leadAfter = await crmAgent.callTool('get_lead_by_phone', { phone: "+919999999999" });
             expect(leadAfter.lead.profile_type).toBe('Staff');
             // Ensure it's the same object reference in memory (simulated)
-            expect(leadAfter.lead).toBe(crmAgent.leads.get("9999999999"));
+            expect(leadAfter.lead).toBe(crmAgent.leads.get("+919999999999"));
         });
 
         test('Timeline should be APPEND-ONLY', async () => {
             // Log an event
-            await crmAgent.callTool('log_session', { lead_id: "9999999999", summary: "Session 1" });
+            await crmAgent.callTool('log_session', { lead_id: "+919999999999", summary: "Session 1" });
 
-            const timeline1 = await crmAgent.callTool('get_timeline', { lead_id: "9999999999" });
+            const timeline1 = await crmAgent.callTool('get_timeline', { lead_id: "+919999999999" });
             const count1 = timeline1.events.length;
 
             // Log another event
-            await crmAgent.callTool('log_session', { lead_id: "9999999999", summary: "Session 2" });
+            await crmAgent.callTool('log_session', { lead_id: "+919999999999", summary: "Session 2" });
 
-            const timeline2 = await crmAgent.callTool('get_timeline', { lead_id: "9999999999" });
+            const timeline2 = await crmAgent.callTool('get_timeline', { lead_id: "+919999999999" });
             const count2 = timeline2.events.length;
 
             expect(count2).toBeGreaterThan(count1);

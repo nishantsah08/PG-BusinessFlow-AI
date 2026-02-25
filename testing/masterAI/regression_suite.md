@@ -43,6 +43,36 @@ These tests are **deployment blockers** — identical in severity to §1 Core In
     *   Assert: status = `FAILED` with `DEADLINE_EXPIRED`, zero agent calls, zero steps executed.
     *   Failure means: expired workflows can execute stale operations in production.
 
+*   **P2-SENT-005: Session Context Phone Lookup**
+    *   Known user by phone: `getOrCreateSession("+919800098000")` → `leadContext` populated, last 3 sessions loaded.
+    *   Assert: session has `leadContext.name`, `recentSessions.length <= 3`, no CRM lead created.
+    *   Failure means: session context loading for known users is broken.
+
+*   **P2-SENT-006: Session Context Email Lookup**
+    *   Known user by email: `getOrCreateSession({ email: "rahul@gmail.com" })` → `leadContext` populated.
+    *   Assert: session has `leadContext.name`, `leadContext.email` matches.
+    *   Failure means: email-based session initialization is broken.
+
+*   **P2-SENT-007: Deferred Lead Creation**
+    *   Unknown user → temp lead created during conversation → AI classification at flush → CRM write only if business-relevant.
+    *   Assert: no `add_lead` call at session start, `leadContext.isTemporary === true`, flush with relevant conversation creates CRM lead.
+    *   Failure means: CRM is polluted with junk leads, OR valid leads are lost.
+
+*   **P2-SENT-008: Staff Guardrail**
+    *   Staff `profile_type` → system prompt contains `STAFF MODE` with operational access. Does NOT contain sub-agent names.
+    *   Assert: prompt has operational keywords, no AI architecture exposed.
+    *   Failure means: staff users can see internal system details, OR are blocked from operational info they need.
+
+*   **P2-SENT-009: Session Init Degradation**
+    *   CRM down → session still created with empty context, Kalyani still responds. Zero retries.
+    *   Assert: no crash, session exists, `leadContext` is null or temp, no retry calls made.
+    *   Failure means: CRM outage crashes the entire system (Failure Policy §2.1 violation).
+
+*   **P2-SENT-010: Flush Data Safety**
+    *   CRM write fails after successful LLM classification → `flush.failed` event emitted with full conversation payload.
+    *   Assert: `flush.failed` event captured, payload contains verdict + messages, no crash.
+    *   Failure means: classified business leads are lost when CRM has transient failures (Failure Policy §2.2 violation).
+
 ---
 
 ## 6. Phase-3 Integration Validation Conditions

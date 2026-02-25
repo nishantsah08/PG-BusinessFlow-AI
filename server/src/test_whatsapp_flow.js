@@ -1,4 +1,5 @@
 require('dotenv').config();
+process.env.OPENAI_API_KEY = 'sk-mock-key';
 const MasterAI = require('./agents/MasterAI');
 const CRMAgent = require('./agents/CRMAgent');
 const CommunicationsAI = require('./agents/CommunicationsAI');
@@ -12,7 +13,8 @@ commsAI.callTool = async (name, args) => {
 
 // 2. Mock CRMAgent (with In-Memory Store for verification)
 const crmAgent = new CRMAgent();
-crmAgent.leads = []; // Reset leads
+crmAgent.leads = new Map(); // Reset leads correctly
+crmAgent.timelines = new Map();
 
 // Instantiate MasterAI
 const masterAI = new MasterAI([commsAI, crmAgent]);
@@ -36,20 +38,34 @@ async function runTest() {
     // Step 1: Session Start (New User)
     console.log("\n[Step 1] User sends 'Hi' (New Session)");
     await masterAI.process_event({
-        type: 'WHATSAPP_MESSAGE',
-        payload: { from: TEST_PHONE, text: 'Hi, I am looking for a flat.', source: 'WhatsApp' }
+        event_type: 'message.received',
+        context: { channel: 'whatsapp' },
+        payload: { from: TEST_PHONE, body: 'Hi, I am looking for a flat.', raw: { type: 'text' } }
     });
 
     // Check if Lead Created
-    const lead = crmAgent.leads.find(l => l.phones.primary === TEST_PHONE);
+    const lead = crmAgent.leads.get(TEST_PHONE);
     if (lead) console.log(`✓ Lead Created: ${lead.lead_id}`);
     else console.error("✗ Lead NOT Created");
 
     // Step 2: In-Session Chat (Memory Check)
     console.log("\n[Step 2] User sends '2BHK please' (Same Session)");
     await masterAI.process_event({
-        type: 'WHATSAPP_MESSAGE',
-        payload: { from: TEST_PHONE, text: '2BHK please', source: 'WhatsApp' }
+        event_type: 'message.received',
+        context: { channel: 'whatsapp' },
+        payload: { from: TEST_PHONE, body: '2BHK please', raw: { type: 'text' } }
+    });
+
+    console.log("\n[Step 2.5] User sends an image");
+    await masterAI.process_event({
+        event_type: 'message.received',
+        context: { channel: 'whatsapp' },
+        payload: {
+            from: TEST_PHONE,
+            body: null,
+            media: { mime_type: "image/jpeg", id: "123" },
+            raw: { type: 'image' }
+        }
     });
 
     // Step 3: Simulate Timeout (Flush)
@@ -57,26 +73,27 @@ async function runTest() {
     await masterAI.flushSession(TEST_PHONE);
 
     // Verify CRM Log
-    const updatedLead = crmAgent.leads.find(l => l.phones.primary === TEST_PHONE);
+    const updatedLead = crmAgent.leads.get(TEST_PHONE);
+    const timeline = crmAgent.timelines.get(TEST_PHONE);
 
-    if (updatedLead && updatedLead.history) {
-        const sessionLog = updatedLead.history.find(h => h.type === 'SESSION');
+    if (updatedLead && timeline) {
+        const sessionLog = timeline.find(h => h.type === 'SESSION');
         if (sessionLog) {
-            console.log("✓ Session Log Found in CRM History:");
+            console.log("✓ Session Log Found in CRM Timeline:");
             console.log(JSON.stringify(sessionLog, null, 2));
 
-            // Verify content
-            if (sessionLog.messages.length >= 4) {
-                console.log("✓ Session has correct number of messages (User+Bot, User+Bot)");
+            // Verify content (log_session receives summary not full messages in updated version)
+            if (sessionLog.summary && sessionLog.summary.includes('messages')) {
+                console.log("✓ Session summary is correct");
             } else {
-                console.error("✗ Session message count mismatch: " + sessionLog.messages.length);
+                console.error("✗ Session summary mismatch");
             }
 
         } else {
-            console.error("✗ Session Log Missing in CRM History");
+            console.error("✗ Session Log Missing in CRM Timeline");
         }
     } else {
-        console.error("✗ Lead Missing or History Empty");
+        console.error("✗ Lead Missing or Timeline Empty");
     }
 
     console.log("\n--- Test Complete ---");

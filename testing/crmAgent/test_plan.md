@@ -16,7 +16,7 @@ We follow the **Invariant-Driven Testing** philosophy.
 
 | Layer | Type | Focus | Implementation |
 |---|---|---|---|
-| 1 | **Domain** | Invariants, Logic, Data Model | `identity.test.js`, `lifecycle.test.js`, `append_only.test.js`, `merge_logic.test.js`, `snapshot_process.test.js` |
+| 1 | **Domain** | Invariants, Logic, Data Model | `identity.test.js`, `lifecycle.test.js`, `append_only.test.js`, `merge_logic.test.js`, `snapshot_process.test.js`, `email_lookup.test.js` |
 | 2 | **Integration** | Multi-step flows, Persistence | `artifacts.test.js`, `contract_validation.test.js` |
 | 3 | **Contract** | Input/Output shapes | `contract_validation.test.js` |
 
@@ -30,3 +30,4 @@ We follow the **Invariant-Driven Testing** philosophy.
 2.  **Status Change**: Must validate transition.
 3.  **Merge**: Must preserve data and timeline.
 4.  **Session Log**: Must be distinct and immutable.
+5.  **Email Lookup**: Must find correct lead by email (case-insensitive).

@@ -13,7 +13,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
         const result = await hrAgent.callTool('hire_staff', {
             name: "John Doe",
             designation: "Manager",
-            contact: { primary: "9876543210" },
+            contact: { primary: "+919876543210" },
             base_salary: 50000
         });
 
@@ -22,21 +22,21 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
 
         const staff = await hrAgent.callTool('get_staff_details', { staff_id: result.staff_id });
         expect(staff.status).toBe('ACTIVE');
-        expect(staff.contact.primary).toBe("9876543210");
+        expect(staff.contact.primary).toBe("+919876543210");
     });
 
     test('Identity: Duplicate hire with same primary contact fails', async () => {
         await hrAgent.callTool('hire_staff', {
             name: "John Doe",
             designation: "Manager",
-            contact: { primary: "9876543210" },
+            contact: { primary: "+919876543210" },
             base_salary: 50000
         });
 
         await expect(hrAgent.callTool('hire_staff', {
             name: "Jane Doe",
             designation: "Assistant",
-            contact: { primary: "9876543210" }, // Same contact
+            contact: { primary: "+919876543210" }, // Same contact
             base_salary: 30000
         })).rejects.toThrow();
     });
@@ -45,7 +45,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
         const hire = await hrAgent.callTool('hire_staff', {
             name: "Terminator",
             designation: "Robot",
-            contact: { primary: "1112223334" },
+            contact: { primary: "+911112223334" },
             base_salary: 100
         });
 
@@ -62,7 +62,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
     });
 
     test('Identity: Cannot terminate already terminated staff', async () => {
-        const hire = await hrAgent.callTool('hire_staff', { name: "T2", designation: "R2", contact: { primary: "111" }, base_salary: 10 });
+        const hire = await hrAgent.callTool('hire_staff', { name: "T2", designation: "R2", contact: { primary: "+911111111111" }, base_salary: 10 });
         await hrAgent.callTool('terminate_staff', { staff_id: hire.staff_id, reason: "Once" });
 
         await expect(hrAgent.callTool('terminate_staff', {
@@ -74,7 +74,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
     // --- COMPENSATION INVARIANTS ---
 
     test('Compensation: Salary Card creation with valid data succeeds', async () => {
-        const hire = await hrAgent.callTool('hire_staff', { name: "Richie", designation: "CEO", contact: { primary: "999" }, base_salary: 1 });
+        const hire = await hrAgent.callTool('hire_staff', { name: "Richie", designation: "CEO", contact: { primary: "+919999999999" }, base_salary: 1 });
 
         const card = await hrAgent.callTool('create_salary_card', {
             staff_id: hire.staff_id,
@@ -91,7 +91,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
     });
 
     test('Compensation: Duplicate Salary Card creation fails (must use update)', async () => {
-        const hire = await hrAgent.callTool('hire_staff', { name: "Dupe", designation: "Dev", contact: { primary: "888" }, base_salary: 1 });
+        const hire = await hrAgent.callTool('hire_staff', { name: "Dupe", designation: "Dev", contact: { primary: "+918888888888" }, base_salary: 1 });
         await hrAgent.callTool('create_salary_card', { staff_id: hire.staff_id, base_salary: 10, bank_details: { account_number: "1", ifsc: "1" } });
 
         await expect(hrAgent.callTool('create_salary_card', {
@@ -102,7 +102,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
     });
 
     test('Compensation: Update Salary Card preserves history', async () => {
-        const hire = await hrAgent.callTool('hire_staff', { name: "Updater", designation: "Dev", contact: { primary: "777" }, base_salary: 1 });
+        const hire = await hrAgent.callTool('hire_staff', { name: "Updater", designation: "Dev", contact: { primary: "+917777777777" }, base_salary: 1 });
         await hrAgent.callTool('create_salary_card', {
             staff_id: hire.staff_id,
             base_salary: 10,
@@ -126,7 +126,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
     // --- LEAVE INVARIANTS ---
 
     test('Leave: Record valid leave succeeds', async () => {
-        const hire = await hrAgent.callTool('hire_staff', { name: "Leaver", designation: "Dev", contact: { primary: "666" }, base_salary: 1 });
+        const hire = await hrAgent.callTool('hire_staff', { name: "Leaver", designation: "Dev", contact: { primary: "+916666666666" }, base_salary: 1 });
         const result = await hrAgent.callTool('record_leave', {
             staff_id: hire.staff_id,
             leave_type: "CASUAL",
@@ -148,7 +148,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
     // I will write the test assuming logic SHOULD exist as per invariants.md
 
     test('Leave: Approve Leave updates status', async () => {
-        const hire = await hrAgent.callTool('hire_staff', { name: "Approver", designation: "Boss", contact: { primary: "555" }, base_salary: 1 });
+        const hire = await hrAgent.callTool('hire_staff', { name: "Approver", designation: "Boss", contact: { primary: "+915555555555" }, base_salary: 1 });
         const leave = await hrAgent.callTool('record_leave', {
             staff_id: hire.staff_id,
             leave_type: "SICK",
@@ -170,7 +170,7 @@ describe('HR Agent Domain Tests (Layer 1)', () => {
     // --- INCENTIVE LOGIC ---
 
     test('Incentive: Calculate Incentive logic correctness', async () => {
-        const hire = await hrAgent.callTool('hire_staff', { name: "Sales", designation: "Rep", contact: { primary: "444" }, base_salary: 1 });
+        const hire = await hrAgent.callTool('hire_staff', { name: "Sales", designation: "Rep", contact: { primary: "+914444444444" }, base_salary: 1 });
         await hrAgent.callTool('create_salary_card', {
             staff_id: hire.staff_id,
             base_salary: 10000,

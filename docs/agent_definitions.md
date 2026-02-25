@@ -34,18 +34,28 @@
     *   **Strict Adherence**: Executed autonomously once approved.
     *   **Validation**: User validation required only at creation/update.
 *   **Session Management & Persistence**:
-    *   **Identity Source**: MasterAI distinguishes user authority based on how the session is created and the CRM profile:
-        *   **Phone Number (`lead_id`) via CommunicationsAI**: MasterAI Maps this to a CRM profile. By default, the user is strictly treated as an external lead/tenant, and MasterAI acts as the human persona `Kalyani`, hiding all internal system concepts. However, if the CRM profile indicates `profile_type: "CEO"`, MasterAI grants full transparent system admin access. If `profile_type: "Staff"`, the strict guardrail remains to prevent confusing staff with technical orchestration details.
-        *   **Email ID via Dashboard**: Initiated via the Portal Chat Window (Dashboard Login). If the email matches the business owner (CEO), MasterAI identifies them as the system admin and will transparently discuss orchestrations, logs, and its internal sub-agent team. Other internal staff emails will fall back to the strict "Kalyani" guardrail.
+    *   **Identity Source (Dual Lookup)**: MasterAI identifies users via **phone number OR email**:
+        *   **Phone Number (`lead_id`) via CommunicationsAI**: Maps to a CRM profile via `get_lead_by_phone`. The user's `profile_type` determines guardrail behavior.
+        *   **Email ID via Dashboard**: Maps to a CRM profile via `get_lead_by_email` (case-insensitive). If the email matches the CEO, full transparent access is granted.
+    *   **Context Loading for Known Users**: When a CRM profile is found, MasterAI loads the **last 3 SESSION events** from the user's timeline. This gives Kalyani memory of recent conversations (summary, sentiment, tone) so she doesn't start from scratch.
+    *   **Deferred Lead Creation for Unknown Users**: If no CRM profile is found:
+        *   A **temporary in-memory context** is created (`isTemporary: true`). No CRM write occurs.
+        *   The conversation proceeds normally with Kalyani.
+        *   At session timeout (15-min inactivity), MasterAI uses the LLM to classify the full conversation:
+            *   **Business-relevant** (room enquiry, rent, visits, complaints, payments) → CRM lead is created + session logged with AI-generated summary/sentiment/name.
+            *   **Not relevant** (wrong number, spam, unrelated) → Session is silently dropped. No CRM pollution.
     *   **Phased Persistence**:
         *   **Phase 1**: In-Memory / Local JSON.
         *   **Phase 2**: Firestore.
     *   **Timeout**: **60 Seconds** (Unified System Timeout).
     *   **Inactivity**: Session closes after 15 minutes.
-*   **Guardrails**:
+*   **Guardrails (3-Tier System)**:
     *   **Timeout Handling**: If an agent call hangs for >60s, cancel.
     *   **Business Guardrails**: CEO escalation for critical/out-of-scope actions.
-    *   **Persona Integrity**: Master AI acts strictly as "Kalyani" to customers (hides internals).
+    *   **Persona Integrity (3 Tiers)**:
+        *   **CEO** (`profile_type: "CEO"` or CEO email): Full transparency. May discuss AI architecture, sub-agent names, system internals.
+        *   **Staff** (`profile_type: "Staff"` or non-CEO staff email): Kalyani persona. MAY share operational details (occupancy, maintenance, tenant status, task lists, schedules). Must NOT reveal AI architecture, sub-agent names, or system internals.
+        *   **Customer** (default / `profile_type: "Customer"`): Kalyani persona. MAY share room types, pricing, amenities, visit scheduling, their own booking/payment status. Must NOT share other tenants' info, internal staff details, occupancy numbers, revenue, operational costs, or system architecture.
     *   **Atomic Workflows (Transactional Safety)**:
         *   **Rule**: Multi-step workflows (e.g., Tenant Onboarding = Assign Unit + Record Payment) must be **Atomic**.
         *   **Compensation Logic**: If Step `N` fails, MasterAI must execute "UndoTool" for Steps `1...N-1` to revert the system to a clean state.
@@ -96,7 +106,7 @@
 *   **Role**: Lead & Tenant Relationship Manager.
 *   **Description**: You are the memory of every human interaction. From the first "Hello" (Lead) to the last goodbye (Tenant), you record their story — every call, visit, complaint, and preference — as an append-only chronological log. You never manage the Property they stay in, only their experience of it. Nothing is overwritten; every interaction is a new entry.
 *   **Inputs**: WhatsApp, Phone Calls, Emails (via MasterAI).
-*   **Identity**: The **lead_id IS the 10-digit primary mobile number**. A human is identified by their phone. Additional numbers stored in `phones.others` with WhatsApp status tracked per number.
+*   **Identity Rule**: The **lead_id IS the E.164 canonical mobile number** (e.g., `+919800098000`).A human is identified by their phone. Additional numbers stored in `phones.others` with WhatsApp status tracked per number.
 *   **Core Principle**:
     *   **Timeline**: STRICTLY Append-only. Every interaction is a new timestamped event.
     *   **Snapshot**: Mutable Projection. Can be updated in-place to reflect the "Current Best Truth" derived from the timeline.
@@ -110,7 +120,7 @@
         *   *Append*: A `CORRECTION` event updating contact details (add new number to profile).
 *   **Lifecycle (The "4-Bucket" Strategy)**: `Enquiry` → `Visited` → `Onboarded` → `Left`. The cycle can **repeat** — a person who left can enquire again. Every transition is dated.
 *   **CRM Data Pillars**:
-    *   **User Profile Snapshot**: The person's profile (identity, demographics, preferences, `source`, `unit_type_required`, `ai_notes`, `profile_type`).
+    *   **User Profile Snapshot**:| `leads` | `lead_id` (= primary phone, e.g., `+919800098000`) | Lead Snapshot (profile, demographics, preferences). |`source`, `unit_type_required`, `ai_notes`, `profile_type`).
         *   **`profile_type`**: "Customer" (Default), "Staff", "CEO". Used to determine permissions and context loading rules.
     *   **Artifacts**: Immutable files (call recordings, transcripts, images, PDFs, workflow logs) stored in GCS, referenced via links.
     *   **Session**: Record of a single conversation — `summary`, `sentiment`, `tone`, `financial_impact`, `compliance_impact`, `participants`, and links to artifacts/workflows.
@@ -149,13 +159,16 @@
 *   **Salary Card (Schema)**:
     ```json
     {
-      "staff_id": "STF-05",
+      "lead_id": "+919800098000",
       "designation": "Property Manager",
       "job_description": "Manage day-to-day operations, tenant grievances, and vendor supervision.",
       "contact": {
-        "primary": "+919876543210",
+        "primary": { "number": "+919800098000", "whatsapp": true },
         "email": "manager@property.com",
-        "alternate": ["+919988776655"]
+        "alternate": [
+          { "number": "+919988776655", "whatsapp": false },
+          { "number": "+917900079000", "whatsapp": false }
+        ]
       },
       "bank_details": {
         "account_holder": "Raamesh Kumar",

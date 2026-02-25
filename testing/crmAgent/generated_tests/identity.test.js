@@ -8,7 +8,7 @@ describe('CRM Agent: Identity Invariants', () => {
     });
 
     test('INV-01: Identity is Primary Phone', async () => {
-        const phone = '9876543210';
+        const phone = '+919876543210';
         await agent.callTool('add_lead', {
             name: 'Test User',
             primary_phone: phone
@@ -20,7 +20,7 @@ describe('CRM Agent: Identity Invariants', () => {
     });
 
     test('INV-02: Global Uniqueness - Duplicate Primary', async () => {
-        const phone = '9998887776';
+        const phone = '+915555555555';
         await agent.callTool('add_lead', { name: 'User A', primary_phone: phone });
 
         const res = await agent.callTool('add_lead', { name: 'User B', primary_phone: phone });

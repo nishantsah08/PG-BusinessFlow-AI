@@ -23,7 +23,7 @@ describe('CRM Agent: Lead Lifecycle', () => {
 
         const createRes = await agent.callTool('add_lead', leadData);
         expect(createRes.status).toBe('Lead Created');
-        expect(createRes.lead_id).toBe('9800098000');
+        expect(createRes.lead_id).toBe('+919800098000');
 
         // 2. Get Lead (Verify Fields)
         const getRes = await agent.callTool('get_lead', { phone: '9800098000' });
@@ -55,9 +55,9 @@ describe('CRM Agent: Lead Lifecycle', () => {
     });
 
     test('Duplicate Lead Rejection', async () => {
-        await agent.callTool('add_lead', { name: 'A', primary_phone: '9999999999' });
+        await agent.callTool('add_lead', { name: 'A', primary_phone: '+919999999999' });
 
-        const res = await agent.callTool('add_lead', { name: 'B', primary_phone: '9999999999' });
+        const res = await agent.callTool('add_lead', { name: 'B', primary_phone: '+919999999999' });
         expect(res.status).toBe('Conflict');
     });
 
@@ -69,18 +69,17 @@ describe('CRM Agent: Lead Lifecycle', () => {
     });
 
     test('Add Secondary Phone & Lookup', async () => {
-        await agent.callTool('add_lead', { name: 'A', primary_phone: '1111111111' });
+        await agent.callTool('add_lead', { name: 'A', primary_phone: '+911111111111' });
 
-        // Add Secondary
-        await agent.callTool('add_secondary_phone', {
-            lead_id: '1111111111',
-            phone_number: '2222222222',
+        const addPhone = await agent.callTool('add_secondary_phone', {
+            lead_id: '+911111111111',
+            phone_number: '+912222222222',
             label: 'Home'
         });
 
         // Lookup by Secondary
-        const res = await agent.callTool('get_lead_by_phone', { phone: '2222222222' });
+        const res = await agent.callTool('get_lead_by_phone', { phone: '+912222222222' });
         expect(res.status).toBe('Found');
-        expect(res.lead.lead_id).toBe('1111111111'); // Returns the primary lead ID
+        expect(res.lead.lead_id).toBe('+911111111111'); // Returns the primary lead ID
     });
 });

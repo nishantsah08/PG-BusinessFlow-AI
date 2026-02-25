@@ -29,18 +29,19 @@ Implement the complete Agent System (v3.7) with a **Dynamic Workflow Engine**, a
 
 ### 2.1 Core Responsibilities
 *   **Context Management**:
-    *   **Start of Interaction**: Fetches Context (User Profile + History) from **CRM Agent**.
+    *   **Start of Interaction**: Fetches Context via dual lookup (phone `get_lead_by_phone` OR email `get_lead_by_email`) from **CRM Agent**. For known users, also loads **last 3 SESSION events** for conversation memory.
     *   **End of Interaction**: Updates Context (New Information + Decisions) in **CRM Agent**.
+    *   **Deferred Lead Creation**: Unknown users get a temporary in-memory context. At session timeout, MasterAI classifies the conversation via LLM. Business-relevant → CRM lead created + session logged. Not relevant → silently dropped.
     *   **Role-Based Loading**:
-        *   **Customer**: Loads standard CRM profile options.
-        *   **Staff**: Loads task list and restricted permissions.
-        *   **CEO**: Loads full dashboard stats and override capabilities.
+        *   **Customer**: Loads CRM profile + last 3 conversations. Kalyani persona with customer-specific share/don't-share rules.
+        *   **Staff**: Loads CRM profile. Kalyani persona with operational access (occupancy, tasks, schedules). No AI internals.
+        *   **CEO**: Full transparent access. May discuss architecture, sub-agents, system internals.
 *   **Decision Engine**:
     *   Analyzes incoming **Events** (Webhook/Timer) + **Context**.
     *   Selects the appropriate **Workflow** or **Direct Tool**.
     *   Orchestrates **Atomic Business Transactions** (e.g., Booking = Update Unit + Record Payment).
-*   **Guardrails**:
-    *   Enforces "Kalyani" persona integrity.
+*   **Guardrails (3-Tier)**:
+    *   Enforces "Kalyani" persona integrity with tier-specific rules (CEO/Staff/Customer).
     *   Manages system timeouts (60s) and retry logic.
     *   **Phase 1**: Simulates all external dependencies (Payment/Email/WhatsApp) via mock events.
 
@@ -50,9 +51,9 @@ MasterAI exposes tools for **Internal Logic Control** and **Admin Dashboard (GUI
 #### Chat / Logic Tools (Internal MCP)
 These tools are used by the MasterAI Logic Engine to control the flow of the system.
 *   **`get_session_context`**:
-    *   *Inputs*: `user_id` (Phone Number).
-    *   *Returns*: `{ profile: {...}, last_session: {...}, active_workflows: [...] }`
-    *   *Purpose*: Loads the "Brain" with memory before processing a message.
+    *   *Inputs*: `user_id` (Phone Number or Email).
+    *   *Returns*: `{ profile: {...}, recent_sessions: [...] (last 3 SESSION events), active_workflows: [...] }`
+    *   *Purpose*: Loads the "Brain" with memory before processing a message. Supports dual lookup (phone + email).
 *   **`update_session_context`**:
     *   *Inputs*: `user_id`, `data` (Key-Value pairs).
     *   *Purpose*: Updates short-term memory during a conversation (e.g., "User is currently booking a visit").
@@ -234,12 +235,12 @@ These tools are used by the Admin Panel to monitor, manage, and verify the Orche
 ### 4.1 User Profile Snapshot (The Person)
 The User Profile Snapshot is the **profile of a human and their requirement**.
 
-**Identity Rule**: The **lead_id IS the 10-digit primary mobile number** (e.g., `9800098000`).
+**Identity Rule**: The **lead_id IS the E.164 canonical mobile number** (e.g., `+919800098000`).
 *   **Constraint**: If number changes, it is treated as a new Identity (or requires complex admin merge). We accept this risk for simplicity of `lead_id = phone`.
 
 ```json
 {
-  "lead_id": "9800098000",
+  "lead_id": "+919800098000",
   "name": "Ankit Verma",
   "profile_type": "Customer",
   "email": "ankit.verma@example.com",
@@ -249,9 +250,9 @@ The User Profile Snapshot is the **profile of a human and their requirement**.
   },
   "requirement_date": "2024-03-01",
   "phones": {
-    "primary": { "number": "9800098000", "whatsapp": true },
+    "primary": { "number": "+919800098000", "whatsapp": true },
     "others": [
-      { "number": "7900079000", "whatsapp": false }
+      { "number": "+917900079000", "whatsapp": false }
     ]
   },
   "demographics": {
@@ -271,7 +272,7 @@ The User Profile Snapshot is the **profile of a human and their requirement**.
   "created_at": "2024-02-15T10:30:00+05:30"
 }
 ```
-> **`lead_id` = `phones.primary.number`**: There is no separate generated ID. The person's 10-digit phone number IS their identity in the system. If Ankit's number is `9800098000`, his `lead_id` is `9800098000`.
+> **`lead_id` = `phones.primary.number`**: There is no separate generated ID. The person's E.164 canonical phone number IS their identity in the system. If Ankit's number is `+919800098000`, his `lead_id` is `+919800098000`.
 >
 > **`phones.whatsapp`**: Each phone number tracks whether it has WhatsApp. If the primary number doesn't have WhatsApp, the system checks `others` for a WhatsApp-enabled number to use as the messaging channel.
 >
@@ -284,8 +285,9 @@ The User Profile Snapshot is the **profile of a human and their requirement**.
 > **`unit_type_required`**: What type of accommodation the lead is looking for. E.g., `Single Room`, `Double Sharing`, `Triple Sharing`, `1BHK`, `2BHK`. Updated during Snapshot Process if the lead changes their requirement.
 >
 > **`profile_type`**: Determines the user's role in the system.
-> *   `Customer`: Default. Full context history loaded.
-> *   `Staff` / `CEO`: Internal users. No history context loaded. Created/Updated via HR Agent sync.
+> *   `Customer`: Default. Full CRM profile + last 3 conversations loaded. Kalyani persona with customer-specific guardrails.
+> *   `Staff`: Internal users. CRM profile loaded. Kalyani persona with operational access (occupancy, tasks, schedules). AI internals hidden. Created/Updated via HR Agent sync.
+> *   `CEO`: Full transparent access. May discuss architecture, sub-agents, system internals. Created/Updated via HR Agent sync.
 >
 > **`status` is a convenience field**: The "real" status lives in the timeline as `STATUS_CHANGE` events (e.g., Enquiry→Visited on Feb 20, Visited→Onboarded on Mar 5). The `status` field on the snapshot is just a shortcut so you don't have to scan the entire timeline every time. It is always kept in sync with the latest `STATUS_CHANGE` event.
 
@@ -432,6 +434,7 @@ The CRM Agent exposes a comprehensive set of tools to support both **Chat (Maste
 
 #### Search & Retrieval (GUI Support)
 *   **`get_lead_by_phone`**: `phone` (Strict lookup, checks primary & secondary).
+*   **`get_lead_by_email`**: `email` (Strict case-insensitive lookup by email field).
 *   **`search_leads`**: `query` (Partial name/email/phone), `limit`, `offset`.
 *   **`get_leads_by_status`**: `status`, `limit`, `offset`.
 *   **`get_recent_leads`**: `limit` (Sorted by last interaction).

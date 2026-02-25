@@ -1,4 +1,5 @@
 const BaseAgent = require('./BaseAgent');
+const PhoneNormalizationService = require('../services/PhoneNormalizationService');
 
 class CRMAgent extends BaseAgent {
     constructor() {
@@ -52,7 +53,12 @@ class CRMAgent extends BaseAgent {
             },
             required: ['name', 'primary_phone']
         }, async (args) => {
-            const leadId = args.primary_phone;
+            let leadId;
+            try {
+                leadId = PhoneNormalizationService.normalizeToE164(args.primary_phone);
+            } catch (err) {
+                return { status: "Invalid Input", message: "Invalid primary phone number format" };
+            }
 
             // Check for existing lead (Primary or Secondary)
             const existing = await this._findLeadByPhone(leadId);
@@ -252,10 +258,17 @@ class CRMAgent extends BaseAgent {
             const lead = this.leads.get(args.lead_id);
             if (!lead) return { status: "Error", message: "Lead not found" };
 
-            if (lead.phones.others.find(p => p.number === args.phone_number)) {
+            let phoneNumber;
+            try {
+                phoneNumber = PhoneNormalizationService.normalizeToE164(args.phone_number);
+            } catch (err) {
+                return { status: "Invalid Input", message: "Invalid phone number format" };
+            }
+
+            if (lead.phones.others.find(p => p.number === phoneNumber)) {
                 return { status: "Exists", message: "Number already in secondary list" };
             }
-            lead.phones.others.push({ number: args.phone_number, label: args.label, whatsapp: false });
+            lead.phones.others.push({ number: phoneNumber, label: args.label, whatsapp: false });
             return { status: "Phone Added", lead_id: args.lead_id };
         });
 
@@ -269,6 +282,13 @@ class CRMAgent extends BaseAgent {
         }, async (args) => {
             const lead = this.leads.get(args.lead_id);
             if (!lead) return { status: "Error", message: "Lead not found" };
+
+            let phoneNumber;
+            try {
+                phoneNumber = PhoneNormalizationService.normalizeToE164(args.phone_number);
+            } catch (err) {
+                return { status: "Invalid Input", message: "Invalid phone number format" };
+            }
 
             // Logic to swap would go here. Complex because lead_id IS the phone.
             // For Phase 1, we might restrict this or implement full ID migration.
@@ -358,7 +378,14 @@ class CRMAgent extends BaseAgent {
             },
             required: ['phone']
         }, async (args) => {
-            const lead = await this._findLeadByPhone(args.phone);
+            let phone;
+            try {
+                phone = PhoneNormalizationService.normalizeToE164(args.phone);
+            } catch (err) {
+                return { status: "Invalid Input", message: "Invalid phone number format" };
+            }
+
+            const lead = await this._findLeadByPhone(phone);
             if (!lead) return { status: "Not Found" };
 
             const timeline = this.timelines.get(lead.lead_id) || [];
@@ -374,9 +401,36 @@ class CRMAgent extends BaseAgent {
             },
             required: ['phone']
         }, async (args) => {
-            const lead = await this._findLeadByPhone(args.phone);
+            let phone;
+            try {
+                phone = PhoneNormalizationService.normalizeToE164(args.phone);
+            } catch (err) {
+                return { status: "Invalid Input", message: "Invalid phone number format" };
+            }
+
+            const lead = await this._findLeadByPhone(phone);
             if (!lead) return { status: "Not Found" };
             return { status: "Found", lead: lead };
+        });
+
+        this.registerTool('get_lead_by_email', 'Lookup lead by email address (case-insensitive)', {
+            type: 'object',
+            properties: {
+                email: { type: 'string' }
+            },
+            required: ['email']
+        }, async (args) => {
+            if (!args.email || typeof args.email !== 'string') {
+                return { status: "Invalid Input", message: "Email is required" };
+            }
+            const email = args.email.toLowerCase().trim();
+
+            for (const lead of this.leads.values()) {
+                if (lead.email && lead.email.toLowerCase().trim() === email) {
+                    return { status: "Found", lead: lead };
+                }
+            }
+            return { status: "Not Found" };
         });
 
         this.registerTool('search_leads', 'Fuzzy search', {
@@ -511,6 +565,26 @@ class CRMAgent extends BaseAgent {
     }
 
     // --- Helper Methods ---
+
+    async callTool(name, args) {
+        // Global interceptor for CRM Agent to normalize all identity-based arguments to E.164
+        const phoneArgs = ['lead_id', 'source_lead_id', 'target_lead_id', 'primary_phone', 'phone', 'phone_number'];
+
+        // Clone args to avoid mutating the original reference if it matters to caller, although typically safe here
+        const normalizedArgs = { ...args };
+
+        for (const key of phoneArgs) {
+            if (normalizedArgs[key] && typeof normalizedArgs[key] === 'string') {
+                try {
+                    normalizedArgs[key] = PhoneNormalizationService.normalizeToE164(normalizedArgs[key]);
+                } catch (err) {
+                    return { status: "Invalid Input", message: `Invalid phone number format for ${key}: ${normalizedArgs[key]}` };
+                }
+            }
+        }
+
+        return super.callTool(name, normalizedArgs);
+    }
 
     async _findLeadByPhone(phone) {
         if (this.leads.has(phone)) return this.leads.get(phone);

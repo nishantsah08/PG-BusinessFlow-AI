@@ -14,3 +14,5 @@ These tests protect the core business value. Failures here block deployment.
     *   *Test*: `append_only.test.js` -> "No Update Endpoint available for Timeline"
 4.  **Merge Data Loss Lock**: Merging A -> B must result in A's timeline events appearing in B.
     *   *Test*: `merge_logic.test.js` -> "Timeline Preservation"
+5.  **Email Lookup Lock**: `get_lead_by_email` must find a lead whose email matches (case-insensitive).
+    *   *Test*: `email_lookup.test.js` -> "Case-Insensitive Match"

@@ -14,3 +14,5 @@
 | ADV-01 | 3 Numbers / 1 Person | `adversarial.test.js` | [ ] |
 | ADV-02 | Merge Chain | `adversarial.test.js` | [ ] |
 | ADV-03 | Direct Mutation | `adversarial.test.js` | [ ] |
+| INV-14 | Email lookup returns correct lead | `email_lookup.test.js` | [ ] |
+| INV-15 | Email lookup is case-insensitive | `email_lookup.test.js` | [ ] |
