@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Settings, LogOut, Code, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
+import SettingsDropdown from '../settings/SettingsDropdown';
 
 const TopBar = () => {
     const { user, logout } = useAuth();
@@ -51,7 +52,7 @@ const TopBar = () => {
                     </div>
                 )}
 
-                {/* Settings Dropdown */}
+                {/* Settings Dropdown Container */}
                 <div className="relative" ref={dropdownRef}>
                     <button
                         onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -61,40 +62,10 @@ const TopBar = () => {
                         <span className="text-sm font-semibold hidden md:block">Settings</span>
                     </button>
 
-                    {/* Dropdown Menu */}
-                    {isSettingsOpen && (
-                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <div className="px-4 py-2 border-b border-gray-50 flex items-center justify-between">
-                                <h3 className="text-sm font-semibold text-gray-800">Application Settings</h3>
-                            </div>
-
-                            <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors group" onClick={toggleDeveloperMode}>
-                                <div className="flex items-center space-x-3">
-                                    <div className={`p-1.5 rounded-md ${isDeveloperMode ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'} transition-colors`}>
-                                        <Code className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Developer Mode</p>
-                                        <p className="text-[10px] text-gray-400 mt-0.5">Enables advanced technical tools</p>
-                                    </div>
-                                </div>
-                                {/* Toggle Switch UI */}
-                                <div className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors duration-200 ${isDeveloperMode ? 'bg-indigo-500' : 'bg-gray-200'}`}>
-                                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${isDeveloperMode ? 'translate-x-4' : 'translate-x-0'}`}></div>
-                                </div>
-                            </div>
-
-                            <div className="p-2">
-                                <button
-                                    onClick={logout}
-                                    className="w-full flex items-center text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-all"
-                                >
-                                    <LogOut className="w-4 h-4 mr-2" />
-                                    <span className="text-sm font-medium">Log out securely</span>
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    <SettingsDropdown
+                        isOpen={isSettingsOpen}
+                        onClose={() => setIsSettingsOpen(false)}
+                    />
                 </div>
             </div>
         </header>

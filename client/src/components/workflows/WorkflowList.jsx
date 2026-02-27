@@ -1,5 +1,6 @@
 import React from 'react';
 import { GitBranch, Trash2, Edit3, Plus, Zap } from 'lucide-react';
+import { useTimeDisplay } from '../../hooks/useTimeDisplay';
 
 /**
  * WorkflowList Component
@@ -14,7 +15,7 @@ import { GitBranch, Trash2, Edit3, Plus, Zap } from 'lucide-react';
  * - onCreateNew: () => void — called when "+ New Workflow" is clicked
  */
 const WorkflowList = ({ workflows = [], selectedId, onSelect, onDelete, onCreateNew }) => {
-
+    const { formatTime } = useTimeDisplay();
     const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
 
     const handleDeleteClick = (e, workflowId) => {
@@ -108,7 +109,7 @@ const WorkflowList = ({ workflows = [], selectedId, onSelect, onDelete, onCreate
                                     </span>
                                     {wf.created_at && (
                                         <span className="text-xs text-gray-300">
-                                            {new Date(wf.created_at).toLocaleDateString('en-IN')}
+                                            {formatTime(wf.created_at).date}
                                         </span>
                                     )}
                                 </div>

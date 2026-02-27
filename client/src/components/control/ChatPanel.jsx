@@ -4,6 +4,7 @@ import apiClient from '../../api/client';
 import StateWrapper from '../common/StateWrapper';
 import RequestLogItem from './RequestLogItem';
 import { useAuth } from '../../context/AuthContext';
+import { useTimeDisplay } from '../../hooks/useTimeDisplay';
 
 /**
  * ChatPanel Component
@@ -17,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
  */
 const ChatPanel = ({ onLogRequest }) => {
     const { user } = useAuth();
+    const { formatTime } = useTimeDisplay();
     // 5-state management
     const [status, setStatus] = useState('empty'); // 'empty' | 'loading' | 'success' | 'error'
     const [errorMsg, setErrorMsg] = useState(null);
@@ -128,7 +130,7 @@ const ChatPanel = ({ onLogRequest }) => {
                             <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
                             <div className={`text-[10px] mt-2 flex items-center justify-between ${msg.role === 'user' ? 'text-indigo-200' : 'text-gray-400'
                                 }`}>
-                                <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                                <span>{formatTime(msg.timestamp).time}</span>
                                 {msg.traceId && (
                                     <span className="font-mono ml-3 border-l pl-2 border-gray-200/30">
                                         TRC:{msg.traceId.substring(0, 6)}
