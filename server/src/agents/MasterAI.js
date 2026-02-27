@@ -3,6 +3,23 @@ const OpenAI = require('openai');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
 const TimeAuthorityService = require('../services/TimeAuthorityService');
 const DateFormatterService = require('../services/DateFormatterService');
+const fs = require('fs');
+const path = require('path');
+
+const WORKFLOWS_FILE = path.join(__dirname, '..', '..', 'data', 'workflows.json');
+
+function loadWorkflows() {
+    try {
+        const raw = fs.readFileSync(WORKFLOWS_FILE, 'utf-8');
+        return JSON.parse(raw);
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveWorkflows(workflows) {
+    fs.writeFileSync(WORKFLOWS_FILE, JSON.stringify(workflows, null, 4), 'utf-8');
+}
 
 class MasterAI extends BaseAgent {
     constructor(otherAgents = []) {
@@ -16,7 +33,7 @@ class MasterAI extends BaseAgent {
             },
             capabilities: {
                 skills: ['Orchestration', 'Task Delegation', 'Sales Strategy', 'Operations Oversight'],
-                tools: ['delegate_to_agent'],
+                tools: ['delegate_to_agent', 'define_workflow', 'update_workflow'],
                 triggers: ['Receives events from Communications AI', 'Directly from the Portal Chat Window']
             },
             directives: {
@@ -33,6 +50,101 @@ class MasterAI extends BaseAgent {
         // Session Manager: Map<PhoneNumber, ConversationSession>
         this.sessions = new Map();
         this.SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes
+
+        this._setupSelfTools();
+    }
+
+    _setupSelfTools() {
+        this.registerTool('define_workflow', 'Creates a new operational workflow definition. Use this to codify a business process into a structured sequence of agent delegations.', {
+            type: "object",
+            properties: {
+                workflow_id: { type: "string", description: "Unique identifier in snake_case, e.g. onboard_tenant" },
+                name: { type: "string", description: "A beautiful, human-readable title (e.g., 'Property Enquiry Processing')" },
+                description: { type: "string", description: "A natural language paragraph explaining the entire workflow context" },
+                trigger_event: { type: "string", description: "Event that triggers this workflow, e.g. payment.received" },
+                trigger_description: { type: "string", description: "Natural language description of when the workflow should trigger, e.g. When a new property enquiry comes in." },
+                steps: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            step_id: { type: "string" },
+                            description: { type: "string", description: "A detailed natural language sentence explaining what this step does and why, to be shown to the CEO." },
+                            agent: { type: "string", description: "Name of the sub-agent, e.g. CRMAgent, PropertyAI" },
+                            tool: { type: "string", description: "Name of the tool to execute" },
+                            params: { type: "object", description: "Parameters to pass to the tool" },
+                            on_failure: { type: "string", enum: ["retry", "compensate", "abort"] }
+                        },
+                        required: ["step_id", "agent", "tool", "params", "on_failure"]
+                    }
+                },
+                validation_rules: { type: "object" }
+            },
+            required: ["workflow_id", "description", "trigger_event", "steps"]
+        }, async (args) => {
+            const workflows = loadWorkflows();
+            if (workflows.find(w => w.workflow_id === args.workflow_id)) {
+                return { success: false, error: `Workflow '${args.workflow_id}' already exists. Use update_workflow instead.` };
+            }
+            const newWorkflow = {
+                workflow_id: args.workflow_id,
+                name: args.name || '',
+                description: args.description || '',
+                trigger_event: args.trigger_event,
+                trigger_description: args.trigger_description || '',
+                steps: args.steps,
+                created_at: TimeAuthorityService.nowIST()
+            };
+            workflows.push(newWorkflow);
+            saveWorkflows(workflows);
+            this._emitSystemEvent('workflow.defined', null, { workflow_id: args.workflow_id });
+            return { success: true, message: `Workflow '${args.workflow_id}' created successfully.` };
+        });
+
+        this.registerTool('update_workflow', 'Updates an existing operational workflow definition. Use this when the user asks to modify a process.', {
+            type: "object",
+            properties: {
+                workflow_id: { type: "string", description: "Unique identifier of the workflow to update" },
+                name: { type: "string" },
+                description: { type: "string" },
+                trigger_event: { type: "string" },
+                trigger_description: { type: "string" },
+                steps: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            step_id: { type: "string" },
+                            description: { type: "string" },
+                            agent: { type: "string" },
+                            tool: { type: "string" },
+                            params: { type: "object" },
+                            on_failure: { type: "string", enum: ["retry", "compensate", "abort"] }
+                        },
+                        required: ["step_id", "agent", "tool", "params", "on_failure"]
+                    }
+                },
+                validation_rules: { type: "object" }
+            },
+            required: ["workflow_id"]
+        }, async (args) => {
+            const workflows = loadWorkflows();
+            const idx = workflows.findIndex(w => w.workflow_id === args.workflow_id);
+            if (idx === -1) {
+                return { success: false, error: `Workflow '${args.workflow_id}' not found.` };
+            }
+
+            if (args.name !== undefined) workflows[idx].name = args.name;
+            if (args.description !== undefined) workflows[idx].description = args.description;
+            if (args.trigger_event) workflows[idx].trigger_event = args.trigger_event;
+            if (args.trigger_description !== undefined) workflows[idx].trigger_description = args.trigger_description;
+            if (args.steps) workflows[idx].steps = args.steps;
+            workflows[idx].updated_at = TimeAuthorityService.nowIST();
+
+            saveWorkflows(workflows);
+            this._emitSystemEvent('workflow.updated', null, { workflow_id: args.workflow_id });
+            return { success: true, message: `Workflow '${args.workflow_id}' updated successfully.` };
+        });
     }
 
     _emitSystemEvent(eventType, correlationId, payload = {}) {
@@ -312,6 +424,22 @@ Rules:
                 });
                 agentIndex++;
             });
+
+            // If CEO, also inject MasterAI's own native tools (like define_workflow)
+            if (isCEO) {
+                this.getTools().forEach(tool => {
+                    const namespacedName = `MasterAI_${tool.name}`;
+                    allTools.push({
+                        type: "function",
+                        function: {
+                            name: namespacedName,
+                            description: `[Master Orchestrator Native Tool] ${tool.description}`,
+                            parameters: tool.input_schema
+                        }
+                    });
+                    agentMap[namespacedName] = { agent: this, toolName: tool.name };
+                });
+            }
 
             let systemPrompt = `You are ${this.identity.personaName} (${this.identity.role}). ${this.identity.description}. 
                 

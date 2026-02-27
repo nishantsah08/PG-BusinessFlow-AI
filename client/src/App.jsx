@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { UIProvider } from './context/UIContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { DeveloperModeProvider } from './context/DeveloperModeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import GlobalLoader from './components/common/GlobalLoader';
 import NotificationSystem from './components/common/NotificationSystem';
@@ -40,40 +41,39 @@ function App() {
     return (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <AuthProvider>
-                <ErrorBoundary>
-                    <UIProvider>
-                        <BrowserRouter>
-                            <GlobalLoader />
-                            <NotificationSystem />
+                <DeveloperModeProvider>
+                    <ErrorBoundary>
+                        <UIProvider>
+                            <BrowserRouter>
+                                <GlobalLoader />
+                                <NotificationSystem />
 
-                            <Routes>
-                                {/* Public Login Route */}
-                                <Route path="/login" element={<LoginPage />} />
+                                <Routes>
+                                    {/* Public Login Route */}
+                                    <Route path="/login" element={<LoginPage />} />
 
-                                {/* Protected Application Routes */}
-                                <Route path="/" element={
-                                    <ProtectedRoute>
-                                        <Shell />
-                                    </ProtectedRoute>
-                                }>
-                                    {/* Redirect root to Control Panel initially */}
-                                    <Route index element={<Navigate to="/master" replace />} />
+                                    {/* Protected Application Routes */}
+                                    <Route path="/" element={
+                                        <ProtectedRoute>
+                                            <Shell />
+                                        </ProtectedRoute>
+                                    }>
+                                        {/* Redirect root to Control Panel initially */}
+                                        <Route index element={<Navigate to="/master" replace />} />
 
-                                    {/* Phase 2: Control Panel */}
-                                    <Route path="master" element={<ControlPanel />} />
+                                        {/* Phase 2: Control Panel */}
+                                        <Route path="master" element={<ControlPanel />} />
 
-                                    {/* Phase 3: Agent Dashboard */}
-                                    <Route path="dashboard" element={<AgentDashboard />} />
+                                        {/* Phase 3: Agent Dashboard */}
+                                        <Route path="dashboard" element={<AgentDashboard />} />
 
-                                    {/* Phase 4: Workflow Monitor */}
-                                    <Route path="monitor" element={<Placeholder title="Workflow Monitor" />} />
-
-                                    <Route path="*" element={<Navigate to="/" replace />} />
-                                </Route>
-                            </Routes>
-                        </BrowserRouter>
-                    </UIProvider>
-                </ErrorBoundary>
+                                        <Route path="*" element={<Navigate to="/" replace />} />
+                                    </Route>
+                                </Routes>
+                            </BrowserRouter>
+                        </UIProvider>
+                    </ErrorBoundary>
+                </DeveloperModeProvider>
             </AuthProvider>
         </GoogleOAuthProvider>
     );

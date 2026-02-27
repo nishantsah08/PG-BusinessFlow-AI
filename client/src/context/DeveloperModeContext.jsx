@@ -1,0 +1,29 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+const DeveloperModeContext = createContext({
+    isDeveloperMode: true,
+    toggleDeveloperMode: () => { }
+});
+
+export const useDeveloperMode = () => useContext(DeveloperModeContext);
+
+export const DeveloperModeProvider = ({ children }) => {
+    const [isDeveloperMode, setIsDeveloperMode] = useState(() => {
+        const saved = localStorage.getItem('pg_developer_mode');
+        return saved !== null ? JSON.parse(saved) : true;
+    });
+
+    const toggleDeveloperMode = () => {
+        setIsDeveloperMode(prev => {
+            const nextMode = !prev;
+            localStorage.setItem('pg_developer_mode', JSON.stringify(nextMode));
+            return nextMode;
+        });
+    };
+
+    return (
+        <DeveloperModeContext.Provider value={{ isDeveloperMode, toggleDeveloperMode }}>
+            {children}
+        </DeveloperModeContext.Provider>
+    );
+};

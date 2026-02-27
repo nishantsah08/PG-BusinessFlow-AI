@@ -2,6 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ChatPanel from './ChatPanel';
 
+jest.mock('../../context/AuthContext', () => ({
+    useAuth: () => ({
+        user: { name: 'Test User', email: 'test@example.com' }
+    })
+}));
+
 describe('ChatPanel Core Architectural States', () => {
     let originalFetch;
     const mockOnLogRequest = jest.fn();
@@ -47,6 +53,11 @@ describe('ChatPanel Core Architectural States', () => {
             status: 200,
             headers: { get: () => 'application/json' },
             json: async () => ({ success: true, data: { reply: 'Hi back' } })
+        });
+
+        // Wait for it to finish processing to prevent unhandled promise rejections after test exit
+        await waitFor(() => {
+            expect(screen.getByText('Hi back')).toBeInTheDocument();
         });
     });
 

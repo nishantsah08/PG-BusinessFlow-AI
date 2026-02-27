@@ -198,6 +198,127 @@ app.post('/api/system/agent/control', (req, res) => {
     }
 });
 
+// ── 2.4 Workflow Definitions CRUD ───────────────────────────────────
+const path = require('path');
+const WORKFLOWS_FILE = path.join(__dirname, '..', 'data', 'workflows.json');
+
+function loadWorkflows() {
+    const fs = require('fs');
+    try {
+        const raw = fs.readFileSync(WORKFLOWS_FILE, 'utf-8');
+        return JSON.parse(raw);
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveWorkflows(workflows) {
+    const fs = require('fs');
+    fs.writeFileSync(WORKFLOWS_FILE, JSON.stringify(workflows, null, 4), 'utf-8');
+}
+
+// GET /api/workflows — list all
+app.get('/api/workflows', (req, res) => {
+    try {
+        const workflows = loadWorkflows();
+        res.json({ success: true, data: { workflows } });
+    } catch (error) {
+        console.error('Workflow List Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// GET /api/workflows/:id — get single
+app.get('/api/workflows/:id', (req, res) => {
+    try {
+        const workflows = loadWorkflows();
+        const wf = workflows.find(w => w.workflow_id === req.params.id);
+        if (!wf) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+        res.json({ success: true, data: wf });
+    } catch (error) {
+        console.error('Workflow Get Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/workflows — create new
+app.post('/api/workflows', (req, res) => {
+    try {
+        const { workflow_id, name, description, trigger_event, steps } = req.body;
+        if (!workflow_id || !trigger_event || !steps) {
+            return res.status(400).json({ success: false, error: 'Missing required fields: workflow_id, trigger_event, steps' });
+        }
+
+        const workflows = loadWorkflows();
+        if (workflows.find(w => w.workflow_id === workflow_id)) {
+            return res.status(409).json({ success: false, error: `Workflow '${workflow_id}' already exists` });
+        }
+
+        const newWorkflow = {
+            workflow_id,
+            name: name || '',
+            description: description || '',
+            trigger_event,
+            steps: steps || [],
+            created_at: TimeAuthorityService.nowIST()
+        };
+        workflows.push(newWorkflow);
+        saveWorkflows(workflows);
+
+        console.log(`[Workflows] Created: ${workflow_id}`);
+        res.status(201).json({ success: true, data: newWorkflow });
+    } catch (error) {
+        console.error('Workflow Create Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// PUT /api/workflows/:id — update existing
+app.put('/api/workflows/:id', (req, res) => {
+    try {
+        const workflows = loadWorkflows();
+        const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
+        if (idx === -1) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+
+        const { name, description, trigger_event, steps } = req.body;
+        if (name !== undefined) workflows[idx].name = name;
+        if (description !== undefined) workflows[idx].description = description;
+        if (trigger_event !== undefined) workflows[idx].trigger_event = trigger_event;
+        if (steps !== undefined) workflows[idx].steps = steps;
+        workflows[idx].updated_at = TimeAuthorityService.nowIST();
+
+        saveWorkflows(workflows);
+        console.log(`[Workflows] Updated: ${req.params.id}`);
+        res.json({ success: true, data: workflows[idx] });
+    } catch (error) {
+        console.error('Workflow Update Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/workflows/:id — delete
+app.delete('/api/workflows/:id', (req, res) => {
+    try {
+        let workflows = loadWorkflows();
+        const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
+        if (idx === -1) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+
+        const deleted = workflows.splice(idx, 1)[0];
+        saveWorkflows(workflows);
+        console.log(`[Workflows] Deleted: ${req.params.id}`);
+        res.json({ success: true, data: deleted });
+    } catch (error) {
+        console.error('Workflow Delete Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // 3. Verify OpenAI (Test Endpoint)
 app.get('/api/verify-openai', async (req, res) => {
     if (!process.env.OPENAI_API_KEY) {

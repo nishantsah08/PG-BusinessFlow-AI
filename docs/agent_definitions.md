@@ -26,7 +26,10 @@
     *   **Orchestration**: Master AI invokes the specific skill sets of agents to fulfill tasks.
 *   **Execution Modes**:
     1.  **Direct Invocation**: Master AI directly calls an agent's skill using **Synchronous MCP**.
-    2.  **Workflow/Policy Execution**: Master AI follows a structured "Business Process".
+    2.  **Workflow Execution**: Master AI follows a structured "Business Process", triggered by one of three mechanisms:
+        *   **Event-Triggered**: A matching system event fires (e.g., `payment.received`).
+        *   **Timer-Triggered**: A scheduled timer fires at a configured interval.
+        *   **MasterAI-Decided**: MasterAI reads the workflow `trigger_description` and `description` to decide to trigger it during or after a conversation based on the context.
 *   **Communication Architecture (Hybrid - ADR-001)**:
     *   **Downstream (Control)**: Master AI -> Agents via **Synchronous MCP** (e.g., `await crm.add_lead()`).
     *   **Upstream (Report)**: Agents -> Master AI via **Asynchronous Events** (e.g., `invoice.generated`). Master AI subscribes to the Event Bus.

@@ -1,0 +1,105 @@
+[
+    {
+        "workflow_id": "payment_acknowledgement",
+        "name": "Payment Acknowledgement",
+        "description": "Record the incoming transaction in the finance ledger and send a confirmation message to the payer via WhatsApp.",
+        "trigger_description": "When a payment is received from a tenant or lead",
+        "trigger_event": "payment.received",
+        "steps": [
+            {
+                "step_id": "record_payment",
+                "description": "Log the payment amount and details into the finance ledger.",
+                "agent": "FinanceAI",
+                "tool": "record_incoming_txn",
+                "params": {
+                    "amount": "{{context.amount}}",
+                    "payer_id": "{{context.payer_id}}",
+                    "payment_mode": "{{context.payment_mode}}",
+                    "date": "{{context.date}}"
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "notify_payer",
+                "description": "Send a thank-you WhatsApp message to the payer confirming receipt.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.payer_phone}}",
+                    "content": "Payment of ₹{{context.amount}} received. Thank you!"
+                },
+                "on_failure": "retry"
+            }
+        ],
+        "created_at": "2026-02-20T10:30:00+05:30"
+    },
+    {
+        "workflow_id": "visit_followup",
+        "name": "Visit Follow-Up",
+        "description": "Update their CRM status to Visited, log the visit session with details, and send a follow-up courtesy message via WhatsApp.",
+        "trigger_description": "After a prospective tenant completes a site visit",
+        "trigger_event": "visit.completed",
+        "steps": [
+            {
+                "step_id": "update_status",
+                "description": "Update the prospective tenant's status to 'Visited' in the CRM.",
+                "agent": "CRMAgent",
+                "tool": "change_status",
+                "params": {
+                    "lead_id": "{{context.lead_id}}",
+                    "to_status": "Visited",
+                    "reason": "Site visit completed"
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "log_visit_session",
+                "description": "Record the site visit summary and notes in the CRM.",
+                "agent": "CRMAgent",
+                "tool": "log_session",
+                "params": {
+                    "lead_id": "{{context.lead_id}}",
+                    "interaction_type": "Visit",
+                    "summary": "{{context.visit_summary}}"
+                },
+                "on_failure": "retry"
+            },
+            {
+                "step_id": "send_followup",
+                "description": "Send a courteous follow-up WhatsApp message to the prospect.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.lead_phone}}",
+                    "content": "Thank you for visiting! Let us know if you have any questions."
+                },
+                "on_failure": "retry"
+            }
+        ],
+        "created_at": "2026-02-21T09:15:00+05:30"
+    },
+    {
+        "workflow_id": "property_enquiry",
+        "name": "Property Enquiry",
+        "description": "Create a lead in the CRM system and send a confirmation template message to the enquirer acknowledging their interest.",
+        "trigger_description": "When a new property enquiry is received from any channel",
+        "trigger_event": "property.enquiry.received",
+        "steps": [
+            {
+                "step_id": "log_lead",
+                "description": "Create a new lead entry in the CRM system for this enquiry.",
+                "agent": "CRMAgent",
+                "tool": "CRMAgent_add_lead",
+                "on_failure": "retry"
+            },
+            {
+                "step_id": "send_confirmation",
+                "description": "Send a welcome and confirmation message to the enquirer acknowledging their interest.",
+                "agent": "CommunicationsAI",
+                "tool": "CommunicationsAI_send_template_message",
+                "on_failure": "abort"
+            }
+        ],
+        "created_at": "2026-02-26T16:24:07.216+05:30"
+    }
+]

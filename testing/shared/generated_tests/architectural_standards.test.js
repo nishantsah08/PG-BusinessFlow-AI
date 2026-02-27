@@ -4,7 +4,7 @@ const PropertyAI = require('../../../server/src/agents/PropertyAI');
 const CRMAgent = require('../../../server/src/agents/CRMAgent');
 
 // Mock Axios for CommunicationsAI (it's used internally)
-jest.mock('axios');
+// Removed jest.mock('axios') as it is missing from deps and not needed in this unit test directly.
 
 describe('Architectural Invariants (ADR-001)', () => {
 

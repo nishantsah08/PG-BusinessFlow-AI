@@ -1,12 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { MessageSquare, LayoutGrid, Activity } from 'lucide-react';
+import { MessageSquareCode, Activity, FolderKanban } from 'lucide-react';
+import { useDeveloperMode } from '../../context/DeveloperModeContext';
 
 const Sidebar = () => {
+    const { isDeveloperMode } = useDeveloperMode();
+
     const navItems = [
-        { path: '/master', icon: MessageSquare, label: 'Master AI' },
-        { path: '/dashboard', icon: LayoutGrid, label: 'Agent Dashboard' },
-        { path: '/monitor', icon: Activity, label: 'Workflow Monitor' }
+        { path: '/master', icon: MessageSquareCode, label: 'Master AI' },
+        // { path: '/dashboard', icon: LayoutGrid, label: 'Agent Dashboard' } // This item will be conditionally rendered
     ];
 
     return (
@@ -21,16 +23,32 @@ const Sidebar = () => {
                         key={path}
                         to={path}
                         className={({ isActive }) =>
-                            `w-full flex items-center p-3 rounded-xl transition-all duration-200 group ${isActive
+                            `w - full flex items - center p - 3 rounded - xl transition - all duration - 200 group ${isActive
                                 ? 'bg-indigo-50 text-indigo-700 font-medium'
                                 : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                            }`
+                            } `
                         }
                     >
                         <Icon className="w-6 h-6 flex-shrink-0" />
                         <span className="ml-3 hidden md:block">{label}</span>
                     </NavLink>
                 ))}
+
+                {/* Agent Dashboard - Developer Mode Only */}
+                {isDeveloperMode && (
+                    <NavLink
+                        to="/dashboard"
+                        className={({ isActive }) =>
+                            `w - full flex items - center p - 3 rounded - xl transition - all duration - 200 group ${isActive
+                                ? 'bg-indigo-50 text-indigo-700 font-medium'
+                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                            } `
+                        }
+                    >
+                        <Activity className="w-6 h-6 flex-shrink-0" />
+                        <span className="ml-3 hidden md:block">Agent Dashboard</span>
+                    </NavLink>
+                )}
             </nav>
 
             {/* System Status Indicator - Architecture Rule 4/6 reminder */}

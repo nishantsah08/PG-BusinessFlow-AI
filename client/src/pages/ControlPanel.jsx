@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ChatPanel from '../components/control/ChatPanel';
-import SystemObservationPanel from '../components/control/SystemObservationPanel';
+import RightPanel from '../components/control/RightPanel';
 /**
  * ControlPanel Page
  * Orchestrator for Phase 2 components.
@@ -32,8 +32,8 @@ const ControlPanel = () => {
                 </div>
             </div>
 
-            {/* Right Column: Transparency and Tracing (Stacked card UI) */}
-            <SystemObservationPanel
+            {/* Right Column: Transparency, Tracing, and Workflows */}
+            <RightPanel
                 isOpen={isDevViewOpen}
                 onToggle={() => setIsDevViewOpen(!isDevViewOpen)}
                 onLogRequest={handleLogRequest}

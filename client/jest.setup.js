@@ -8,3 +8,8 @@ class ResizeObserver {
 }
 window.ResizeObserver = ResizeObserver;
 window.HTMLElement.prototype.scrollIntoView = function () { };
+
+// jsdom doesn't support TextEncoder/TextDecoder out of the box
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;

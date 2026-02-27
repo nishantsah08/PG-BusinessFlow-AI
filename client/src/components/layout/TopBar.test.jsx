@@ -12,7 +12,9 @@ jest.mock('../../context/AuthContext', () => ({
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
     Settings: () => <div data-testid="settings-icon" />,
-    LogOut: () => <div data-testid="logout-icon" />
+    LogOut: () => <div data-testid="logout-icon" />,
+    Code: () => <div data-testid="code-icon" />,
+    User: () => <div data-testid="user-icon" />
 }));
 
 describe('TopBar Component', () => {
@@ -32,20 +34,29 @@ describe('TopBar Component', () => {
         expect(screen.getByText('.ai')).toBeInTheDocument();
     });
 
-    it('renders the Settings and Logout buttons', () => {
+    it('renders the Settings button and opens dropdown to reveal Logout', () => {
         render(<TopBar />);
 
         expect(screen.getByTestId('settings-icon')).toBeInTheDocument();
         expect(screen.getByText('Settings')).toBeInTheDocument();
 
+        // Logout is hidden initially
+        expect(screen.queryByText('Log out securely')).not.toBeInTheDocument();
+
+        // Click settings to open dropdown
+        fireEvent.click(screen.getByText('Settings').closest('button'));
+
         expect(screen.getByTestId('logout-icon')).toBeInTheDocument();
-        expect(screen.getByText('Logout')).toBeInTheDocument();
+        expect(screen.getByText('Log out securely')).toBeInTheDocument();
     });
 
     it('calls the logout function from AuthContext when Logout is clicked', () => {
         render(<TopBar />);
 
-        const logoutButton = screen.getByText('Logout').closest('button');
+        // Open dropdown first
+        fireEvent.click(screen.getByText('Settings').closest('button'));
+
+        const logoutButton = screen.getByText('Log out securely').closest('button');
         fireEvent.click(logoutButton);
 
         expect(mockLogout).toHaveBeenCalledTimes(1);

@@ -144,11 +144,12 @@ These tools are used by the Admin Panel to monitor, manage, and verify the Orche
 
 **Configuration & Policy Management (Validation at Creation/Update)**:
 *   **`define_workflow`**:
-    *   *Inputs*: `workflow_id`, `trigger_event`, `steps` (Array), `validation_rules`.
+    *   *Inputs*: `workflow_id`, `name`, `description` (Required — MasterAI uses this to decide when to trigger), `trigger_event`, `steps` (Array).
+    *   *Trigger Mechanisms*: Event-based (matching system event), Timer-based (scheduled interval), or MasterAI-decided (based on conversation context and workflow description).
     *   *Purpose*: Creates a new standardized business process.
     *   *Validation*: User must approve the logic here. Once defined, it is executed autonomously.
 *   **`update_workflow`**:
-    *   *Inputs*: `workflow_id`, `new_steps`.
+    *   *Inputs*: `workflow_id`, `name`, `description`, `trigger_event`, `new_steps`.
     *   *Purpose*: Updates an existing flow. Requires re-validation by User.
 *   **`update_system_rule`**:
     *   *Inputs*: `rule_key`, `value` (e.g., `global_timeout_ms`).

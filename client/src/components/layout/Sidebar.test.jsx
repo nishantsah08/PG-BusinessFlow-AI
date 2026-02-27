@@ -30,9 +30,6 @@ describe('Sidebar Component', () => {
 
         const dashboardLink = screen.getByText('Agent Dashboard').closest('a');
         expect(dashboardLink).toHaveAttribute('href', '/dashboard');
-
-        const monitorLink = screen.getByText('Workflow Monitor').closest('a');
-        expect(monitorLink).toHaveAttribute('href', '/monitor');
     });
 
     it('displays the System Online status indicator', () => {
