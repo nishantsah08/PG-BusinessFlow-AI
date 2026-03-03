@@ -10,6 +10,10 @@
 *   **Deployment**: Independent Docker containers on Cloud Run.
 *   **Time Zone**: Application uses IST (Indian Standard Time) system-wide.
 *   **Application Name**: `PG-BusinessFlow.ai`
+*   **Ingress Rule (Web + External Channels)**: All user-channel ingress must pass through **CommunicationsAI** normalization before orchestration by MasterAI.
+*   **Active Web Chat Endpoint**: `POST /api/communications/chat`.
+*   **Ops Readiness Endpoints**: `GET /health`, `GET /ready`.
+*   **Runtime Policy Flags**: `APP_ENV`, `ALLOW_DEBUG_ENDPOINTS`, `GOOGLE_AUTH_MODE`.
 
 ---
 

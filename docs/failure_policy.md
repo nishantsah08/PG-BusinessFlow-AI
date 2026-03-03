@@ -13,6 +13,20 @@ This document defines the standard operating procedures for system failures, ens
 
 ## 2. Failure Protocols
 
+### 2.0 Operational Readiness & Access Gating
+*Applies to: API server runtime and deployment health checks*
+
+*   **Readiness Contract**: Service exposes:
+    *   `GET /health` for liveness.
+    *   `GET /ready` for dependency/config readiness checks.
+*   **Production Access Control**:
+    *   Google-authenticated access is mandatory for protected APIs in production mode.
+    *   Access policy mode is environment-driven:
+        *   `GOOGLE_AUTH_MODE=internal` (allow-list/domain restricted).
+        *   `GOOGLE_AUTH_MODE=public` (any verified Google identity).
+*   **Debug Surface Governance**:
+    *   `ALLOW_DEBUG_ENDPOINTS=false` in production disables debug-only endpoints.
+
 ### 2.1 Synchronous Control Plane (MasterAI → Agent)
 *Applies to: Direct tool calls (e.g., MasterAI calling CRM to `get_lead`)*
 

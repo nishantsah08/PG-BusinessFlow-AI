@@ -153,6 +153,17 @@ Must receive:
 
 ---
 
+## 6.1 Runtime Policy & Readiness Tests
+
+Environment-gated behavior must be covered by tests:
+
+- `APP_ENV` behavior differences (`development` vs `production`).
+- `GOOGLE_AUTH_MODE` access policy (`internal` and `public`).
+- Debug endpoint gating when `ALLOW_DEBUG_ENDPOINTS=false`.
+- Readiness endpoint behavior (`/ready` returns not-ready for missing required config).
+
+---
+
 ## 7. Soft Delete Governance
 
 If soft delete exists, tests must ensure:

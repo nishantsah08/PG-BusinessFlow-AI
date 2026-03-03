@@ -28,6 +28,13 @@ The event system is designed to guarantee:
 - Fault tolerance
 - Horizontal scalability
 
+## 2.1 Active Ingress Normalization (Current)
+
+- Web portal chat ingress is normalized through `CommunicationsAI` before MasterAI decisioning.
+- Canonical web ingress endpoint: `POST /api/communications/chat`.
+- Event context for web channel uses `channel: "portal"` and carries normalized user/session metadata.
+- Legacy direct web-to-MasterAI chat ingress endpoints are deprecated and removed.
+
 ## 3. Architecture Rule (Hybrid Model - ADR-001)
 
 All system communication must follow the **Hybrid Protocol**:

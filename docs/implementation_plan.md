@@ -3,6 +3,29 @@
 ## Goal
 Implement the complete Agent System (v3.7) with a **Dynamic Workflow Engine**, aligned with Agent Definitions v2.5. Initially use **Dummy Data** for verification.
 
+## Current Implementation Delta (2026-03-03)
+
+The following strategic updates are now implemented and should be treated as the active baseline:
+
+1. **Unified Chat Ingress**
+   - Web chat now enters via `CommunicationsAI` at `POST /api/communications/chat`.
+   - Legacy chat ingress routes (`/api/chat`, `/api/master_ai/chat`) are removed.
+2. **Environment-Gated Runtime**
+   - `APP_ENV=development|production` controls production hardening behavior.
+   - `ALLOW_DEBUG_ENDPOINTS=false` in production disables debug surfaces.
+3. **Google Access Policy Modes**
+   - `GOOGLE_AUTH_MODE=internal|public`.
+   - `internal` mode requires allow-list/domain policy (`GOOGLE_AUTH_ALLOWED_EMAILS` and/or `GOOGLE_AUTH_ALLOWED_DOMAIN`).
+4. **Ops Readiness**
+   - Live server now exposes `GET /health` and `GET /ready`.
+   - Correlation IDs are attached per request (`X-Correlation-ID`).
+5. **Storage Abstraction Seam**
+   - Workflow and image persistence now use storage interfaces (`WorkflowStore`, `ImageStore`) with `STORAGE_BACKEND`.
+   - Current backend remains `local`; Firestore/GCS patch remains a controlled next phase.
+6. **Deployment Structure**
+   - Separate GCP development/production deployment scripts and environment files are defined under `infra/gcp/`.
+   - Firebase Hosting targets for development and production are defined for web deployment.
+
 > [!IMPORTANT]
 > **Phase 1: Dummy Data & Local Simulation**
 > For the first step, **DO NOT** connect to Firestore or Google Cloud Storage.
@@ -770,3 +793,75 @@ The WhatsApp Adapter exposes a comprehensive set of tools for MasterAI to manage
 6.  **Master AI Workflow**:
     *   Mock a "Payment Received" event.
     *   Verify `MasterAI` triggers `Payment Acknowledgement` workflow -> Calls `CommunicationsAI` -> Logs "Message Sent".
+
+---
+
+## 8. Multi-Tenant Architecture (Future)
+
+> [!NOTE]
+> This section documents the migration path from single-tenant (Phase 1) to multi-tenant SaaS.
+
+### Current State (Phase 1)
+- All business rules are centralized in `server/src/config/business.js` as a single hardcoded JS object
+- Agents read from this config using `const BusinessConfig = require('../config/business')`
+- Agent operating instructions are self-describing via `getOperatingInstructions()` and auto-injected into MasterAI's system prompt
+
+### Migration to Multi-Tenant
+
+#### Step 1: Config Store
+Replace the static `business.js` export with a dynamic lookup:
+```javascript
+// Before (Phase 1):
+module.exports = { tenant_id: 'default', rates: { monthly_rent: 12000, ... } };
+
+// After (Multi-Tenant):
+class ConfigStore {
+    async getByTenantId(tenant_id) {
+        return await db.collection('tenant_configs').doc(tenant_id).get();
+    }
+}
+```
+
+#### Step 2: Inject tenant_id into Request Context
+Each API request must carry a `tenant_id`:
+```javascript
+// Middleware
+app.use((req, res, next) => {
+    req.tenant_id = req.headers['x-tenant-id'] || 'default';
+    next();
+});
+```
+
+#### Step 3: Agent Constructor Accepts Config
+```javascript
+// Before:
+const BusinessConfig = require('../config/business');
+
+// After:
+class PropertyAI extends BaseAgent {
+    constructor(config) {
+        super(config);
+        this.businessConfig = config.businessConfig; // Injected per-request
+    }
+}
+```
+
+#### Step 4: MasterAI Loads Config Per Session
+```javascript
+async process_event(event) {
+    const tenantConfig = await configStore.getByTenantId(event.tenant_id);
+    const masterAI = new MasterAI(subAgents, tenantConfig);
+    // ...
+}
+```
+
+### What Stays Generic
+| Component | Generic? | Notes |
+|---|---|---|
+| Agent code (PropertyAI, CRM, HR, Finance) | ✅ Yes | Pure capability engines |
+| `BaseAgent.getOperatingInstructions()` | ✅ Yes | Reads from config at runtime |
+| MasterAI orchestration loop | ✅ Yes | Config-agnostic |
+| Workflow engine | ✅ Yes | Workflows are already data-driven |
+| Rate card values, deposit rules | ❌ Per-tenant | Lives in ConfigStore |
+| Persona (name, role, CEO email) | ❌ Per-tenant | Lives in ConfigStore |
+| Waterfall priority order | ❌ Per-tenant | Lives in ConfigStore |
