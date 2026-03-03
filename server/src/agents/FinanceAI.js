@@ -1,4 +1,5 @@
 const BaseAgent = require('./BaseAgent');
+const BusinessConfig = require('../config/business');
 
 /**
  * Finance AI (CFO)
@@ -37,18 +38,12 @@ class FinanceAI extends BaseAgent {
         this.transactions = [];
         this.contracts = {};     // lead_id -> Negotiated Rate Card
         this.salaryCards = {};   // staff_id -> Salary Card (Mocked handover from HR)
+        this.carryForwardCredits = {}; // payer_id -> [{ id, amount_remaining, available_from_key, available_from_month_year, source_txn_id }]
 
-        this.PRIORITY = {
-            'Security Deposit': 1,
-            'Past Dues': 2,
-            'Police Verification Fee': 3,
-            'Rent': 4,
-            'Parking Fee': 5,
-            'Wi-Fi Fee': 6,
-            'Electricity Bill': 7,
-            'Asset Damage Recovery': 8,
-            'Late Payment Fees': 9
-        };
+        this.PRIORITY = {};
+        BusinessConfig.finance.waterfall_priority.forEach((cat, idx) => {
+            this.PRIORITY[cat] = idx + 1;
+        });
 
         this.registerTools();
     }
@@ -65,20 +60,13 @@ class FinanceAI extends BaseAgent {
         );
 
         // Sort by Priority then by month_year (oldest first)
-        const parseMonthYear = (my) => {
-            if (!my) return new Date(0);
-            const [m, y] = my.split(' ');
-            const months = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-            return new Date(y, months[m] || 0);
-        };
-
         pending.sort((a, b) => {
             const pA = this.PRIORITY[a.category] || 99;
             const pB = this.PRIORITY[b.category] || 99;
             if (pA !== pB) return pA - pB;
 
-            const dateA = parseMonthYear(a.month_year);
-            const dateB = parseMonthYear(b.month_year);
+            const dateA = this._parseMonthYear(a.month_year);
+            const dateB = this._parseMonthYear(b.month_year);
             return dateA - dateB;
         });
 
@@ -99,6 +87,126 @@ class FinanceAI extends BaseAgent {
         }
 
         return { allocations, surplus: remaining };
+    }
+
+    _parseMonthYear(monthYear) {
+        if (!monthYear || typeof monthYear !== 'string') return new Date(0);
+        const cleaned = monthYear.trim();
+        const parts = cleaned.split(/\s+/);
+        if (parts.length < 2) return new Date(0);
+
+        const monthToken = parts[0].toLowerCase();
+        const year = Number(parts[1]);
+
+        const monthMap = {
+            jan: 0, january: 0,
+            feb: 1, february: 1,
+            mar: 2, march: 2,
+            apr: 3, april: 3,
+            may: 4,
+            jun: 5, june: 5,
+            jul: 6, july: 6,
+            aug: 7, august: 7,
+            sep: 8, sept: 8, september: 8,
+            oct: 9, october: 9,
+            nov: 10, november: 10,
+            dec: 11, december: 11
+        };
+
+        const monthIndex = monthMap[monthToken];
+        if (!Number.isFinite(year) || monthIndex === undefined) return new Date(0);
+        return new Date(year, monthIndex, 1);
+    }
+
+    _monthKeyFromDate(date) {
+        return (date.getFullYear() * 12) + date.getMonth();
+    }
+
+    _toShortMonthYear(date) {
+        const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${names[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    _addCarryForwardCredit({ payer_id, amount, sourceDate, sourceTxnId }) {
+        if (!(amount > 0)) return null;
+
+        const baseDate = sourceDate instanceof Date && !Number.isNaN(sourceDate.getTime())
+            ? sourceDate
+            : new Date();
+        const nextMonthDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
+        const credit = {
+            id: `CF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            amount_remaining: amount,
+            available_from_key: this._monthKeyFromDate(nextMonthDate),
+            available_from_month_year: this._toShortMonthYear(nextMonthDate),
+            source_txn_id: sourceTxnId
+        };
+
+        if (!this.carryForwardCredits[payer_id]) this.carryForwardCredits[payer_id] = [];
+        this.carryForwardCredits[payer_id].push(credit);
+        return credit;
+    }
+
+    _consumeCarryForwardCredits(payer_id, billMonthKey, neededAmount) {
+        const credits = this.carryForwardCredits[payer_id] || [];
+        if (!(neededAmount > 0) || credits.length === 0) return { consumed: 0, credit_sources: [] };
+
+        const eligible = credits
+            .filter(c => c.amount_remaining > 0 && c.available_from_key <= billMonthKey)
+            .sort((a, b) => a.available_from_key - b.available_from_key);
+
+        let remaining = neededAmount;
+        const credit_sources = [];
+
+        for (const credit of eligible) {
+            if (remaining <= 0) break;
+            const use = Math.min(remaining, credit.amount_remaining);
+            credit.amount_remaining -= use;
+            remaining -= use;
+            credit_sources.push({ credit_id: credit.id, amount: use, source_txn_id: credit.source_txn_id });
+        }
+
+        return { consumed: neededAmount - remaining, credit_sources };
+    }
+
+    _applyCarryForwardToGeneratedEntries(payer_id, month_year, generated_entry_ids) {
+        if (!Array.isArray(generated_entry_ids) || generated_entry_ids.length === 0) {
+            return { amount: 0, allocations: [], credit_sources: [] };
+        }
+
+        const billDate = this._parseMonthYear(month_year);
+        const billMonthKey = this._monthKeyFromDate(billDate);
+
+        const targets = this.ledgerEntries
+            .filter(e => generated_entry_ids.includes(e.id) && e.balance > 0)
+            .sort((a, b) => {
+                const pA = this.PRIORITY[a.category] || 99;
+                const pB = this.PRIORITY[b.category] || 99;
+                if (pA !== pB) return pA - pB;
+                return String(a.id).localeCompare(String(b.id));
+            });
+
+        const totalOutstanding = targets.reduce((sum, e) => sum + e.balance, 0);
+        const { consumed, credit_sources } = this._consumeCarryForwardCredits(payer_id, billMonthKey, totalOutstanding);
+
+        let remainingCredit = consumed;
+        const allocations = [];
+
+        for (const entry of targets) {
+            if (remainingCredit <= 0) break;
+            const applied = Math.min(remainingCredit, entry.balance);
+            entry.amount_paid += applied;
+            entry.balance -= applied;
+            entry.status = entry.balance === 0 ? 'PAID' : 'PARTIALLY_PAID';
+            allocations.push({
+                ledger_entry_id: entry.id,
+                category: entry.category,
+                amount_applied: applied
+            });
+            remainingCredit -= applied;
+        }
+
+        return { amount: consumed, allocations, credit_sources };
     }
 
     // --- Tool Implementations ---
@@ -135,9 +243,28 @@ class FinanceAI extends BaseAgent {
                 unallocated_surplus: surplus,
                 timestamp: new Date().toISOString()
             };
+
+            let carryForward = null;
+            if (surplus > 0) {
+                const sourceDate = args.date ? new Date(args.date) : new Date(txn.timestamp);
+                const credit = this._addCarryForwardCredit({
+                    payer_id: args.payer_id,
+                    amount: surplus,
+                    sourceDate,
+                    sourceTxnId: txn.txn_id
+                });
+                if (credit) {
+                    carryForward = {
+                        amount: surplus,
+                        available_from: credit.available_from_month_year,
+                        credit_id: credit.id
+                    };
+                }
+            }
+
             this.transactions.push(txn);
 
-            return { status: 'SUCCESS', txn_id: txn.txn_id, allocations, surplus };
+            return { status: 'SUCCESS', txn_id: txn.txn_id, allocations, surplus, carry_forward: carryForward };
         });
 
         this.registerTool('get_txn_details', 'View details of a transaction', {
@@ -230,8 +357,14 @@ class FinanceAI extends BaseAgent {
 
             // Simulate PDF Link generation
             const bill_link = `https://storage.googleapis.com/bills/${args.payer_id}_${args.month_year.replace(' ', '_')}.pdf`;
+            const carryForwardApplied = this._applyCarryForwardToGeneratedEntries(args.payer_id, args.month_year, created);
 
-            return { status: 'SUCCESS', bill_link, generated_entries: created };
+            return {
+                status: 'SUCCESS',
+                bill_link,
+                generated_entries: created,
+                applied_carry_forward: carryForwardApplied
+            };
         });
 
         this.registerTool('get_ledger', 'View ledger for a payer', {
@@ -273,9 +406,9 @@ class FinanceAI extends BaseAgent {
             properties: { staff_id: { type: 'string' }, month: { type: 'string' }, year: { type: 'string' } },
             required: ['staff_id']
         }, async (args) => {
-            // Mock: Fetching salary card from HR logic
-            const base_salary = 4000;
-            const incentives = 350; // Simple mock
+            // Fetch salary config from BusinessConfig defaults (or HR card if available)
+            const base_salary = BusinessConfig.finance.default_base_salary;
+            const incentives = BusinessConfig.finance.default_incentive_per_unit;
             const advances = 0;
             const total = base_salary + incentives - advances;
 
@@ -313,6 +446,17 @@ class FinanceAI extends BaseAgent {
             });
             return Object.entries(defaulters).map(([id, bal]) => ({ payer_id: id, total_due: bal }));
         });
+    }
+
+    getOperatingInstructions() {
+        const rates = BusinessConfig.rates;
+        return `## FinanceAI — Operating Instructions
+- **Payer ID**: Always use the tenant's \`lead_id\` in E.164 format (e.g., "+919800098000"). Never use names.
+- **Deposit Rules**: Base deposit is ₹${rates.base_security_deposit}. For move-in dates on the ${rates.deposit_rules.dynamic_range_start}th-${rates.deposit_rules.dynamic_range_end}th: Standard + (daily_rent × ${rates.deposit_rules.dynamic_multiplier_days}).
+- **Waterfall Priority**: Incoming payments are auto-allocated in this order: ${BusinessConfig.finance.waterfall_priority.join(' → ')}.
+- **Contracts**: Before generating bills, a tenant must have a negotiated rate card via \`onboard_tenant_contract\`. If not present, ask the CEO to set it up.
+- **Ledger**: The ledger is append-only. Use \`get_ledger\` to check a tenant's current balance. Never manually adjust paid amounts.
+- **Bills**: Use \`generate_monthly_bills\` with \`payer_id\` and \`month_year\` (e.g., "Mar 2026").`;
     }
 }
 

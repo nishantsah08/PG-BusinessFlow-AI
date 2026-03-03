@@ -40,6 +40,7 @@
 *   **Policies & Workflows**:
     *   **Strict Adherence**: Executed autonomously once approved.
     *   **Validation**: User validation required only at creation/update.
+    *   **Financial Authorization Gate**: MasterAI (Kalyani/Sales) may initiate financial workflows, but completion is blocked until explicit CEO authorization.
 *   **Session Management & Persistence**:
     *   **Identity Source (Dual Lookup)**: MasterAI identifies users via **phone number OR email**:
         *   **Phone Number (`lead_id`) via CommunicationsAI**: Maps to a CRM profile via `get_lead_by_phone`. The user's `profile_type` determines guardrail behavior.
@@ -212,6 +213,7 @@
 *   **Constraints**:
     *   **Surety Rule**: You must NOT update any transaction unless you are absolutely sure about it. Double-checking is encouraged.
     *   **Delegated Execution**: FinanceAI itself does not work; it uses its sub-agents to do the work.
+    *   **Authorization Rule**: Finance mutations execute only through predefined deterministic workflows after CEO authorization.
 
 *   **Transaction Schema**:
     *   **Incoming (Revenue)**:
@@ -221,6 +223,8 @@
         *   `payer_id`: Lead/Tenant ID
         *   `payment_mode`: "UPI" / "Cash" / "Payment Gateway" / "Net Banking"
         *   `allocations`: [List of `Allocation` Objects] (Populated *automatically* by the Waterfall Logic)
+        *   `unallocated_surplus`: Remaining amount after waterfall allocation.
+        *   `carry_forward`: If surplus exists, it is converted into a next-month credit (`amount`, `available_from`, `credit_id`).
         *   `attachment`: Link to Receipt/Screenshot
         *   *Note*: We do not tag "Jan Rent" here manually. The Waterfall Logic allocates this cash to the correct Ledger buckets.
     *   **Outgoing (Expense)**:
@@ -269,6 +273,7 @@
             *   **Rent**: Calculates Pro-rata if needed, adds `Rent` entry to Ledger based on `rent_payment_timing`.
             *   **Electricity**: Calculates `(Reading - Last_Reading) * Rate`, adds `Electricity` entry based on `utility_payment_timing`.
             *   **Bill Generation**: Generates a **Link** to a PDF "Statement" (stored in GCS) showing Current Month Charges + Past Unpaid Dues.
+            *   **Carry-Forward Application**: Any eligible credit from prior overpayment is auto-applied to newly generated month entries and returned as `applied_carry_forward` (`amount`, `allocations`, `credit_sources`).
                 *   **Visual Rule**: The items in the bill MUST be sorted by the **Payment Allocation Priority** (Top priority items shown first).
             *   **Fees**:
                 *   `late_payment_fee_daily`: Adds `Late Payment Fee` entry if due date crossed on unpaid Ledger buckets.
