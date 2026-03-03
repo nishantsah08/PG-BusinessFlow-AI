@@ -12,6 +12,10 @@ const CommunicationsAI = require('./agents/CommunicationsAI');
 const TimeAuthorityService = require('./services/TimeAuthorityService');
 const WorkflowStore = require('./storage/WorkflowStore');
 const ImageStore = require('./storage/ImageStore');
+const {
+    ensurePredefinedFinancialWorkflows,
+    isProtectedPredefinedWorkflow
+} = require('./workflows/financialWorkflowPolicy');
 const multer = require('multer');
 
 const app = express();
@@ -65,6 +69,7 @@ if (!fs.existsSync(IMAGE_DIR)) fs.mkdirSync(IMAGE_DIR, { recursive: true });
 const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'local';
 const workflowStore = new WorkflowStore({ backend: STORAGE_BACKEND });
 const imageStore = new ImageStore({ backend: STORAGE_BACKEND, imageDir: IMAGE_DIR });
+ensurePredefinedFinancialWorkflows(workflowStore);
 
 app.use('/images', express.static(IMAGE_DIR));
 
@@ -271,6 +276,8 @@ const chatHandler = async (req, res) => {
             inputMessages = [{ role: 'user', content: message }];
         }
 
+        let uploadedImageUrls = [];
+
         // Handle uploaded files — save to disk and inject accessible URLs
         if (req.files && req.files.length > 0 && inputMessages && inputMessages.length > 0) {
             const savedUrls = [];
@@ -286,6 +293,7 @@ const chatHandler = async (req, res) => {
 
             // Append image URLs directly to the user's message text so the LLM can't miss them
             if (savedUrls.length > 0) {
+                uploadedImageUrls = savedUrls;
                 console.log('[ChatHandler] Saved URLs:', savedUrls);
                 const lastMsg = inputMessages[inputMessages.length - 1];
                 const urlList = savedUrls.join(', ');
@@ -314,7 +322,7 @@ const chatHandler = async (req, res) => {
             normalizedEvent.payload?.history || inputMessages,
             normalizedEvent.context?.user || user
         );
-        res.json({ success: true, data: response });
+        res.json({ success: true, data: response, uploaded_image_urls: uploadedImageUrls });
     } catch (error) {
         console.error("Chat Handler Error:", error);
         res.status(500).json({ error: error.message });
@@ -490,6 +498,13 @@ app.post('/api/workflows', requireAuth, (req, res) => {
 // PUT /api/workflows/:id — update existing
 app.put('/api/workflows/:id', requireAuth, (req, res) => {
     try {
+        if (isProtectedPredefinedWorkflow(req.params.id)) {
+            return res.status(403).json({
+                success: false,
+                error: `Workflow '${req.params.id}' is system-protected and cannot be edited directly.`
+            });
+        }
+
         const workflows = workflowStore.list();
         const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
         if (idx === -1) {
@@ -515,6 +530,13 @@ app.put('/api/workflows/:id', requireAuth, (req, res) => {
 // DELETE /api/workflows/:id — delete
 app.delete('/api/workflows/:id', requireAuth, (req, res) => {
     try {
+        if (isProtectedPredefinedWorkflow(req.params.id)) {
+            return res.status(403).json({
+                success: false,
+                error: `Workflow '${req.params.id}' is system-protected and cannot be deleted.`
+            });
+        }
+
         let workflows = workflowStore.list();
         const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
         if (idx === -1) {

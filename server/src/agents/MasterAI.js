@@ -5,6 +5,11 @@ const TimeAuthorityService = require('../services/TimeAuthorityService');
 const DateFormatterService = require('../services/DateFormatterService');
 const BusinessConfig = require('../config/business');
 const WorkflowStore = require('../storage/WorkflowStore');
+const {
+    FINANCIAL_MUTATION_TOOL_TO_WORKFLOW,
+    ensurePredefinedFinancialWorkflows,
+    isProtectedPredefinedWorkflow
+} = require('../workflows/financialWorkflowPolicy');
 
 const workflowStore = new WorkflowStore({ backend: process.env.STORAGE_BACKEND || 'local' });
 
@@ -37,8 +42,120 @@ class MasterAI extends BaseAgent {
         // Session Manager: Map<PhoneNumber, ConversationSession>
         this.sessions = new Map();
         this.SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes
+        this.financeAuthorizationRequests = new Map();
+
+        ensurePredefinedFinancialWorkflows(workflowStore);
 
         this._setupSelfTools();
+    }
+
+    _isFinanceMutationTool(agentName, toolName) {
+        return agentName === 'FinanceAI' && !!FINANCIAL_MUTATION_TOOL_TO_WORKFLOW[toolName];
+    }
+
+    _resolveWorkflowParams(templateParams = {}, context = {}) {
+        const resolved = {};
+        Object.entries(templateParams).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+                const match = value.match(/^\{\{context\.([a-zA-Z0-9_]+)\}\}$/);
+                if (match) {
+                    const ctxKey = match[1];
+                    if (context[ctxKey] !== undefined) {
+                        resolved[key] = context[ctxKey];
+                    }
+                    return;
+                }
+            }
+            resolved[key] = value;
+        });
+        return resolved;
+    }
+
+    _isCeoApprover(identity) {
+        if (!identity) return false;
+        const ceoEmail = (BusinessConfig.persona?.ceo_email || '').toLowerCase();
+        const ceoPhone = BusinessConfig.persona?.ceo_phone;
+        return String(identity).toLowerCase() === ceoEmail || identity === ceoPhone;
+    }
+
+    _createFinanceAuthorizationRequest(toolName, args, workflowId, source) {
+        const authorization_id = `FIN-AUTH-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const request = {
+            authorization_id,
+            workflow_id: workflowId,
+            tool_name: toolName,
+            args: { ...(args || {}) },
+            source,
+            requested_by: args?.requested_by || 'Kalyani',
+            requested_by_role: args?.requested_by_role || 'Sales',
+            status: 'PENDING_CEO_AUTHORIZATION',
+            created_at: TimeAuthorityService.nowIST(),
+            decided_at: null,
+            decided_by: null
+        };
+        this.financeAuthorizationRequests.set(authorization_id, request);
+        return request;
+    }
+
+    async _executeDeterministicFinanceWorkflow(toolName, args, source = 'chat') {
+        const workflowId = FINANCIAL_MUTATION_TOOL_TO_WORKFLOW[toolName];
+        if (!workflowId) {
+            throw new Error(`No deterministic workflow mapping found for FinanceAI.${toolName}`);
+        }
+
+        const workflow = workflowStore.getById(workflowId);
+        if (!workflow) {
+            throw new Error(`Predefined workflow '${workflowId}' not found for FinanceAI.${toolName}`);
+        }
+
+        const step = (workflow.steps || []).find(s => s.agent === 'FinanceAI' && s.tool === toolName);
+        if (!step) {
+            throw new Error(`Workflow '${workflowId}' does not define FinanceAI.${toolName}`);
+        }
+
+        if (args?.ceo_authorized !== true) {
+            const pending = this._createFinanceAuthorizationRequest(toolName, args, workflowId, source);
+            this._emitSystemEvent('workflow.authorization_requested', null, {
+                workflow_id: workflowId,
+                authorization_id: pending.authorization_id,
+                requested_by: pending.requested_by,
+                requested_by_role: pending.requested_by_role,
+                tool: toolName,
+                source
+            });
+            return {
+                status: 'PENDING_CEO_AUTHORIZATION',
+                workflow_id: workflowId,
+                authorization_id: pending.authorization_id,
+                message: toolName === 'record_incoming_txn'
+                    ? 'Incoming payment requires CEO bank-statement confirmation before posting.'
+                    : 'Financial workflow requires CEO authorization before execution.'
+            };
+        }
+
+        if (!this._isCeoApprover(args?.approved_by)) {
+            return {
+                status: 'REJECTED',
+                workflow_id: workflowId,
+                error: 'Only CEO can authorize financial workflow completion.'
+            };
+        }
+
+        const financeArgs = this._resolveWorkflowParams(step.params || {}, args || {});
+        const financeAgent = this.subAgents.find(a => a.name === 'FinanceAI');
+        if (!financeAgent) {
+            throw new Error('FinanceAI not connected to MasterAI');
+        }
+
+        this._emitSystemEvent('workflow.started', null, { workflow_id: workflowId, source });
+        const result = await financeAgent.callTool(toolName, financeArgs);
+        this._emitSystemEvent('workflow.ended', null, { workflow_id: workflowId, source });
+
+        return {
+            ...result,
+            workflow_id: workflowId,
+            deterministic: true
+        };
     }
 
     _setupSelfTools() {
@@ -69,6 +186,9 @@ class MasterAI extends BaseAgent {
             },
             required: ["workflow_id", "description", "trigger_event", "steps"]
         }, async (args) => {
+            if (isProtectedPredefinedWorkflow(args.workflow_id)) {
+                return { success: false, error: `Workflow '${args.workflow_id}' is system-protected and cannot be replaced.` };
+            }
             const workflows = workflowStore.list();
             if (workflows.find(w => w.workflow_id === args.workflow_id)) {
                 return { success: false, error: `Workflow '${args.workflow_id}' already exists. Use update_workflow instead.` };
@@ -115,6 +235,9 @@ class MasterAI extends BaseAgent {
             },
             required: ["workflow_id"]
         }, async (args) => {
+            if (isProtectedPredefinedWorkflow(args.workflow_id)) {
+                return { success: false, error: `Workflow '${args.workflow_id}' is system-protected and cannot be edited directly.` };
+            }
             const workflows = workflowStore.list();
             const idx = workflows.findIndex(w => w.workflow_id === args.workflow_id);
             if (idx === -1) {
@@ -131,6 +254,93 @@ class MasterAI extends BaseAgent {
             workflowStore.saveAll(workflows);
             this._emitSystemEvent('workflow.updated', null, { workflow_id: args.workflow_id });
             return { success: true, message: `Workflow '${args.workflow_id}' updated successfully.` };
+        });
+
+        this.registerTool('list_pending_financial_workflow_requests', 'List all pending CEO authorization requests for financial workflows.', {
+            type: 'object',
+            properties: {}
+        }, async () => {
+            const pending = Array.from(this.financeAuthorizationRequests.values())
+                .filter(r => r.status === 'PENDING_CEO_AUTHORIZATION');
+            return { success: true, pending };
+        });
+
+        this.registerTool('approve_financial_workflow_request', 'CEO-only approval to execute a pending financial workflow request.', {
+            type: 'object',
+            properties: {
+                authorization_id: { type: 'string' },
+                approved_by: { type: 'string' },
+                note: { type: 'string' }
+            },
+            required: ['authorization_id', 'approved_by']
+        }, async (args) => {
+            const request = this.financeAuthorizationRequests.get(args.authorization_id);
+            if (!request) {
+                return { success: false, status: 'NOT_FOUND', error: `Authorization request '${args.authorization_id}' not found.` };
+            }
+            if (request.status !== 'PENDING_CEO_AUTHORIZATION') {
+                return { success: false, status: request.status, error: `Authorization request is already ${request.status}.` };
+            }
+            if (!this._isCeoApprover(args.approved_by)) {
+                return { success: false, status: 'REJECTED', error: 'Only CEO can approve financial workflow requests.' };
+            }
+
+            request.status = 'APPROVED';
+            request.decided_at = TimeAuthorityService.nowIST();
+            request.decided_by = args.approved_by;
+            request.note = args.note || null;
+            this.financeAuthorizationRequests.set(request.authorization_id, request);
+
+            const result = await this._executeDeterministicFinanceWorkflow(
+                request.tool_name,
+                {
+                    ...request.args,
+                    ceo_authorized: true,
+                    approved_by: args.approved_by
+                },
+                'authorization'
+            );
+
+            request.execution_result = result;
+            request.status = result?.status === 'SUCCESS' ? 'EXECUTED' : 'EXECUTION_FAILED';
+            this.financeAuthorizationRequests.set(request.authorization_id, request);
+
+            return {
+                success: true,
+                status: request.status,
+                authorization_id: request.authorization_id,
+                workflow_id: request.workflow_id,
+                result
+            };
+        });
+
+        this.registerTool('reject_financial_workflow_request', 'CEO-only rejection for a pending financial workflow request.', {
+            type: 'object',
+            properties: {
+                authorization_id: { type: 'string' },
+                rejected_by: { type: 'string' },
+                reason: { type: 'string' }
+            },
+            required: ['authorization_id', 'rejected_by']
+        }, async (args) => {
+            const request = this.financeAuthorizationRequests.get(args.authorization_id);
+            if (!request) {
+                return { success: false, status: 'NOT_FOUND', error: `Authorization request '${args.authorization_id}' not found.` };
+            }
+            if (request.status !== 'PENDING_CEO_AUTHORIZATION') {
+                return { success: false, status: request.status, error: `Authorization request is already ${request.status}.` };
+            }
+            if (!this._isCeoApprover(args.rejected_by)) {
+                return { success: false, status: 'REJECTED', error: 'Only CEO can reject financial workflow requests.' };
+            }
+
+            request.status = 'REJECTED';
+            request.decided_at = TimeAuthorityService.nowIST();
+            request.decided_by = args.rejected_by;
+            request.rejection_reason = args.reason || null;
+            this.financeAuthorizationRequests.set(request.authorization_id, request);
+
+            return { success: true, status: 'REJECTED', authorization_id: request.authorization_id };
         });
     }
 
@@ -376,6 +586,41 @@ Rules:
         this.sessions.delete(key);
     }
 
+    _extractRecentAttachedImageUrls(history = []) {
+        if (!Array.isArray(history) || history.length === 0) return [];
+        const markerRegex = /\[Attached\s+\d+\s+image\(s\)\s+—\s+use these as image_urls:\s*([^\]]+)\]/i;
+
+        // Important for confirmation flows:
+        // the final user turn may be "yes" while attachments were provided in an earlier turn.
+        const userMessages = [...history].reverse().filter(m => m && m.role === 'user' && typeof m.content === 'string');
+        for (const msg of userMessages) {
+            const match = msg.content.match(markerRegex);
+            if (!match || !match[1]) continue;
+
+            const urls = match[1]
+                .split(',')
+                .map(s => s.trim())
+                .filter(url => url.length > 0);
+            if (urls.length > 0) return urls;
+        }
+
+        return [];
+    }
+
+    _injectImageUrlsIntoPropertyArgs(agent, toolName, args, history) {
+        if (!agent || agent.name !== 'PropertyAI') return args;
+        if (toolName !== 'add_property' && toolName !== 'update_property') return args;
+        if (Array.isArray(args?.image_urls) && args.image_urls.length > 0) return args;
+
+        const attachedUrls = this._extractRecentAttachedImageUrls(history);
+        if (attachedUrls.length === 0) return args;
+
+        return {
+            ...args,
+            image_urls: attachedUrls
+        };
+    }
+
     async chat(history, userContext = null) {
         try {
             // Check identity (Email via Dashboard, or profile_type via WhatsApp CRM Context)
@@ -449,7 +694,8 @@ Rules:
                    This does NOT apply to follow-up operations within an already-confirmed plan (e.g., if the user confirmed creating a property with units, go ahead and add the units without asking again).
                 7. **Dependency Awareness**: THINK before acting. If operation B depends on the result of operation A (e.g., creating a salary card requires a staff_id from hiring), do NOT call both in parallel. Execute A first, get its result, then execute B with the correct IDs. Only parallelize operations that are truly independent (e.g., recording 3 separate payments for 3 different tenants).
                 8. **Planning**: For complex multi-step requests, mentally break them into ordered steps: Step 1 → get result → Step 2 → get result → Step 3. Execute each step, use the returned IDs for subsequent steps.
-                9. **Image Attachments**: When the user attaches images to their message (visible as image_url content parts), and the current operation involves creating or updating an entity that accepts image fields (like \`image_urls\`), you MUST extract the data URLs from the attached images and pass them in the appropriate tool parameter. Do NOT ignore attached images.`;
+                9. **Image Attachments**: When the user attaches images to their message (visible as image_url content parts), and the current operation involves creating or updating an entity that accepts image fields (like \`image_urls\`), you MUST extract the data URLs from the attached images and pass them in the appropriate tool parameter. Do NOT ignore attached images.
+                10. **Image Retrieval Requests**: If the user asks to view/show property images (or similar asset images), you MUST call the relevant retrieval tool first (for properties, use \`get_properties\`) and return the stored \`image_urls\` as clickable links. Do NOT say you cannot view images unless the tool confirms no images are available.`;
 
             // --- Dynamically inject agent operating instructions ---
             const agentInstructions = this.subAgents
@@ -549,16 +795,21 @@ Rules:
 
                 for (const toolCall of assistantMessage.tool_calls) {
                     const fnName = toolCall.function.name;
-                    const args = JSON.parse(toolCall.function.arguments);
+                    const parsedArgs = JSON.parse(toolCall.function.arguments);
 
                     if (agentMap[fnName]) {
                         const { agent, toolName } = agentMap[fnName];
+                        const args = this._injectImageUrlsIntoPropertyArgs(agent, toolName, parsedArgs, history);
                         console.log(`[MasterAI] Iteration ${iteration}: Calling ${toolName} on ${agent.name}`);
 
                         let result;
                         try {
                             this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name });
-                            result = await agent.callTool(toolName, args);
+                            if (this._isFinanceMutationTool(agent.name, toolName)) {
+                                result = await this._executeDeterministicFinanceWorkflow(toolName, args, 'chat');
+                            } else {
+                                result = await agent.callTool(toolName, args);
+                            }
                             this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result });
                         } catch (err) {
                             console.error(`[MasterAI] Tool Error (${toolName}):`, err.message);
@@ -687,7 +938,9 @@ Rules:
             this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name, source: 'dashboard' });
 
             // Execute the tool
-            const result = await agent.callTool(toolName, args);
+            const result = this._isFinanceMutationTool(agent.name, toolName)
+                ? await this._executeDeterministicFinanceWorkflow(toolName, args, 'dashboard')
+                : await agent.callTool(toolName, args);
 
             this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result, source: 'dashboard' });
             return result;

@@ -1,11 +1,167 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Plus, Paperclip, X, File as FileIcon } from 'lucide-react';
+import { Send, Bot, User, Plus, Paperclip, X, File as FileIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import apiClient from '../../api/client';
 import StateWrapper from '../common/StateWrapper';
 import RequestLogItem from './RequestLogItem';
 import { useAuth } from '../../context/AuthContext';
 import { useTimeDisplay } from '../../hooks/useTimeDisplay';
 import { useChatContext } from '../../context/ChatContext';
+
+const IMAGE_MD_REGEX = /!\[([^\]]*)\]\(([^)]+)\)/g;
+
+const normalizeImageSource = (src) => {
+    if (!src || typeof src !== 'string') return src;
+    if (src.startsWith('sandbox:/images/')) {
+        return src.replace(/^sandbox:/, '');
+    }
+    return src;
+};
+
+const isImageSource = (src) => {
+    if (!src || typeof src !== 'string') return false;
+    if (src.startsWith('data:image/')) return true;
+    if (src.startsWith('/images/')) return true;
+    if (src.startsWith('sandbox:/images/')) return true;
+    return /^https?:\/\/.+/i.test(src) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(src);
+};
+
+const renderMessageContent = (msg, onOpenImage) => {
+    if (typeof msg.content !== 'string') {
+        return <div className="text-sm whitespace-pre-wrap">{msg.content}</div>;
+    }
+
+    if (msg.role !== 'assistant') {
+        return <div className="text-sm whitespace-pre-wrap">{msg.content}</div>;
+    }
+
+    const blocks = [];
+    const allImages = [];
+
+    for (const line of msg.content.split('\n')) {
+        const matches = [...line.matchAll(IMAGE_MD_REGEX)];
+
+        if (matches.length === 0) {
+            blocks.push({ type: 'text', text: line });
+            continue;
+        }
+
+        const lineImages = matches
+            .map((m) => {
+                const label = (m[1] || '').trim();
+                const candidate = normalizeImageSource((m[2] || '').trim());
+                if (!isImageSource(candidate)) return null;
+                const image = {
+                    src: candidate,
+                    label: label || 'Image',
+                    globalIndex: allImages.length
+                };
+                allImages.push(image);
+                return image;
+            })
+            .filter(Boolean);
+
+        if (lineImages.length > 0) {
+            blocks.push({ type: 'images', images: lineImages });
+        }
+
+        const remainder = line
+            .replace(IMAGE_MD_REGEX, '')
+            .replace(/^\s*\d+\.\s*/, '')
+            .trim();
+        if (remainder) {
+            blocks.push({ type: 'text', text: remainder });
+        }
+    }
+
+    if (allImages.length === 0) {
+        return <div className="text-sm whitespace-pre-wrap">{msg.content}</div>;
+    }
+
+    const mergedBlocks = [];
+    for (const block of blocks) {
+        if (block.type !== 'images') {
+            mergedBlocks.push(block);
+            continue;
+        }
+
+        const prev = mergedBlocks[mergedBlocks.length - 1];
+        if (prev && prev.type === 'images') {
+            prev.images = [...prev.images, ...block.images];
+        } else {
+            mergedBlocks.push({ ...block });
+        }
+    }
+
+    const cleanedBlocks = mergedBlocks.filter((block, idx) => {
+        if (block.type !== 'text') return true;
+        const text = (block.text || '').trim();
+        if (!text) return false;
+
+        const prevIsImages = idx > 0 && mergedBlocks[idx - 1]?.type === 'images';
+        const nextIsImages = idx < mergedBlocks.length - 1 && mergedBlocks[idx + 1]?.type === 'images';
+        const isPureSeparator = /^[-•]+$/.test(text);
+
+        if ((prevIsImages || nextIsImages) && isPureSeparator) return false;
+        return true;
+    });
+
+    return (
+        <div className="space-y-2">
+            {cleanedBlocks.map((block, idx) => {
+                if (block.type === 'text') {
+                    return (
+                        <div key={`text-${idx}`} className="text-sm whitespace-pre-wrap">
+                            {block.text}
+                        </div>
+                    );
+                }
+
+                return (
+                    <div
+                        key={`images-${idx}`}
+                        className="flex gap-3 overflow-x-auto pb-1"
+                        data-testid="assistant-image-strip"
+                    >
+                        {block.images.map((img) => {
+                            return (
+                                <button
+                                    key={`${img.src}-${img.globalIndex}`}
+                                    type="button"
+                                    onClick={() => onOpenImage(allImages.map(i => i.src), img.globalIndex)}
+                                    className="block text-left shrink-0"
+                                    data-testid="inline-image-button"
+                                >
+                                    <img
+                                        src={img.src}
+                                        alt={`attachment-${img.globalIndex + 1}`}
+                                        className="w-40 h-32 object-cover rounded-lg border border-gray-200"
+                                        loading="lazy"
+                                    />
+                                    <div className="mt-1 text-[11px] text-gray-500">{img.label}</div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+const toHistoryMessage = (m) => {
+    const baseContent = typeof m.content === 'string' ? m.content : '';
+    if (m?.role !== 'user') {
+        return { role: m.role, content: baseContent };
+    }
+
+    const hasMarker = /\[Attached\s+\d+\s+image\(s\)\s+—\s+use these as image_urls:/i.test(baseContent);
+    if (hasMarker || !Array.isArray(m.imageUrls) || m.imageUrls.length === 0) {
+        return { role: m.role, content: baseContent };
+    }
+
+    const imageNote = `\n\n[Attached ${m.imageUrls.length} image(s) — use these as image_urls: ${m.imageUrls.join(', ')}]`;
+    return { role: m.role, content: `${baseContent}${imageNote}`.trim() };
+};
 
 /**
  * ChatPanel Component
@@ -33,6 +189,7 @@ const ChatPanel = ({ onLogRequest }) => {
     // Local inputs
     const [input, setInput] = useState('');
     const [attachments, setAttachments] = useState([]);
+    const [imageLightbox, setImageLightbox] = useState({ open: false, images: [], index: 0 });
 
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
@@ -45,6 +202,62 @@ const ChatPanel = ({ onLogRequest }) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages, status]);
+
+    useEffect(() => {
+        if (!imageLightbox.open) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setImageLightbox({ open: false, images: [], index: 0 });
+                return;
+            }
+            if (e.key === 'ArrowLeft') {
+                setImageLightbox(prev => ({
+                    ...prev,
+                    index: prev.images.length === 0 ? 0 : (prev.index - 1 + prev.images.length) % prev.images.length
+                }));
+                return;
+            }
+            if (e.key === 'ArrowRight') {
+                setImageLightbox(prev => ({
+                    ...prev,
+                    index: prev.images.length === 0 ? 0 : (prev.index + 1) % prev.images.length
+                }));
+            }
+        };
+
+        window.addEventListener('keydown', onKeyDown);
+        return () => {
+            window.removeEventListener('keydown', onKeyDown);
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [imageLightbox.open]);
+
+    const openImageLightbox = (images, index) => {
+        if (!Array.isArray(images) || images.length === 0) return;
+        setImageLightbox({ open: true, images, index });
+    };
+
+    const closeImageLightbox = () => {
+        setImageLightbox({ open: false, images: [], index: 0 });
+    };
+
+    const showPrevImage = () => {
+        setImageLightbox(prev => ({
+            ...prev,
+            index: prev.images.length === 0 ? 0 : (prev.index - 1 + prev.images.length) % prev.images.length
+        }));
+    };
+
+    const showNextImage = () => {
+        setImageLightbox(prev => ({
+            ...prev,
+            index: prev.images.length === 0 ? 0 : (prev.index + 1) % prev.images.length
+        }));
+    };
 
     const handleFileSelect = async (e) => {
         if (!e.target.files?.length) return;
@@ -100,7 +313,7 @@ const ChatPanel = ({ onLogRequest }) => {
 
         try {
             // Build full conversation history for MasterAI (so it remembers context)
-            const fullHistory = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
+            const fullHistory = [...messages, userMsg].map(toHistoryMessage);
 
             let response;
 
@@ -135,7 +348,19 @@ const ChatPanel = ({ onLogRequest }) => {
                     timestamp: new Date().toISOString(),
                     traceId: response.correlation_id
                 };
-                setMessages(prev => [...prev, aiMsg]);
+                setMessages(prev => {
+                    const next = [...prev];
+                    const uploaded = Array.isArray(response.uploaded_image_urls) ? response.uploaded_image_urls : [];
+                    if (uploaded.length > 0) {
+                        const lastUserIdx = [...next].reverse().findIndex(m => m.role === 'user');
+                        if (lastUserIdx !== -1) {
+                            const idx = next.length - 1 - lastUserIdx;
+                            next[idx] = { ...next[idx], imageUrls: uploaded };
+                        }
+                    }
+                    next.push(aiMsg);
+                    return next;
+                });
                 setStatus('success');
 
                 // Clear attachments on success
@@ -225,7 +450,7 @@ const ChatPanel = ({ onLogRequest }) => {
                                 </div>
                             )}
 
-                            <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                            {renderMessageContent(msg, openImageLightbox)}
 
                             <div className={`text-[10px] mt-2 flex items-center justify-between ${msg.role === 'user' ? 'text-indigo-200' : 'text-gray-400'
                                 }`}>
@@ -331,6 +556,52 @@ const ChatPanel = ({ onLogRequest }) => {
                     Strict Architecture: Frontend communicates ONLY with MasterAI endpoints.
                 </div>
             </div>
+
+            {imageLightbox.open && (
+                <div className="fixed inset-0 z-[2147483647] bg-black/90 flex items-center justify-center p-4" data-testid="image-lightbox">
+                    <button
+                        type="button"
+                        onClick={closeImageLightbox}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
+                        aria-label="Close image viewer"
+                        data-testid="lightbox-close"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={showPrevImage}
+                        className="absolute left-4 md:left-8 p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
+                        aria-label="Previous image"
+                        data-testid="lightbox-prev"
+                    >
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+
+                    <div className="w-full max-w-5xl flex flex-col items-center gap-3">
+                        <img
+                            src={imageLightbox.images[imageLightbox.index]}
+                            alt={`expanded-${imageLightbox.index + 1}`}
+                            className="max-h-[78vh] w-auto max-w-full object-contain rounded-lg border border-white/20"
+                            data-testid="lightbox-image"
+                        />
+                        <div className="text-white/90 text-xs">
+                            {imageLightbox.index + 1} / {imageLightbox.images.length}
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={showNextImage}
+                        className="absolute right-4 md:right-8 p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
+                        aria-label="Next image"
+                        data-testid="lightbox-next"
+                    >
+                        <ChevronRight className="w-6 h-6" />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

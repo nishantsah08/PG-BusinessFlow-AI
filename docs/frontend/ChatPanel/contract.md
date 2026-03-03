@@ -9,28 +9,36 @@ interface ChatPanelProps {
 
 ## Backend API Contract
 
-**Endpoint:** `/api/master_ai/chat`  
+**Endpoint:** `/api/communications/chat`  
 **Method:** `POST`  
 **Timeout behavior:** Default fetch timeout (typically 30s-60s depending on browser/fetch implementation, no custom abort controller overrides currently).  
 
-**Payload:**
+**Payload (JSON mode):**
 ```json
 {
-  "message": "string"
+  "messages": [
+    { "role": "user|assistant", "content": "string" }
+  ],
+  "user": { "email": "string", "name": "string", "type": "string" }
 }
 ```
+
+**Payload (multipart mode for attachments):**
+- `messages` (stringified JSON)
+- `user` (stringified JSON)
+- `attachments` (0..n files)
 
 **Response schema:**
 ```json
 {
   "success": true,
   "data": {
-    "reply": "string",
-    "message": "string (optional fallback)"
+    "content": "string"
   },
   "error": null,
   "correlation_id": "string",
-  "latency_ms": 123
+  "latency_ms": 123,
+  "uploaded_image_urls": ["/images/....jpg"]
 }
 ```
 

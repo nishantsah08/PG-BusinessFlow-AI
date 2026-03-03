@@ -19,13 +19,14 @@ const generateRequestId = () => {
 /**
  * Standardized response formatter
  */
-const formatResponse = (success, data, error, correlation_id, latency_ms) => {
+const formatResponse = (success, data, error, correlation_id, latency_ms, extras = {}) => {
     return {
         success: Boolean(success),
         data: data !== undefined ? data : null,
         error: error ? String(error) : null,
         correlation_id: correlation_id || 'unknown',
-        latency_ms: Number(latency_ms) || 0
+        latency_ms: Number(latency_ms) || 0,
+        ...extras
     };
 };
 
@@ -112,7 +113,10 @@ const executeRequest = async (url, options = {}) => {
             responseData.data,
             !response.ok && !responseData.error ? `HTTP ${response.status}: ${response.statusText}` : responseData.error,
             responseData.correlation_id || correlation_id,
-            latency_ms
+            latency_ms,
+            {
+                uploaded_image_urls: responseData.uploaded_image_urls
+            }
         );
     }
 
