@@ -13,6 +13,7 @@ class CommunicationsAI extends BaseAgent {
             capabilities: {
                 skills: ['WhatsApp Messaging', 'Media Handling', 'Profile Management'],
                 tools: [
+                    'handle_portal_message',
                     'send_text_message',
                     'send_media_message',
                     'send_template_message',
@@ -37,6 +38,76 @@ class CommunicationsAI extends BaseAgent {
     }
 
     registerTools() {
+        // --- Inbound Normalization ---
+        this.registerTool('handle_portal_message', 'Normalize inbound web portal message into a system event envelope', {
+            type: 'object',
+            properties: {
+                messages: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            role: { type: 'string' },
+                            content: { type: 'string' }
+                        },
+                        required: ['role', 'content']
+                    }
+                },
+                user: { type: 'object' },
+                correlation_id: { type: 'string' }
+            },
+            required: ['messages']
+        }, async (args) => {
+            const messages = Array.isArray(args.messages) ? args.messages : [];
+            const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+            const processingTime = TimeAuthorityService.nowIST();
+            const correlationId = args.correlation_id || `corr_portal_${Date.now()}`;
+            const userId = args.user?.email || 'portal_user';
+
+            return {
+                event_id: `evt_portal_${Date.now()}`,
+                event_type: 'message.received',
+                event_version: 'v1',
+                timestamp: processingTime,
+                source: {
+                    type: 'adapter',
+                    name: 'PortalAdapter',
+                    instance_id: 'portal_web_01'
+                },
+                target: {
+                    type: 'agent',
+                    name: 'Router'
+                },
+                routing: {
+                    priority: 'normal',
+                    mode: 'sync',
+                    ttl_ms: 60000
+                },
+                correlation: {
+                    correlation_id: correlationId,
+                    causation_id: correlationId,
+                    session_id: userId,
+                    conversation_id: `conv_portal_${userId}`
+                },
+                context: {
+                    channel: 'portal',
+                    user_id: userId,
+                    user: args.user || null
+                },
+                payload: {
+                    from: userId,
+                    body: lastUserMsg?.content || '',
+                    history: messages,
+                    raw: { channel: 'portal' }
+                },
+                observability: {
+                    received_at: processingTime,
+                    processed_at: processingTime,
+                    latency_ms: 0
+                }
+            };
+        });
+
         // --- Outbound Messaging ---
 
         this.registerTool('send_text_message', 'Send simple text via WhatsApp', {

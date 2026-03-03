@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { MessageSquareCode, Activity, FolderKanban } from 'lucide-react';
+import { MessageSquareCode, Activity, FolderKanban, Building2 } from 'lucide-react';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
 
 const Sidebar = () => {
@@ -8,7 +8,7 @@ const Sidebar = () => {
 
     const navItems = [
         { path: '/master', icon: MessageSquareCode, label: 'Master AI' },
-        // { path: '/dashboard', icon: LayoutGrid, label: 'Agent Dashboard' } // This item will be conditionally rendered
+        { path: '/property', icon: Building2, label: 'Property & Booking' }
     ];
 
     return (

@@ -9,6 +9,7 @@ const SettingsDropdown = ({ isOpen, onClose }) => {
     const { settings, updateSettings } = useSettings();
     const { logout } = useAuth();
     const { isDeveloperMode, toggleDeveloperMode } = useDeveloperMode();
+    const isProd = (import.meta.env.VITE_APP_ENV || 'development') === 'production';
     const [expandedGroups, setExpandedGroups] = useState(['time']);
 
     if (!isOpen) return null;
@@ -119,7 +120,8 @@ const SettingsDropdown = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* System Group */}
-                <div className="rounded-xl overflow-hidden border-t border-gray-50 pt-1">
+                {!isProd && (
+                    <div className="rounded-xl overflow-hidden border-t border-gray-50 pt-1">
                     <button
                         onClick={(e) => { e.stopPropagation(); toggleGroup('system'); }}
                         className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors rounded-lg"
@@ -148,6 +150,7 @@ const SettingsDropdown = ({ isOpen, onClose }) => {
                         </div>
                     )}
                 </div>
+                )}
             </div>
 
             {/* Logout Footer */}

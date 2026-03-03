@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "development": "fir-bestpg",
+    "production": "fir-bestpg"
+  },
+  "targets": {
+    "fir-bestpg": {
+      "hosting": {
+        "development": [
+          "pgbf-web-development"
+        ],
+        "production": [
+          "pgbf-web-production"
+        ]
+      }
+    }
+  }
+}

@@ -15,7 +15,9 @@ class PropertyAI extends BaseAgent {
                     'add_unit', 'update_unit', 'delete_unit', 'get_units',
                     'add_meter', 'update_meter', 'delete_meter', 'get_meters',
                     'add_meter_reading', 'update_meter_reading', 'get_meter_readings',
-                    'calculate_deposit', 'get_public_rate_card', 'get_amenities'
+                    'calculate_deposit', 'get_public_rate_card', 'get_amenities',
+                    'interpret_structure', 'get_analytics_stats', 'get_maintenance_reqs',
+                    'log_maintenance_req', 'update_maintenance_req'
                 ]
             },
             directives: {
@@ -42,6 +44,7 @@ class PropertyAI extends BaseAgent {
                 name: { type: 'string' },
                 address: { type: 'string' },
                 description: { type: 'string' },
+                google_business_link: { type: 'string' },
                 image_urls: { type: 'array', items: { type: 'string' } },
                 amenities: { type: 'array', items: { type: 'string' } },
                 floors: { type: 'number' }
@@ -55,6 +58,7 @@ class PropertyAI extends BaseAgent {
             const property = {
                 id: `PROP-${this.properties.length + 1}`,
                 ...args,
+                google_business_link: args.google_business_link || '',
                 amenities: args.amenities || [],
                 image_urls: args.image_urls || [],
                 status: 'ACTIVE',
@@ -72,6 +76,7 @@ class PropertyAI extends BaseAgent {
                 name: { type: 'string' },
                 address: { type: 'string' },
                 description: { type: 'string' },
+                google_business_link: { type: 'string' },
                 image_urls: { type: 'array', items: { type: 'string' } },
                 amenities: { type: 'array', items: { type: 'string' } },
                 floors: { type: 'number' }
@@ -90,6 +95,7 @@ class PropertyAI extends BaseAgent {
 
             if (args.address) property.address = args.address;
             if (args.description) property.description = args.description;
+            if (args.google_business_link !== undefined) property.google_business_link = args.google_business_link;
             if (args.image_urls) property.image_urls = args.image_urls;
             if (args.amenities) property.amenities = args.amenities; // Note: This might invalidate unit amenities, but strategy allows property to have base.
             if (args.floors) property.floors = args.floors;
@@ -146,7 +152,8 @@ class PropertyAI extends BaseAgent {
                 unit_number: { type: 'string' },
                 floor: { type: 'number' },
                 types: { type: 'array', items: { type: 'string' } }, // e.g. ["Double Sharing", "Bunk Bed"]
-                amenities: { type: 'array', items: { type: 'string' } }
+                amenities: { type: 'array', items: { type: 'string' } },
+                base_rent: { type: 'number' }
             },
             required: ['property_id', 'unit_number']
         }, async (args) => {
@@ -171,6 +178,7 @@ class PropertyAI extends BaseAgent {
                 floor: args.floor !== undefined ? args.floor : 0, // Default to Ground Floor if not specified
                 types: args.types || [],
                 amenities: unitAmenities,
+                base_rent: args.base_rent || 0,
                 status: 'AVAILABLE',
                 history: [],
                 created_at: new Date().toISOString(),
@@ -188,6 +196,7 @@ class PropertyAI extends BaseAgent {
                 floor: { type: 'number' },
                 types: { type: 'array', items: { type: 'string' } },
                 amenities: { type: 'array', items: { type: 'string' } },
+                base_rent: { type: 'number' },
                 status: { type: 'string', enum: ['AVAILABLE', 'BOOKED', 'NOTICE'] }, // Transitions
                 tenant_id: { type: 'string' } // Required if status -> BOOKED
             },
@@ -259,6 +268,7 @@ class PropertyAI extends BaseAgent {
                 }
                 unit.amenities = args.amenities;
             }
+            if (args.base_rent !== undefined) unit.base_rent = args.base_rent;
 
             unit.updated_at = new Date().toISOString();
             return { status: "Unit Updated", unit_id: unit.id, current_status: unit.status };
@@ -680,6 +690,49 @@ class PropertyAI extends BaseAgent {
             const prop = this.properties.find(p => p.id === args.property_id && p.status !== 'DELETED');
             if (!prop) throw new Error("Property not found.");
             return { amenities: prop.amenities };
+        });
+
+
+        this.registerTool('get_analytics_stats', 'Get advanced KPIs for Occupancy, Capacity, Monthly Churn, and Maintenance', {
+            type: 'object',
+            properties: {
+                property_id: { type: 'string' }
+            }
+        }, async (args) => {
+            // Dynamic Calculation based on active units
+            let relevantUnits = this.units.filter(u => u.status !== 'DELETED');
+            if (args.property_id) {
+                relevantUnits = relevantUnits.filter(u => u.property_id === args.property_id);
+            }
+
+            const capacity = relevantUnits.length;
+            const occupied = relevantUnits.filter(u => u.status === 'BOOKED').length;
+            const available = relevantUnits.filter(u => u.status === 'AVAILABLE').length;
+            const on_notice = relevantUnits.filter(u => u.status === 'NOTICE').length;
+
+            // Churn & Occupancy historical data (Mocked for visual demonstration, as in-memory won't build history easily)
+            const currentMonth = new Date().toLocaleString('default', { month: 'short' });
+
+            return {
+                occupancy_data: [
+                    { month: 'Jan', occupied: Math.max(0, occupied - 15), capacity: capacity },
+                    { month: 'Feb', occupied: Math.max(0, occupied - 10), capacity: capacity },
+                    { month: 'Mar', occupied: Math.max(0, occupied - 5), capacity: capacity },
+                    { month: currentMonth, occupied: occupied, capacity: capacity },
+                ],
+                churn_data: [
+                    { month: 'Jan', move_ins: 10, move_outs: 2 },
+                    { month: 'Feb', move_ins: 8, move_outs: 3 },
+                    { month: 'Mar', move_ins: 12, move_outs: 5 },
+                    { month: currentMonth, move_ins: occupied, move_outs: on_notice },
+                ],
+                summary: {
+                    capacity: capacity,
+                    occupied: occupied,
+                    available: available,
+                    on_notice: on_notice
+                }
+            };
         });
     }
 }

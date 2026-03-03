@@ -6,6 +6,7 @@ import { useDeveloperMode } from '../../context/DeveloperModeContext';
 const SettingsModal = ({ isOpen, onClose }) => {
     const { settings, updateSettings } = useSettings();
     const { isDeveloperMode, toggleDeveloperMode } = useDeveloperMode();
+    const isProd = (import.meta.env.VITE_APP_ENV || 'development') === 'production';
     const [expandedGroups, setExpandedGroups] = useState(['time']);
 
     if (!isOpen) return null;
@@ -115,7 +116,8 @@ const SettingsModal = ({ isOpen, onClose }) => {
                     </div>
 
                     {/* System Group */}
-                    <div className="border border-gray-100 rounded-xl overflow-hidden">
+                    {!isProd && (
+                        <div className="border border-gray-100 rounded-xl overflow-hidden">
                         <button
                             onClick={() => toggleGroup('system')}
                             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
@@ -146,6 +148,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                             </div>
                         )}
                     </div>
+                    )}
                 </div>
 
                 {/* Footer */}

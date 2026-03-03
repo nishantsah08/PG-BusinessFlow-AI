@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import apiClient from '../api/client';
 
 const MasterAITab = () => {
     const { user } = useAuth();
@@ -20,16 +21,14 @@ const MasterAITab = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-                    user: user
-                })
+            const response = await apiClient.post('/api/communications/chat', {
+                messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+                user: user
             });
-            const data = await response.json();
-            setMessages([...newMessages, { role: data.role, content: data.content }]);
+            setMessages([...newMessages, {
+                role: response?.data?.role || 'assistant',
+                content: response?.data?.content || response?.error || 'No response content.'
+            }]);
         } catch (error) {
             console.error(error);
             setMessages([...newMessages, { role: 'assistant', content: 'Error connecting to the backend.' }]);

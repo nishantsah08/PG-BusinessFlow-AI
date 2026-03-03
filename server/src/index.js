@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const crypto = require('crypto');
+const axios = require('axios');
 const MasterAI = require('./agents/MasterAI');
 const PropertyAI = require('./agents/PropertyAI');
 const CRMAgent = require('./agents/CRMAgent');
@@ -8,9 +10,17 @@ const HRAgent = require('./agents/HRAgent');
 const FinanceAI = require('./agents/FinanceAI');
 const CommunicationsAI = require('./agents/CommunicationsAI');
 const TimeAuthorityService = require('./services/TimeAuthorityService');
+const WorkflowStore = require('./storage/WorkflowStore');
+const ImageStore = require('./storage/ImageStore');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const APP_ENV = process.env.APP_ENV || 'development';
+const IS_PROD = APP_ENV === 'production';
+const ALLOW_DEBUG_ENDPOINTS = !IS_PROD && process.env.ALLOW_DEBUG_ENDPOINTS !== 'false';
+const upload = multer({ storage: multer.memoryStorage() });
+const googleTokenCache = new Map();
 
 // Startup Check
 try {
@@ -35,9 +45,143 @@ try {
     console.error('Startup Check Failed:', e);
 }
 
-app.use(cors());
-app.use(express.json());
-app.use('/images', express.static('../../images'));
+const corsOptions = IS_PROD && process.env.CORS_ORIGIN
+    ? { origin: process.env.CORS_ORIGIN }
+    : {};
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '50mb' }));
+
+app.use((req, res, next) => {
+    const correlationId = req.headers['x-request-id'] || crypto.randomUUID();
+    req.correlationId = correlationId;
+    res.setHeader('X-Correlation-ID', correlationId);
+    next();
+});
+
+const path = require('path');
+const fs = require('fs');
+const IMAGE_DIR = path.join(__dirname, '..', '..', 'images');
+if (!fs.existsSync(IMAGE_DIR)) fs.mkdirSync(IMAGE_DIR, { recursive: true });
+const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'local';
+const workflowStore = new WorkflowStore({ backend: STORAGE_BACKEND });
+const imageStore = new ImageStore({ backend: STORAGE_BACKEND, imageDir: IMAGE_DIR });
+
+app.use('/images', express.static(IMAGE_DIR));
+
+app.get('/health', (_req, res) => {
+    res.json({
+        status: 'ok',
+        app: 'PG-BusinessFlow.ai',
+        env: APP_ENV,
+        timestamp: TimeAuthorityService.nowIST()
+    });
+});
+
+app.get('/ready', (_req, res) => {
+    const missing = [];
+    const required = ['OPENAI_API_KEY'];
+    if (IS_PROD) {
+        required.push('WEBHOOK_VERIFY_TOKEN');
+        required.push('WHATSAPP_PHONE_NUMBER_ID');
+    }
+    required.forEach((k) => {
+        if (!process.env[k]) missing.push(k);
+    });
+    if (missing.length > 0) {
+        return res.status(503).json({ status: 'not_ready', missing });
+    }
+    return res.json({ status: 'ready', env: APP_ENV });
+});
+
+async function verifyGoogleToken(idToken) {
+    const cached = googleTokenCache.get(idToken);
+    if (cached && cached.exp > Date.now()) return cached.payload;
+
+    const response = await axios.get('https://oauth2.googleapis.com/tokeninfo', {
+        params: { id_token: idToken },
+        timeout: 5000
+    });
+    const payload = response.data;
+    if (!payload || payload.email_verified !== 'true') {
+        throw new Error('Unverified Google identity');
+    }
+    const expMs = (Number(payload.exp || 0) * 1000) || (Date.now() + 300000);
+    googleTokenCache.set(idToken, { payload, exp: expMs });
+    return payload;
+}
+
+async function requireAuth(req, res, next) {
+    if (!IS_PROD) return next();
+    try {
+        const header = req.headers.authorization || '';
+        const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+        if (!token) return res.status(401).json({ success: false, error: 'Missing bearer token' });
+        const payload = await verifyGoogleToken(token);
+
+        const authMode = (process.env.GOOGLE_AUTH_MODE || 'internal').toLowerCase();
+        const allowedDomain = process.env.GOOGLE_AUTH_ALLOWED_DOMAIN;
+        const allowedEmailsRaw = process.env.GOOGLE_AUTH_ALLOWED_EMAILS || '';
+        const allowedEmails = new Set(
+            allowedEmailsRaw
+                .split(',')
+                .map((x) => x.trim().toLowerCase())
+                .filter(Boolean)
+        );
+        const email = String(payload.email || '').toLowerCase();
+        const emailDomain = email.includes('@') ? email.split('@')[1] : '';
+        const hasInternalRules = Boolean(allowedDomain) || allowedEmails.size > 0;
+
+        if (authMode === 'internal') {
+            if (!hasInternalRules) {
+                return res.status(503).json({
+                    success: false,
+                    error: 'GOOGLE_AUTH_MODE=internal requires GOOGLE_AUTH_ALLOWED_DOMAIN or GOOGLE_AUTH_ALLOWED_EMAILS'
+                });
+            }
+            const domainAllowed = allowedDomain ? emailDomain === String(allowedDomain).toLowerCase() : false;
+            const emailAllowed = allowedEmails.size > 0 ? allowedEmails.has(email) : false;
+            if (!domainAllowed && !emailAllowed) {
+                return res.status(403).json({ success: false, error: 'Authenticated user is not authorized for internal mode' });
+            }
+        } else if (authMode !== 'public') {
+            return res.status(503).json({ success: false, error: 'Invalid GOOGLE_AUTH_MODE. Use internal or public' });
+        }
+
+        req.authUser = {
+            email: payload.email,
+            name: payload.name || payload.email,
+            picture: payload.picture || null,
+            type: 'Google'
+        };
+        return next();
+    } catch (_err) {
+        return res.status(401).json({ success: false, error: 'Invalid authentication token' });
+    }
+}
+
+function requireDebugAccess(req, res, next) {
+    if (!ALLOW_DEBUG_ENDPOINTS) {
+        return res.status(403).json({ success: false, error: 'Debug endpoints are disabled in production mode' });
+    }
+    return next();
+}
+
+// Image upload endpoint — saves files to disk and returns accessible URLs
+app.post('/api/upload/images', requireAuth, upload.array('images', 20), (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ success: false, error: 'No files provided' });
+        }
+        const urls = [];
+        for (const f of req.files) {
+            urls.push(imageStore.saveBuffer(f.buffer, f.originalname, 'prop'));
+        }
+        res.json({ success: true, data: { urls } });
+    } catch (error) {
+        console.error('Image Upload Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // Initialize Agents
 const propertyAI = new PropertyAI();
@@ -76,7 +220,7 @@ setInterval(() => {
 // Routes
 
 // 0. System Event Stream (SSE)
-app.get('/api/system/events/stream', (req, res) => {
+app.get('/api/system/events/stream', requireDebugAccess, (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -98,42 +242,94 @@ app.get('/api/system/events/stream', (req, res) => {
 });
 
 // 1. Get Agent Status (for Developer View)
-app.get('/api/agents', (req, res) => {
+app.get('/api/agents', requireDebugAccess, (req, res) => {
     const statuses = allAgents.map(a => a.getStatus());
     res.json({ success: true, data: { agents: statuses } });
 });
-app.get('/api/system/agents', (req, res) => {
+app.get('/api/system/agents', requireDebugAccess, (req, res) => {
     const statuses = allAgents.map(a => a.getStatus());
     res.json({ success: true, data: { agents: statuses } });
 });
 
 // 2. Chat with Master AI
 const chatHandler = async (req, res) => {
-    const { message, messages, user } = req.body;
-    let inputMessages = messages;
-    if (message && !messages) {
-        inputMessages = [{ role: 'user', content: message }];
-    }
-    if (!inputMessages) return res.status(400).json({ error: "No messages provided" });
-
     try {
-        const response = await masterAI.chat(inputMessages, user);
+        // Handle FormData fields that were stringified on the frontend
+        let message = req.body.message;
+        let messages = req.body.messages;
+        let user = req.body.user;
+
+        console.log('[ChatHandler] req.files:', req.files ? req.files.length + ' file(s)' : 'none');
+        console.log('[ChatHandler] body keys:', Object.keys(req.body));
+
+        if (typeof messages === 'string') messages = JSON.parse(messages);
+        if (typeof user === 'string') user = JSON.parse(user);
+        if (IS_PROD && req.authUser) user = req.authUser;
+
+        let inputMessages = messages;
+        if (message && !messages) {
+            inputMessages = [{ role: 'user', content: message }];
+        }
+
+        // Handle uploaded files — save to disk and inject accessible URLs
+        if (req.files && req.files.length > 0 && inputMessages && inputMessages.length > 0) {
+            const savedUrls = [];
+
+            for (const f of req.files) {
+                console.log('[ChatHandler] File received:', f.fieldname, f.originalname, f.mimetype, f.size + ' bytes');
+                if (f.mimetype.startsWith('image/')) {
+                    // Save to disk (Phase 1: local file storage per implementation_plan.md)
+                    const savedUrl = imageStore.saveBuffer(f.buffer, f.originalname, 'chat_upload');
+                    savedUrls.push(savedUrl);
+                }
+            }
+
+            // Append image URLs directly to the user's message text so the LLM can't miss them
+            if (savedUrls.length > 0) {
+                console.log('[ChatHandler] Saved URLs:', savedUrls);
+                const lastMsg = inputMessages[inputMessages.length - 1];
+                const urlList = savedUrls.join(', ');
+                const imageNote = `\n\n[Attached ${savedUrls.length} image(s) — use these as image_urls: ${urlList}]`;
+                if (typeof lastMsg.content === 'string') {
+                    lastMsg.content += imageNote;
+                } else if (Array.isArray(lastMsg.content)) {
+                    // Find the text part and append
+                    const textPart = lastMsg.content.find(p => p.type === 'text');
+                    if (textPart) textPart.text += imageNote;
+                    else lastMsg.content.push({ type: 'text', text: imageNote });
+                }
+                console.log('[ChatHandler] Last message content after injection:', typeof lastMsg.content === 'string' ? lastMsg.content.substring(0, 500) : 'array');
+            }
+        }
+
+        if (!inputMessages) return res.status(400).json({ error: "No messages provided" });
+
+        const normalizedEvent = await commsAI.callTool('handle_portal_message', {
+            messages: inputMessages,
+            user,
+            correlation_id: req.correlationId
+        });
+
+        const response = await masterAI.chat(
+            normalizedEvent.payload?.history || inputMessages,
+            normalizedEvent.context?.user || user
+        );
         res.json({ success: true, data: response });
     } catch (error) {
+        console.error("Chat Handler Error:", error);
         res.status(500).json({ error: error.message });
     }
 };
 
-app.post('/api/chat', chatHandler);
-app.post('/api/master_ai/chat', chatHandler);
+app.post('/api/communications/chat', requireAuth, upload.any(), chatHandler);
 
 // 2.1 Get MasterAI Events
-app.get('/api/master_ai/events', (req, res) => {
+app.get('/api/master_ai/events', requireAuth, (req, res) => {
     res.json({ success: true, data: { events: [...recentEvents].reverse().slice(0, req.query.limit || 20) } });
 });
 
 // 2.2 Get MasterAI Trace
-app.get('/api/master_ai/trace/:id', (req, res) => {
+app.get('/api/master_ai/trace/:id', requireAuth, (req, res) => {
     // Return a mock trace since we don't persist them locally
     res.json({
         success: true,
@@ -147,7 +343,7 @@ app.get('/api/master_ai/trace/:id', (req, res) => {
 });
 
 // 2.3 Agent Control API
-app.post('/api/system/agent/control', (req, res) => {
+app.post('/api/system/agent/control', requireAuth, requireDebugAccess, (req, res) => {
     try {
         const { agent_name, action } = req.body;
 
@@ -198,29 +394,46 @@ app.post('/api/system/agent/control', (req, res) => {
     }
 });
 
-// ── 2.4 Workflow Definitions CRUD ───────────────────────────────────
-const path = require('path');
-const WORKFLOWS_FILE = path.join(__dirname, '..', 'data', 'workflows.json');
-
-function loadWorkflows() {
-    const fs = require('fs');
+// 2.4 Property API Route (Direct Tool Access) - LEGACY (To be deprecated)
+app.post('/api/property/tools/:tool_name', requireAuth, async (req, res) => {
     try {
-        const raw = fs.readFileSync(WORKFLOWS_FILE, 'utf-8');
-        return JSON.parse(raw);
-    } catch (e) {
-        return [];
+        const toolName = req.params.tool_name;
+        // Verify tool exists in propertyAI
+        if (!propertyAI.capabilities.tools.includes(toolName)) {
+            return res.status(404).json({ success: false, error: `Tool ${toolName} not found or not allowed` });
+        }
+        const result = await propertyAI.callTool(toolName, req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error(`Property Tool Error [${req.params.tool_name}]:`, error);
+        res.status(500).json({ success: false, error: error.message });
     }
-}
+});
 
-function saveWorkflows(workflows) {
-    const fs = require('fs');
-    fs.writeFileSync(WORKFLOWS_FILE, JSON.stringify(workflows, null, 4), 'utf-8');
-}
-
-// GET /api/workflows — list all
-app.get('/api/workflows', (req, res) => {
+// 2.4.1 Master AI - Execute SubAgent Tool (New Architectural Standard)
+app.post('/api/master_ai/tools/execute', requireAuth, async (req, res) => {
     try {
-        const workflows = loadWorkflows();
+        const { agent_name, tool_name, parameters } = req.body;
+
+        if (!agent_name || !tool_name) {
+            return res.status(400).json({ success: false, error: 'agent_name and tool_name are required.' });
+        }
+
+        console.log(`[API] Dashboard requested MasterAI to execute ${agent_name}.${tool_name}`);
+
+        const result = await masterAI.executeSubagentTool(agent_name, tool_name, parameters || {});
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error(`[API] MasterAI Tool Execution Error:`, error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ── 2.5 Workflow Definitions CRUD ───────────────────────────────────
+// GET /api/workflows — list all
+app.get('/api/workflows', requireAuth, (req, res) => {
+    try {
+        const workflows = workflowStore.list();
         res.json({ success: true, data: { workflows } });
     } catch (error) {
         console.error('Workflow List Error:', error);
@@ -229,10 +442,9 @@ app.get('/api/workflows', (req, res) => {
 });
 
 // GET /api/workflows/:id — get single
-app.get('/api/workflows/:id', (req, res) => {
+app.get('/api/workflows/:id', requireAuth, (req, res) => {
     try {
-        const workflows = loadWorkflows();
-        const wf = workflows.find(w => w.workflow_id === req.params.id);
+        const wf = workflowStore.getById(req.params.id);
         if (!wf) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
         }
@@ -244,14 +456,14 @@ app.get('/api/workflows/:id', (req, res) => {
 });
 
 // POST /api/workflows — create new
-app.post('/api/workflows', (req, res) => {
+app.post('/api/workflows', requireAuth, (req, res) => {
     try {
         const { workflow_id, name, description, trigger_event, steps } = req.body;
         if (!workflow_id || !trigger_event || !steps) {
             return res.status(400).json({ success: false, error: 'Missing required fields: workflow_id, trigger_event, steps' });
         }
 
-        const workflows = loadWorkflows();
+        const workflows = workflowStore.list();
         if (workflows.find(w => w.workflow_id === workflow_id)) {
             return res.status(409).json({ success: false, error: `Workflow '${workflow_id}' already exists` });
         }
@@ -265,7 +477,7 @@ app.post('/api/workflows', (req, res) => {
             created_at: TimeAuthorityService.nowIST()
         };
         workflows.push(newWorkflow);
-        saveWorkflows(workflows);
+        workflowStore.saveAll(workflows);
 
         console.log(`[Workflows] Created: ${workflow_id}`);
         res.status(201).json({ success: true, data: newWorkflow });
@@ -276,9 +488,9 @@ app.post('/api/workflows', (req, res) => {
 });
 
 // PUT /api/workflows/:id — update existing
-app.put('/api/workflows/:id', (req, res) => {
+app.put('/api/workflows/:id', requireAuth, (req, res) => {
     try {
-        const workflows = loadWorkflows();
+        const workflows = workflowStore.list();
         const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
         if (idx === -1) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
@@ -291,7 +503,7 @@ app.put('/api/workflows/:id', (req, res) => {
         if (steps !== undefined) workflows[idx].steps = steps;
         workflows[idx].updated_at = TimeAuthorityService.nowIST();
 
-        saveWorkflows(workflows);
+        workflowStore.saveAll(workflows);
         console.log(`[Workflows] Updated: ${req.params.id}`);
         res.json({ success: true, data: workflows[idx] });
     } catch (error) {
@@ -301,16 +513,16 @@ app.put('/api/workflows/:id', (req, res) => {
 });
 
 // DELETE /api/workflows/:id — delete
-app.delete('/api/workflows/:id', (req, res) => {
+app.delete('/api/workflows/:id', requireAuth, (req, res) => {
     try {
-        let workflows = loadWorkflows();
+        let workflows = workflowStore.list();
         const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
         if (idx === -1) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
         }
 
         const deleted = workflows.splice(idx, 1)[0];
-        saveWorkflows(workflows);
+        workflowStore.saveAll(workflows);
         console.log(`[Workflows] Deleted: ${req.params.id}`);
         res.json({ success: true, data: deleted });
     } catch (error) {
@@ -320,7 +532,7 @@ app.delete('/api/workflows/:id', (req, res) => {
 });
 
 // 3. Verify OpenAI (Test Endpoint)
-app.get('/api/verify-openai', async (req, res) => {
+app.get('/api/verify-openai', requireAuth, async (req, res) => {
     if (!process.env.OPENAI_API_KEY) {
         return res.status(500).json({ status: 'error', message: 'Missing OPENAI_API_KEY' });
     }
@@ -352,7 +564,10 @@ app.get('/api/webhooks/whatsapp', (req, res) => {
 // 5. WhatsApp Webhook (Incoming Events)
 app.post('/api/webhooks/whatsapp', async (req, res) => {
     try {
-        console.log('Incoming Webhook:', JSON.stringify(req.body, null, 2));
+        console.log('Incoming Webhook: received payload', {
+            object: req.body?.object || null,
+            entries: Array.isArray(req.body?.entry) ? req.body.entry.length : 0
+        });
 
         // Route through Communications AI System Reliability Layer
         const systemEvent = await commsAI.callTool('handle_incoming_message', { payload: req.body });

@@ -41,26 +41,46 @@ const executeRequest = async (url, options = {}) => {
 
     const startTime = performance.now();
     const requestId = generateRequestId();
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    let authHeader = {};
+    try {
+        const rawUser = localStorage.getItem('master_ai_user');
+        if (rawUser) {
+            const parsed = JSON.parse(rawUser);
+            if (parsed?.idToken) {
+                authHeader = { Authorization: `Bearer ${parsed.idToken}` };
+            }
+        }
+    } catch (_e) {
+        // Ignore malformed local state and proceed unauthenticated.
+    }
 
     // Rule 3: Must attach request_id automatically
     const headers = {
         'Content-Type': 'application/json',
         'X-Request-ID': requestId,
+        ...authHeader,
         ...options.headers,
     };
+
+    // If body is FormData, we must let the browser set the Content-Type with the correct boundary
+    if (options.body instanceof FormData) {
+        delete headers['Content-Type'];
+    }
 
     const fetchOptions = {
         ...options,
         headers,
     };
+    const requestUrl = baseUrl ? `${baseUrl}${url}` : url;
 
     let response;
     let responseData;
     let fetchError;
 
     try {
-        response = await fetch(url, fetchOptions);
-        
+        response = await fetch(requestUrl, fetchOptions);
+
         // Attempt to parse JSON response
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
@@ -87,13 +107,13 @@ const executeRequest = async (url, options = {}) => {
     // Rule 5: Normalize response
     // If the backend already returns our standard shape, use it as the base
     if (responseData && typeof responseData === 'object' && 'success' in responseData) {
-         return formatResponse(
-             response.ok ? responseData.success : false,
-             responseData.data,
-             !response.ok && !responseData.error ? `HTTP ${response.status}: ${response.statusText}` : responseData.error,
-             responseData.correlation_id || correlation_id,
-             latency_ms
-         );
+        return formatResponse(
+            response.ok ? responseData.success : false,
+            responseData.data,
+            !response.ok && !responseData.error ? `HTTP ${response.status}: ${response.statusText}` : responseData.error,
+            responseData.correlation_id || correlation_id,
+            latency_ms
+        );
     }
 
     // If backend returns a non-standard shape, wrap it
@@ -101,8 +121,8 @@ const executeRequest = async (url, options = {}) => {
         return formatResponse(true, responseData, null, correlation_id, latency_ms);
     } else {
         // Fallback for non-200 responses that aren't formatted
-        const errorMsg = typeof responseData === 'string' ? responseData : 
-                        (responseData?.message || responseData?.error || `HTTP Error ${response.status}`);
+        const errorMsg = typeof responseData === 'string' ? responseData :
+            (responseData?.message || responseData?.error || `HTTP Error ${response.status}`);
         return formatResponse(false, null, errorMsg, correlation_id, latency_ms);
     }
 };
@@ -112,19 +132,19 @@ const executeRequest = async (url, options = {}) => {
  */
 export const apiClient = {
     get: (url, options = {}) => executeRequest(url, { ...options, method: 'GET' }),
-    
-    post: (url, data, options = {}) => executeRequest(url, { 
-        ...options, 
+
+    post: (url, data, options = {}) => executeRequest(url, {
+        ...options,
         method: 'POST',
-        body: JSON.stringify(data)
+        body: data instanceof FormData ? data : JSON.stringify(data)
     }),
-    
-    put: (url, data, options = {}) => executeRequest(url, { 
-        ...options, 
+
+    put: (url, data, options = {}) => executeRequest(url, {
+        ...options,
         method: 'PUT',
-        body: JSON.stringify(data)
+        body: data instanceof FormData ? data : JSON.stringify(data)
     }),
-    
+
     delete: (url, options = {}) => executeRequest(url, { ...options, method: 'DELETE' }),
 };
 

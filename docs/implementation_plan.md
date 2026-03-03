@@ -130,6 +130,10 @@ These tools are used by the Admin Panel to monitor, manage, and verify the Orche
     *   *Inputs*: `agent_name` (Optional).
     *   *Returns*: JSON Schema of all available tools and their input requirements.
     *   *Purpose*: **Skill Discovery**. Allows MasterAI to validate tool calls against current agent capabilities before execution.
+*   **`execute_subagent_tool`**:
+    *   *Inputs*: `agent_name`, `tool_name`, `parameters`.
+    *   *Returns*: Result of the tool execution.
+    *   *Purpose*: **Direct Delegation**. Allows the Admin Dashboard to perform synchronous CRUD operations via MasterAI, ensuring MasterAI maintains observability (emitting `tool.execution_start` / `tool.execution_end` events).
 
 **Observability & Debugging**:
 *   **`get_recent_events`**:
@@ -173,10 +177,10 @@ These tools are used by the Admin Panel to monitor, manage, and verify the Orche
 
 ### Tools
 *   **`add_property`**
-    *   *Inputs*: `name` (Unique), `address`, `description`, `image_urls`, `amenities` (List), `floors`.
+    *   *Inputs*: `name` (Unique), `address`, `description`, `google_business_link` (Optional), `image_urls` (Required: min 1), `amenities` (List), `floors`.
     *   *Output*: `property_id` (System Generated - Unique).
 *   **`update_property`**
-    *   *Inputs*: `property_id` (Target - Immutable), `name` (Unique), `address`, `description`, `image_urls`, `amenities`, `floors`.
+    *   *Inputs*: `property_id` (Target - Immutable), `name` (Unique), `address`, `description`, `google_business_link`, `image_urls`, `amenities`, `floors`.
 *   **`get_properties`**
     *   *Inputs*: `property_id` (Optional).
 *   **`delete_property`**

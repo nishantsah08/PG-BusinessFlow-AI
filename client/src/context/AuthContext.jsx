@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     });
 
     const login = (userData) => {
-        // Expected format: { email: "...", name: "...", picture: "...", type: "Google|Bypass" }
+        // Expected format: { email, name, picture, idToken?, type }
         setUser(userData);
         localStorage.setItem('master_ai_user', JSON.stringify(userData));
     };

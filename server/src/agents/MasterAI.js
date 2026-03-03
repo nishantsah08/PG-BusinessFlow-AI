@@ -3,23 +3,10 @@ const OpenAI = require('openai');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
 const TimeAuthorityService = require('../services/TimeAuthorityService');
 const DateFormatterService = require('../services/DateFormatterService');
-const fs = require('fs');
-const path = require('path');
+const BusinessConfig = require('../config/business');
+const WorkflowStore = require('../storage/WorkflowStore');
 
-const WORKFLOWS_FILE = path.join(__dirname, '..', '..', 'data', 'workflows.json');
-
-function loadWorkflows() {
-    try {
-        const raw = fs.readFileSync(WORKFLOWS_FILE, 'utf-8');
-        return JSON.parse(raw);
-    } catch (e) {
-        return [];
-    }
-}
-
-function saveWorkflows(workflows) {
-    fs.writeFileSync(WORKFLOWS_FILE, JSON.stringify(workflows, null, 4), 'utf-8');
-}
+const workflowStore = new WorkflowStore({ backend: process.env.STORAGE_BACKEND || 'local' });
 
 class MasterAI extends BaseAgent {
     constructor(otherAgents = []) {
@@ -82,7 +69,7 @@ class MasterAI extends BaseAgent {
             },
             required: ["workflow_id", "description", "trigger_event", "steps"]
         }, async (args) => {
-            const workflows = loadWorkflows();
+            const workflows = workflowStore.list();
             if (workflows.find(w => w.workflow_id === args.workflow_id)) {
                 return { success: false, error: `Workflow '${args.workflow_id}' already exists. Use update_workflow instead.` };
             }
@@ -96,7 +83,7 @@ class MasterAI extends BaseAgent {
                 created_at: TimeAuthorityService.nowIST()
             };
             workflows.push(newWorkflow);
-            saveWorkflows(workflows);
+            workflowStore.saveAll(workflows);
             this._emitSystemEvent('workflow.defined', null, { workflow_id: args.workflow_id });
             return { success: true, message: `Workflow '${args.workflow_id}' created successfully.` };
         });
@@ -128,7 +115,7 @@ class MasterAI extends BaseAgent {
             },
             required: ["workflow_id"]
         }, async (args) => {
-            const workflows = loadWorkflows();
+            const workflows = workflowStore.list();
             const idx = workflows.findIndex(w => w.workflow_id === args.workflow_id);
             if (idx === -1) {
                 return { success: false, error: `Workflow '${args.workflow_id}' not found.` };
@@ -141,7 +128,7 @@ class MasterAI extends BaseAgent {
             if (args.steps) workflows[idx].steps = args.steps;
             workflows[idx].updated_at = TimeAuthorityService.nowIST();
 
-            saveWorkflows(workflows);
+            workflowStore.saveAll(workflows);
             this._emitSystemEvent('workflow.updated', null, { workflow_id: args.workflow_id });
             return { success: true, message: `Workflow '${args.workflow_id}' updated successfully.` };
         });
@@ -392,9 +379,10 @@ Rules:
     async chat(history, userContext = null) {
         try {
             // Check identity (Email via Dashboard, or profile_type via WhatsApp CRM Context)
-            const isCEO = userContext?.email === 'nishantsah@outlook.in' || userContext?.profile_type === 'CEO';
+            const ceoEmail = BusinessConfig.persona.ceo_email;
+            const isCEO = userContext?.email === ceoEmail || userContext?.profile_type === 'CEO';
             const isStaff = !isCEO && (userContext?.profile_type === 'Staff'
-                || (userContext?.email && userContext?.email !== 'nishantsah@outlook.in'));
+                || (userContext?.email && userContext?.email !== ceoEmail));
 
             // Collect tools from all other agents
             const allTools = [];
@@ -441,7 +429,8 @@ Rules:
                 });
             }
 
-            let systemPrompt = `You are ${this.identity.personaName} (${this.identity.role}). ${this.identity.description}. 
+            const persona = BusinessConfig.persona;
+            let systemPrompt = `You are ${persona.name} (${persona.role}). ${this.identity.description}. 
                 
                 **Communication Rules**:
                 1. **Direct Reply**: You are chatting directly with the user. Just speak naturally.
@@ -450,7 +439,27 @@ Rules:
                    - Do NOT log every "Hi" or "Hello" to the CRM.
                    - ONLY call CRM tools if you are performing a specific ACTION (e.g. "Create Lead", "Book Visit", "Update Status").
                    - If you just need to reply, just output text.
-                4. **Tool Use**: If you use a tool, waiting for the result is automatic. You don't need to say "I'm checking".`;
+                4. **Tool Use**: If you use a tool, waiting for the result is automatic. You don't need to say "I'm checking".
+                5. **Missing Info**: Do not guess IDs — look them up using the appropriate get/search tools.
+                6. **Confirm Before Creating**: For any CREATE operation (new property, new staff, new lead, etc.), BEFORE executing:
+                   a) Summarize what you received from the user.
+                   b) Explicitly list the OPTIONAL fields that can still be filled, so the user can decide.
+                   c) Ask: "Would you like to add any of these, or shall I proceed?"
+                   d) Only execute after the user confirms or provides additional info.
+                   This does NOT apply to follow-up operations within an already-confirmed plan (e.g., if the user confirmed creating a property with units, go ahead and add the units without asking again).
+                7. **Dependency Awareness**: THINK before acting. If operation B depends on the result of operation A (e.g., creating a salary card requires a staff_id from hiring), do NOT call both in parallel. Execute A first, get its result, then execute B with the correct IDs. Only parallelize operations that are truly independent (e.g., recording 3 separate payments for 3 different tenants).
+                8. **Planning**: For complex multi-step requests, mentally break them into ordered steps: Step 1 → get result → Step 2 → get result → Step 3. Execute each step, use the returned IDs for subsequent steps.
+                9. **Image Attachments**: When the user attaches images to their message (visible as image_url content parts), and the current operation involves creating or updating an entity that accepts image fields (like \`image_urls\`), you MUST extract the data URLs from the attached images and pass them in the appropriate tool parameter. Do NOT ignore attached images.`;
+
+            // --- Dynamically inject agent operating instructions ---
+            const agentInstructions = this.subAgents
+                .map(a => a.getOperatingInstructions())
+                .filter(instr => instr && instr.trim().length > 0)
+                .join('\n\n');
+
+            if (agentInstructions) {
+                systemPrompt += `\n\n**Agent Operating Instructions (Auto-Generated)**:\n${agentInstructions}`;
+            }
 
             if (isCEO) {
                 systemPrompt += `\n\n**CEO OVERRIDE GRANTED**: You are currently speaking to the CEO & Business Owner on the internal Admin Dashboard. 
@@ -465,10 +474,10 @@ Rules:
                 - You must NOT reveal AI architecture, sub-agent names, tool prefixes, or system internals.
                 - You must NOT share individual tenant financial details (specific amounts, payment history) unless the staff member's role requires it.
                 - You must NOT reveal that you are an AI "Orchestrator" routing tasks to other AI models.
-                - Act as Kalyani, the Head of Operations. Treat this as a professional internal conversation.`;
+                - Act as ${persona.name}, the ${persona.role}. Treat this as a professional internal conversation.`;
             } else {
                 systemPrompt += `\n\n**STRICT IDENTITY GUARDRAIL**: You are speaking to an external customer or prospective tenant.
-                - Act as a unified, singular human representative named Kalyani.
+                - Act as a unified, singular human representative named ${persona.name}.
                 - You MAY share: available room types, pricing (public rate card), amenities, location details, visit scheduling, their own booking status, their own payment dues.
                 - You must NOT share: other tenants' information, internal staff details, occupancy numbers, business revenue, operational costs, or any internal metrics.
                 - You must NOT mention internal tools, AI agents, tool prefixes (e.g., PropertyAI_, CRMAgent_), or system architecture.
@@ -495,29 +504,56 @@ Rules:
 
             this._emitSystemEvent('decision.requested', null, { historyLength: history.length });
 
-            // 1. First call to LLM
-            const runner = await this.openai.chat.completions.create({
-                model: "gpt-4o-mini",
-                messages: messages,
-                tools: allTools.length > 0 ? allTools : undefined,
-                tool_choice: allTools.length > 0 ? "auto" : undefined,
-            });
+            // Iterative Tool-Call Loop
+            // The LLM may need multiple rounds of tool calls to complete a complex request
+            // (e.g., create property → then add units → then link meter).
+            // We loop until the LLM returns a response with NO tool_calls (i.e., a final text answer).
+            const MAX_ITERATIONS = 10; // Safety cap to prevent infinite loops
+            let iteration = 0;
 
-            const message = runner.choices[0].message;
+            while (iteration < MAX_ITERATIONS) {
+                iteration++;
 
-            this._emitSystemEvent('decision.generated', null, { responseRole: message.role, hasToolCalls: !!message.tool_calls });
+                const response = await this.openai.chat.completions.create({
+                    model: "gpt-4o-mini",
+                    messages: messages,
+                    tools: allTools.length > 0 ? allTools : undefined,
+                    tool_choice: allTools.length > 0 ? "auto" : undefined,
+                });
 
-            // 2. Handle Tool Calls
-            if (message.tool_calls) {
-                messages.push(message);
+                const assistantMessage = response.choices[0].message;
 
-                for (const toolCall of message.tool_calls) {
+                this._emitSystemEvent('decision.generated', null, {
+                    responseRole: assistantMessage.role,
+                    hasToolCalls: !!assistantMessage.tool_calls,
+                    iteration: iteration
+                });
+
+                // If no tool calls, this is the final text answer — return it
+                if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
+                    const timestampIST = TimeAuthorityService.nowIST();
+                    const display = DateFormatterService.format(
+                        timestampIST,
+                        userContext?.timezone || 'Asia/Kolkata',
+                        userContext?.date_format || 'DD-MM-YYYY'
+                    );
+                    return {
+                        ...assistantMessage,
+                        timestamp_ist: timestampIST,
+                        ...display
+                    };
+                }
+
+                // Tool calls present — execute them and loop back
+                messages.push(assistantMessage);
+
+                for (const toolCall of assistantMessage.tool_calls) {
                     const fnName = toolCall.function.name;
                     const args = JSON.parse(toolCall.function.arguments);
 
                     if (agentMap[fnName]) {
                         const { agent, toolName } = agentMap[fnName];
-                        console.log(`MasterAI delegation: Calling ${toolName} on ${agent.name}`);
+                        console.log(`[MasterAI] Iteration ${iteration}: Calling ${toolName} on ${agent.name}`);
 
                         let result;
                         try {
@@ -543,36 +579,24 @@ Rules:
                         });
                     }
                 }
-
-                // 3. Second call to LLM with tool results
-                const finalResponse = await this.openai.chat.completions.create({
-                    model: "gpt-4o-mini",
-                    messages: messages
-                });
-                const finalMessage = finalResponse.choices[0].message;
-                const timestampIST = TimeAuthorityService.nowIST();
-                const display = DateFormatterService.format(
-                    timestampIST,
-                    userContext?.timezone || 'Asia/Kolkata',
-                    userContext?.date_format || 'DD-MM-YYYY'
-                );
-
-                return {
-                    ...finalMessage,
-                    timestamp_ist: timestampIST,
-                    ...display
-                };
+                // Loop back — the next iteration will call the LLM again WITH tools
             }
 
+            // If we hit the safety cap, return whatever we have
+            console.warn(`[MasterAI] Hit max iteration cap (${MAX_ITERATIONS}). Forcing final response.`);
+            const finalForced = await this.openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: messages
+            });
+            const forcedMessage = finalForced.choices[0].message;
             const timestampIST = TimeAuthorityService.nowIST();
             const display = DateFormatterService.format(
                 timestampIST,
                 userContext?.timezone || 'Asia/Kolkata',
                 userContext?.date_format || 'DD-MM-YYYY'
             );
-
             return {
-                ...message,
+                ...forcedMessage,
                 timestamp_ist: timestampIST,
                 ...display
             };
@@ -644,6 +668,33 @@ Rules:
             }
 
             this._emitSystemEvent('workflow.ended', session.leadId || from, { source, from });
+        }
+    }
+
+    async executeSubagentTool(agentName, toolName, args) {
+        // Find the agent
+        const agent = this.subAgents.find(a => a.name === agentName);
+        if (!agent) {
+            throw new Error(`SubAgent '${agentName}' not found or not connected to MasterAI.`);
+        }
+
+        // Check if the tool exists on the agent
+        if (!agent.capabilities?.tools?.includes(toolName) && typeof agent[toolName] !== 'function') {
+            throw new Error(`Tool '${toolName}' not found on Agent '${agentName}'.`);
+        }
+
+        try {
+            this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name, source: 'dashboard' });
+
+            // Execute the tool
+            const result = await agent.callTool(toolName, args);
+
+            this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result, source: 'dashboard' });
+            return result;
+        } catch (err) {
+            console.error(`[MasterAI] Exec Tool Error (${agentName}.${toolName}):`, err.message);
+            this._emitSystemEvent('tool.error', null, { tool: toolName, agent: agent.name, error: err.message, source: 'dashboard' });
+            throw err;
         }
     }
 }

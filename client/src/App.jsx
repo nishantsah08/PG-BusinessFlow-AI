@@ -5,6 +5,7 @@ import { UIProvider } from './context/UIContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DeveloperModeProvider } from './context/DeveloperModeContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { ChatProvider } from './context/ChatContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import GlobalLoader from './components/common/GlobalLoader';
 import NotificationSystem from './components/common/NotificationSystem';
@@ -13,6 +14,7 @@ import Shell from './components/layout/Shell';
 // Pages
 import ControlPanel from './pages/ControlPanel';
 import AgentDashboard from './components/dashboard/AgentDashboard';
+import PropertyBooking from './components/dashboard/PropertyBooking';
 import LoginPage from './pages/LoginPage';
 
 // Placeholder Pages for routing
@@ -35,8 +37,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
-    // Use a placeholder Google Client ID since it's just meant for the frontend UI. 
-    // The dev bypass will allow immediate testing.
+    // Use a placeholder Google Client ID for non-production local boot.
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "739328227651-placeholder.apps.googleusercontent.com";
 
     return (
@@ -44,37 +45,42 @@ function App() {
             <AuthProvider>
                 <SettingsProvider>
                     <DeveloperModeProvider>
-                        <ErrorBoundary>
-                            <UIProvider>
-                                <BrowserRouter>
-                                    <GlobalLoader />
-                                    <NotificationSystem />
+                        <ChatProvider>
+                            <ErrorBoundary>
+                                <UIProvider>
+                                    <BrowserRouter>
+                                        <GlobalLoader />
+                                        <NotificationSystem />
 
-                                    <Routes>
-                                        {/* Public Login Route */}
-                                        <Route path="/login" element={<LoginPage />} />
+                                        <Routes>
+                                            {/* Public Login Route */}
+                                            <Route path="/login" element={<LoginPage />} />
 
-                                        {/* Protected Application Routes */}
-                                        <Route path="/" element={
-                                            <ProtectedRoute>
-                                                <Shell />
-                                            </ProtectedRoute>
-                                        }>
-                                            {/* Redirect root to Control Panel initially */}
-                                            <Route index element={<Navigate to="/master" replace />} />
+                                            {/* Protected Application Routes */}
+                                            <Route path="/" element={
+                                                <ProtectedRoute>
+                                                    <Shell />
+                                                </ProtectedRoute>
+                                            }>
+                                                {/* Redirect root to Control Panel initially */}
+                                                <Route index element={<Navigate to="/master" replace />} />
 
-                                            {/* Phase 2: Control Panel */}
-                                            <Route path="master" element={<ControlPanel />} />
+                                                {/* Phase 2: Control Panel */}
+                                                <Route path="master" element={<ControlPanel />} />
 
-                                            {/* Phase 3: Agent Dashboard */}
-                                            <Route path="dashboard" element={<AgentDashboard />} />
+                                                {/* Property & Booking */}
+                                                <Route path="property" element={<PropertyBooking />} />
 
-                                            <Route path="*" element={<Navigate to="/" replace />} />
-                                        </Route>
-                                    </Routes>
-                                </BrowserRouter>
-                            </UIProvider>
-                        </ErrorBoundary>
+                                                {/* Phase 3: Agent Dashboard */}
+                                                <Route path="dashboard" element={<AgentDashboard />} />
+
+                                                <Route path="*" element={<Navigate to="/" replace />} />
+                                            </Route>
+                                        </Routes>
+                                    </BrowserRouter>
+                                </UIProvider>
+                            </ErrorBoundary>
+                        </ChatProvider>
                     </DeveloperModeProvider>
                 </SettingsProvider>
             </AuthProvider>

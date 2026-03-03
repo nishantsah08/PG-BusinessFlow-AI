@@ -8,6 +8,7 @@ import { Shield, Bot, AlertTriangle } from 'lucide-react';
 const LoginPage = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
+    const isProd = (import.meta.env.VITE_APP_ENV || 'development') === 'production';
     const [devEmail, setDevEmail] = useState('nishantsah@outlook.in');
     const [showDev, setShowDev] = useState(false);
 
@@ -18,6 +19,7 @@ const LoginPage = () => {
             email: decoded.email,
             name: decoded.name,
             picture: decoded.picture,
+            idToken: credentialResponse.credential,
             type: 'Google'
         });
         navigate('/master');
@@ -61,7 +63,8 @@ const LoginPage = () => {
                         />
                     </div>
 
-                    <div className="relative">
+                    {!isProd && (
+                        <div className="relative">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-200"></div>
                         </div>
@@ -71,9 +74,10 @@ const LoginPage = () => {
                                 Developer / Automated Agent Access
                             </span>
                         </div>
-                    </div>
+                        </div>
+                    )}
 
-                    {showDev && (
+                    {!isProd && showDev && (
                         <form onSubmit={handleBypass} className="space-y-4 bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 overflow-hidden animate-in fade-in slide-in-from-top-4">
                             <div className="flex items-start space-x-2 text-yellow-800 text-xs mb-3">
                                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />

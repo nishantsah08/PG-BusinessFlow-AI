@@ -9,7 +9,7 @@ import { ArrowRight, CheckCircle2, XCircle, Clock, Hash } from 'lucide-react';
  * @property {string} correlationId - Unique trace ID
  * @property {number} latencyMs - Execution time
  * @property {boolean} success - Request status
- * @property {string} endpoint - Endpoint called (e.g., POST /api/master_ai/chat)
+ * @property {string} endpoint - Endpoint called (e.g., POST /api/communications/chat)
  * @property {string} [errorMessage] - Optional error details
  */
 const RequestLogItem = ({
