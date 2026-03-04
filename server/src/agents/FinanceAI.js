@@ -276,6 +276,19 @@ class FinanceAI extends BaseAgent {
             return txn || { status: 'ERROR', message: 'Not found' };
         });
 
+        this.registerTool('get_incoming_txns', 'List incoming transactions', {
+            type: 'object',
+            properties: {
+                payer_id: { type: 'string' },
+                limit: { type: 'number' }
+            }
+        }, async ({ payer_id, limit } = {}) => {
+            let list = this.transactions.filter(t => t.type === 'INCOMING');
+            if (payer_id) list = list.filter(t => t.payer_id === payer_id);
+            list.sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+            return { transactions: list.slice(0, Number(limit) > 0 ? Number(limit) : 100) };
+        });
+
         // --- 2. Expenses ---
 
         this.registerTool('record_outgoing_txn', 'Record an office or property expense', {
@@ -301,6 +314,21 @@ class FinanceAI extends BaseAgent {
             };
             this.transactions.push(txn);
             return { status: 'SUCCESS', txn_id: txn.txn_id };
+        });
+
+        this.registerTool('get_expenses', 'List outgoing expense transactions', {
+            type: 'object',
+            properties: {
+                category: { type: 'string' },
+                payee: { type: 'string' },
+                limit: { type: 'number' }
+            }
+        }, async ({ category, payee, limit } = {}) => {
+            let list = this.transactions.filter(t => t.type === 'OUTGOING');
+            if (category) list = list.filter(t => t.category === category);
+            if (payee) list = list.filter(t => String(t.payee || '').toLowerCase().includes(String(payee).toLowerCase()));
+            list.sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+            return { transactions: list.slice(0, Number(limit) > 0 ? Number(limit) : 100) };
         });
 
         // --- 3. Ledger & Billing ---
