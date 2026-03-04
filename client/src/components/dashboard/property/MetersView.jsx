@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Plus, Loader2, Zap, Trash2, Search, LineChart, FileText } from 'lucide-react';
+import { Settings, Plus, Loader2, Zap, Trash2, Search, LineChart, FileText, X } from 'lucide-react';
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 const MetersView = () => {
@@ -17,6 +17,7 @@ const MetersView = () => {
 
     const [selectedMeterId, setSelectedMeterId] = useState(null);
     const [newReadingVal, setNewReadingVal] = useState('');
+    const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -113,10 +114,11 @@ const MetersView = () => {
                 fetchData();
             } else {
                 const { error } = await res.json();
-                alert("Failed to add: " + error);
+                setErrorModal({ open: true, message: `Failed to add meter: ${error}` });
             }
         } catch (e) {
             console.error(e);
+            setErrorModal({ open: true, message: 'Network error while adding meter.' });
         }
     };
 
@@ -151,9 +153,12 @@ const MetersView = () => {
                 fetchData();
             } else {
                 const { error } = await res.json();
-                alert(error);
+                setErrorModal({ open: true, message: error || 'Failed to add meter reading.' });
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setErrorModal({ open: true, message: 'Network error while adding meter reading.' });
+        }
     };
 
     // Derived Data: Filter meters related to the selected property's units
@@ -303,6 +308,33 @@ const MetersView = () => {
                     </div>
                 )}
             </div>
+
+            {errorModal.open && (
+                <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg">
+                        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <h3 className="text-base font-semibold text-gray-900">Unable to save reading</h3>
+                            <button
+                                type="button"
+                                onClick={() => setErrorModal({ open: false, message: '' })}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="px-5 py-4 text-sm text-gray-700">{errorModal.message}</div>
+                        <div className="px-5 pb-4 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setErrorModal({ open: false, message: '' })}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -11,6 +11,10 @@ Provide an operations console for the `Property & Booking` domain so teams can m
   - Maintenance
 - Allow operators to switch sections without leaving `/property`.
 - Drive all reads and mutations through Admin Adapter path via MasterAI execution endpoint.
+- Require PIN-first address capture for property create/update and persist structured address fields.
+- Support property thumbnail selection and deterministic thumbnail rendering in list/header views.
+- Support date-range filtering for Booking Overview trend charts.
+- Require status-change remarks in Maintenance workflow and display failures in centered blocking dialogs.
 
 ## Inputs
 None via props. Component state is internal and section-specific.

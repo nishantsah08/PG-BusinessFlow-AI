@@ -389,6 +389,8 @@ test.describe('Property & Booking GUI', () => {
         await page.getByRole('button', { name: 'Submit Ticket' }).click();
 
         await expect(page.getByText('Lift panel sparking')).toBeVisible();
+        await page.getByRole('button', { name: 'Expand' }).first().click();
+        await page.getByPlaceholder('Required remark for status change').fill('Assigned electrician for immediate check.');
         await page.getByRole('button', { name: 'Mark IN PROGRESS' }).first().click();
         await expect(page.locator('span').filter({ hasText: /^In Progress$/ }).first()).toBeVisible();
     });

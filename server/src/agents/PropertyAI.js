@@ -45,9 +45,15 @@ class PropertyAI extends BaseAgent {
             properties: {
                 name: { type: 'string' },
                 address: { type: 'string' },
+                street_address: { type: 'string' },
+                pin_code: { type: 'string' },
+                area: { type: 'string' },
+                city: { type: 'string' },
+                state: { type: 'string' },
                 description: { type: 'string' },
                 google_business_link: { type: 'string' },
                 image_urls: { type: 'array', items: { type: 'string' } },
+                thumbnail_url: { type: 'string' },
                 amenities: { type: 'array', items: { type: 'string' } },
                 floors: { type: 'number' }
             },
@@ -77,9 +83,15 @@ class PropertyAI extends BaseAgent {
                 property_id: { type: 'string' },
                 name: { type: 'string' },
                 address: { type: 'string' },
+                street_address: { type: 'string' },
+                pin_code: { type: 'string' },
+                area: { type: 'string' },
+                city: { type: 'string' },
+                state: { type: 'string' },
                 description: { type: 'string' },
                 google_business_link: { type: 'string' },
                 image_urls: { type: 'array', items: { type: 'string' } },
+                thumbnail_url: { type: 'string' },
                 amenities: { type: 'array', items: { type: 'string' } },
                 floors: { type: 'number' }
             },
@@ -96,9 +108,15 @@ class PropertyAI extends BaseAgent {
             }
 
             if (args.address) property.address = args.address;
+            if (args.street_address !== undefined) property.street_address = args.street_address;
+            if (args.pin_code !== undefined) property.pin_code = args.pin_code;
+            if (args.area !== undefined) property.area = args.area;
+            if (args.city !== undefined) property.city = args.city;
+            if (args.state !== undefined) property.state = args.state;
             if (args.description) property.description = args.description;
             if (args.google_business_link !== undefined) property.google_business_link = args.google_business_link;
             if (args.image_urls) property.image_urls = args.image_urls;
+            if (args.thumbnail_url !== undefined) property.thumbnail_url = args.thumbnail_url;
             if (args.amenities) property.amenities = args.amenities; // Note: This might invalidate unit amenities, but strategy allows property to have base.
             if (args.floors) property.floors = args.floors;
 
@@ -155,7 +173,8 @@ class PropertyAI extends BaseAgent {
                 floor: { type: 'number' },
                 types: { type: 'array', items: { type: 'string' } }, // e.g. ["Double Sharing", "Bunk Bed"]
                 amenities: { type: 'array', items: { type: 'string' } },
-                base_rent: { type: 'number' }
+                base_rent: { type: 'number' },
+                rate_card: { type: 'object' }
             },
             required: ['property_id', 'unit_number']
         }, async (args) => {
@@ -181,6 +200,7 @@ class PropertyAI extends BaseAgent {
                 types: args.types || [],
                 amenities: unitAmenities,
                 base_rent: args.base_rent || 0,
+                rate_card: args.rate_card || null,
                 status: 'AVAILABLE',
                 history: [],
                 created_at: new Date().toISOString(),
@@ -199,6 +219,7 @@ class PropertyAI extends BaseAgent {
                 types: { type: 'array', items: { type: 'string' } },
                 amenities: { type: 'array', items: { type: 'string' } },
                 base_rent: { type: 'number' },
+                rate_card: { type: 'object' },
                 status: { type: 'string', enum: ['AVAILABLE', 'BOOKED', 'NOTICE'] }, // Transitions
                 tenant_id: { type: 'string' } // Required if status -> BOOKED
             },
@@ -271,6 +292,7 @@ class PropertyAI extends BaseAgent {
                 unit.amenities = args.amenities;
             }
             if (args.base_rent !== undefined) unit.base_rent = args.base_rent;
+            if (args.rate_card !== undefined) unit.rate_card = args.rate_card;
 
             unit.updated_at = new Date().toISOString();
             return { status: "Unit Updated", unit_id: unit.id, current_status: unit.status };
@@ -621,7 +643,10 @@ class PropertyAI extends BaseAgent {
                 category: { type: 'string', enum: ['PLUMBING', 'ELECTRICAL', 'CARPENTRY', 'Cleaning', 'Appliance', 'Other'] },
                 description: { type: 'string' },
                 priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] },
-                reported_by: { type: 'string' } // Lead ID or Staff ID
+                reported_by: { type: 'string' }, // Lead ID or Staff ID
+                reported_by_name: { type: 'string' },
+                resident_name: { type: 'string' },
+                image_urls: { type: 'array', items: { type: 'string' } }
             },
             required: ['property_id', 'description', 'reported_by']
         }, async (args) => {
@@ -659,6 +684,9 @@ class PropertyAI extends BaseAgent {
             const ticket = this.maintenance_requests.find(t => t.id === args.ticket_id);
             if (!ticket) throw new Error("Ticket not found");
 
+            if (args.status && !String(args.remarks || '').trim()) {
+                throw new Error("Status change requires remarks.");
+            }
             if (args.status) ticket.status = args.status;
             if (args.remarks) ticket.remarks.push({ date: new Date().toISOString(), text: args.remarks });
             if (args.cost !== undefined) ticket.cost = args.cost;
@@ -718,22 +746,40 @@ class PropertyAI extends BaseAgent {
             const available = relevantUnits.filter(u => u.status === 'AVAILABLE').length;
             const on_notice = relevantUnits.filter(u => u.status === 'NOTICE').length;
 
-            // Churn & Occupancy historical data (Mocked for visual demonstration, as in-memory won't build history easily)
-            const currentMonth = new Date().toLocaleString('default', { month: 'short' });
+            // Churn & Occupancy historical data (mocked, but with stable date keys for filtering)
+            const now = new Date();
+            const monthStarts = [];
+            for (let i = 3; i >= 0; i -= 1) {
+                monthStarts.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+            }
+            const monthLabel = (dt) => dt.toLocaleString('default', { month: 'short' });
+            const periodKey = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-01`;
+
+            const baseOccupied = Math.max(0, occupied - 6);
+            const occupancySeries = monthStarts.map((dt, idx) => ({
+                month: monthLabel(dt),
+                period_start: periodKey(dt),
+                occupied: Math.max(0, baseOccupied + (idx * 2)),
+                capacity: capacity
+            }));
+            if (occupancySeries.length > 0) {
+                occupancySeries[occupancySeries.length - 1].occupied = occupied;
+            }
+
+            const churnSeries = monthStarts.map((dt, idx) => ({
+                month: monthLabel(dt),
+                period_start: periodKey(dt),
+                move_ins: Math.max(0, 6 + (idx * 2)),
+                move_outs: Math.max(0, 1 + idx)
+            }));
+            if (churnSeries.length > 0) {
+                churnSeries[churnSeries.length - 1].move_ins = Math.max(0, occupied);
+                churnSeries[churnSeries.length - 1].move_outs = Math.max(0, on_notice);
+            }
 
             return {
-                occupancy_data: [
-                    { month: 'Jan', occupied: Math.max(0, occupied - 15), capacity: capacity },
-                    { month: 'Feb', occupied: Math.max(0, occupied - 10), capacity: capacity },
-                    { month: 'Mar', occupied: Math.max(0, occupied - 5), capacity: capacity },
-                    { month: currentMonth, occupied: occupied, capacity: capacity },
-                ],
-                churn_data: [
-                    { month: 'Jan', move_ins: 10, move_outs: 2 },
-                    { month: 'Feb', move_ins: 8, move_outs: 3 },
-                    { month: 'Mar', move_ins: 12, move_outs: 5 },
-                    { month: currentMonth, move_ins: occupied, move_outs: on_notice },
-                ],
+                occupancy_data: occupancySeries,
+                churn_data: churnSeries,
                 summary: {
                     capacity: capacity,
                     occupied: occupied,

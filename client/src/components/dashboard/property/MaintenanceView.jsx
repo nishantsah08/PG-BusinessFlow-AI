@@ -54,6 +54,11 @@ const MaintenanceView = () => {
     const [maintenanceData, setMaintenanceData] = useState([]);
     const [summary, setSummary] = useState({});
     const [propertiesMap, setPropertiesMap] = useState({});
+    const [unitsMap, setUnitsMap] = useState({});
+    const [leadsMap, setLeadsMap] = useState({});
+    const [staffMap, setStaffMap] = useState({});
+    const [expandedTicketId, setExpandedTicketId] = useState('');
+    const [statusRemarksByTicket, setStatusRemarksByTicket] = useState({});
 
     // Form state
     const [showLogForm, setShowLogForm] = useState(false);
@@ -63,6 +68,13 @@ const MaintenanceView = () => {
     const [logIssue, setLogIssue] = useState('');
     const [logCategory, setLogCategory] = useState('Other');
     const [logPriority, setLogPriority] = useState('MEDIUM');
+    const [logReportedBy, setLogReportedBy] = useState('Operations Staff');
+    const [logImages, setLogImages] = useState([]);
+    const [errorModal, setErrorModal] = useState({ open: false, title: 'Action Failed', message: '' });
+
+    const openError = (message, title = 'Action Failed') => {
+        setErrorModal({ open: true, title, message: String(message || 'Unexpected error occurred.') });
+    };
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -96,6 +108,42 @@ const MaintenanceView = () => {
             }
             setPropertiesMap(pMap);
 
+            const unitsRes = await fetch('/api/master_ai/tools/execute', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    agent_name: 'PropertyAI',
+                    tool_name: 'get_units',
+                    parameters: {}
+                })
+            });
+            const unitsBody = await unitsRes.json();
+            const unitMap = {};
+            (unitsBody.data || []).forEach((unit) => { unitMap[unit.id] = unit; });
+            setUnitsMap(unitMap);
+
+            const leadsRes = await fetch('/api/master_ai/tools/execute', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    agent_name: 'CRMAgent',
+                    tool_name: 'get_recent_leads',
+                    parameters: { limit: 200 }
+                })
+            });
+            const leadsBody = await leadsRes.json();
+            const leadMap = {};
+            (leadsBody.data?.leads || []).forEach((lead) => { leadMap[lead.lead_id] = lead.name; });
+            setLeadsMap(leadMap);
+
+            const staffRes = await fetch('/api/master_ai/tools/execute', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    agent_name: 'HRAgent',
+                    tool_name: 'get_all_staff',
+                    parameters: {}
+                })
+            });
+            const staffBody = await staffRes.json();
+            const sMap = {};
+            (staffBody.data || []).forEach((staff) => { sMap[staff.id] = staff.name; });
+            setStaffMap(sMap);
+
             // Fetch Tickets
             const tktsRes = await fetch('/api/master_ai/tools/execute', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
@@ -122,16 +170,22 @@ const MaintenanceView = () => {
         e.preventDefault();
         // Since properties map is object, we just grab first key if single prop system
         const propertyId = logPropId || Object.keys(propertiesMap)[0] || 'PROP-1';
+        const unitInput = String(logUnitId || '').trim();
+        const resolvedUnit = Object.values(unitsMap).find(
+            (unit) => unit.id === unitInput || String(unit.unit_number) === unitInput
+        );
 
         setIsSaving(true);
         try {
             const payload = {
                 property_id: propertyId,
-                unit_id: logUnitId || 'Common Area',
+                unit_id: resolvedUnit ? resolvedUnit.id : undefined,
                 category: logCategory,
-                description: logIssue,
+                description: resolvedUnit ? logIssue : `${logIssue} (Location: ${unitInput || 'Common Area'})`,
                 priority: logPriority,
-                reported_by: 'Staff'
+                reported_by: 'Staff',
+                reported_by_name: logReportedBy.trim() || 'Operations Staff',
+                image_urls: logImages
             };
             const res = await fetch('/api/master_ai/tools/execute', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
@@ -140,16 +194,20 @@ const MaintenanceView = () => {
                     parameters: payload
                 })
             });
-            if (res.ok) {
+            const body = await res.json();
+            if (res.ok && body?.success) {
                 setShowLogForm(false);
                 setLogIssue('');
                 setLogUnitId('');
+                setLogReportedBy('Operations Staff');
+                setLogImages([]);
                 await fetchData();
             } else {
-                alert("Failed to create ticket");
+                openError(body?.error || 'Failed to create ticket. Please verify property/unit details and try again.', 'Unable to Create Ticket');
             }
         } catch (e) {
             console.error("Error creating ticket:", e);
+            openError(e?.message || 'Network error while creating ticket.', 'Unable to Create Ticket');
         } finally {
             setIsSaving(false);
         }
@@ -158,19 +216,30 @@ const MaintenanceView = () => {
     const handleUpdateStatus = async (ticket) => {
         const nextStatus = getNextStatus(ticket.status);
         if (!nextStatus) return; // Cannot update
+        const remark = String(statusRemarksByTicket[ticket.id] || '').trim();
+        if (!remark) {
+            openError('Status change requires a remark.', 'Remark Required');
+            return;
+        }
 
         try {
-            await fetch('/api/master_ai/tools/execute', {
+            const res = await fetch('/api/master_ai/tools/execute', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     agent_name: 'PropertyAI',
                     tool_name: 'update_maintenance_req',
-                    parameters: { req_id: ticket.id, status: nextStatus }
+                    parameters: { ticket_id: ticket.id, status: nextStatus, remarks: remark }
                 })
             });
+            const body = await res.json();
+            if (!res.ok || !body?.success) {
+                throw new Error(body?.error || 'Failed to update ticket status.');
+            }
+            setStatusRemarksByTicket((prev) => ({ ...prev, [ticket.id]: '' }));
             await fetchData();
         } catch (e) {
             console.error("Failed to update status", e);
+            openError(e?.message || 'Failed to update status.', 'Unable to Update Ticket');
         }
     };
 
@@ -244,6 +313,55 @@ const MaintenanceView = () => {
                                     placeholder="Describe issue (e.g. Leaking pipe)"
                                     className="w-full px-3 py-2 rounded border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input
+                                        value={logReportedBy}
+                                        onChange={(e) => setLogReportedBy(e.target.value)}
+                                        placeholder="Reported by (name)"
+                                        className="w-full px-3 py-2 rounded border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    <label className="w-full px-3 py-2 rounded border border-gray-300 text-sm text-gray-600 bg-white cursor-pointer">
+                                        Attach Images
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            className="hidden"
+                                            onChange={async (e) => {
+                                                const files = Array.from(e.target.files || []);
+                                                if (files.length === 0) return;
+                                                const formData = new FormData();
+                                                files.forEach((file) => formData.append('images', file));
+                                                try {
+                                                    const uploadRes = await fetch('/api/upload/images', { method: 'POST', body: formData });
+                                                    const uploadBody = await uploadRes.json();
+                                                    if (uploadBody.success && Array.isArray(uploadBody.data?.urls)) {
+                                                        setLogImages((prev) => [...prev, ...uploadBody.data.urls]);
+                                                    }
+                                                } catch (_err) {
+                                                    // Submission still works without images.
+                                                }
+                                                e.target.value = '';
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                                {logImages.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {logImages.map((img) => (
+                                            <div key={img} className="relative">
+                                                <img src={img} alt="Ticket attachment" className="w-14 h-14 object-cover rounded border border-gray-200" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setLogImages((prev) => prev.filter((url) => url !== img))}
+                                                    className="absolute -top-1 -right-1 bg-black/70 text-white rounded-full p-0.5"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="flex justify-end">
                                     <button
                                         type="submit" disabled={isSaving}
@@ -260,13 +378,20 @@ const MaintenanceView = () => {
                         <div className="space-y-3">
                             {tickets.length === 0 ? (
                                 <div className="text-center text-gray-500 py-10">No active maintenance tickets found.</div>
-                            ) : tickets.map(ticket => (
-                                <div key={ticket.id} className="p-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors flex items-center justify-between">
-                                    <div className="flex items-start gap-4">
-                                        <div className="p-2 bg-gray-50 rounded-lg shrink-0 mt-1">
+                            ) : tickets.map(ticket => {
+                                const unit = unitsMap[ticket.unit_id];
+                                const residentName = ticket.resident_name || leadsMap[unit?.tenant_id] || 'Not assigned';
+                                const reporterName = ticket.reported_by_name || staffMap[ticket.reported_by] || leadsMap[ticket.reported_by] || ticket.reported_by || 'Unknown';
+                                const images = Array.isArray(ticket.image_urls) ? ticket.image_urls : [];
+                                const remarks = Array.isArray(ticket.remarks) ? ticket.remarks : [];
+                                const isExpanded = expandedTicketId === ticket.id;
+                                return (
+                                <div key={ticket.id} className="p-4 rounded-xl border border-gray-200 bg-white hover:shadow-sm transition-all flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-4 flex-1 min-w-0">
+                                        <div className="p-2 bg-indigo-50 rounded-lg shrink-0 mt-1">
                                             <Wrench className="w-5 h-5 text-gray-500" />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-xs font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{ticket.id}</span>
                                                 {getPriorityBadge(ticket.priority)}
@@ -276,18 +401,63 @@ const MaintenanceView = () => {
                                             <p className="text-xs text-gray-500">
                                                 {propertiesMap[ticket.property_id] || ticket.property_id} • Unit {ticket.unit_id} • Category: {ticket.category}
                                             </p>
+                                            <p className="text-xs text-gray-600 mt-1">
+                                                Resident: <span className="font-medium text-gray-700">{residentName}</span> • Logged By: <span className="font-medium text-gray-700">{reporterName}</span>
+                                            </p>
+                                            {images.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                    {images.map((img) => (
+                                                        <a key={img} href={img} target="_blank" rel="noreferrer" className="inline-block">
+                                                            <img src={img} alt="Maintenance ticket" className="w-14 h-14 object-cover rounded border border-gray-200" />
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {isExpanded && (
+                                                <div className="mt-3 space-y-2">
+                                                    <div className="text-xs font-semibold text-gray-600">Remarks History</div>
+                                                    {remarks.length === 0 ? (
+                                                        <div className="text-xs text-gray-500">No remarks added yet.</div>
+                                                    ) : (
+                                                        <div className="space-y-1">
+                                                            {remarks.map((entry, index) => (
+                                                                <div key={`${ticket.id}-remark-${index}`} className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                                                                    <span className="font-medium">{new Date(entry.date).toLocaleString()}</span>: {entry.text}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {getNextStatus(ticket.status) && (
+                                                        <textarea
+                                                            value={statusRemarksByTicket[ticket.id] || ''}
+                                                            onChange={(e) => setStatusRemarksByTicket((prev) => ({ ...prev, [ticket.id]: e.target.value }))}
+                                                            placeholder="Required remark for status change"
+                                                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs"
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    {getNextStatus(ticket.status) && (
+                                    <div className="flex flex-col items-end gap-2 shrink-0">
                                         <button
-                                            onClick={() => handleUpdateStatus(ticket)}
-                                            className="text-indigo-600 text-sm font-medium hover:text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors shrink-0"
+                                            type="button"
+                                            onClick={() => setExpandedTicketId((prev) => prev === ticket.id ? '' : ticket.id)}
+                                            className="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 border border-gray-200 rounded bg-white"
                                         >
-                                            Mark {getNextStatus(ticket.status).replace('_', ' ')}
+                                            {isExpanded ? 'Collapse' : 'Expand'}
                                         </button>
-                                    )}
+                                        {getNextStatus(ticket.status) && (
+                                            <button
+                                                onClick={() => handleUpdateStatus(ticket)}
+                                                className="text-indigo-700 text-sm font-semibold hover:text-indigo-800 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                                            >
+                                                Mark {getNextStatus(ticket.status).replace('_', ' ').toUpperCase()}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
                 </div>
@@ -333,6 +503,33 @@ const MaintenanceView = () => {
                 </div>
 
             </div>
+
+            {errorModal.open && (
+                <div className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg">
+                        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <h3 className="text-base font-semibold text-gray-900">{errorModal.title}</h3>
+                            <button
+                                type="button"
+                                onClick={() => setErrorModal({ open: false, title: 'Action Failed', message: '' })}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="px-5 py-4 text-sm text-gray-700">{errorModal.message}</div>
+                        <div className="px-5 pb-4 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setErrorModal({ open: false, title: 'Action Failed', message: '' })}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

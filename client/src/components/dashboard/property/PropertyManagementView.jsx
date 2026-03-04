@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Building, Search, Save, Loader2, Edit2, Trash2, X, Tag, ListFilter } from 'lucide-react';
 
+const PIN_DIRECTORY = {
+    '411001': { area: 'Camp', city: 'Pune', state: 'Maharashtra' },
+    '411015': { area: 'Kharadi', city: 'Pune', state: 'Maharashtra' },
+    '411014': { area: 'Viman Nagar', city: 'Pune', state: 'Maharashtra' },
+    '411045': { area: 'Baner', city: 'Pune', state: 'Maharashtra' },
+    '411057': { area: 'Hinjewadi', city: 'Pune', state: 'Maharashtra' },
+    '560001': { area: 'Ashok Nagar', city: 'Bengaluru', state: 'Karnataka' },
+    '110001': { area: 'Connaught Place', city: 'New Delhi', state: 'Delhi' },
+};
+
 const PropertyManagementView = () => {
     const [properties, setProperties] = useState([]);
     const [selectedProperty, setSelectedProperty] = useState(null);
@@ -10,9 +20,14 @@ const PropertyManagementView = () => {
     const [editName, setEditName] = useState('');
     const [editAddress, setEditAddress] = useState('');
     const [editDescription, setEditDescription] = useState('');
+    const [editPinCode, setEditPinCode] = useState('');
+    const [editArea, setEditArea] = useState('');
+    const [editCity, setEditCity] = useState('');
+    const [editState, setEditState] = useState('');
     const [editGbl, setEditGbl] = useState('');
     const [editFloors, setEditFloors] = useState('');
     const [editImages, setEditImages] = useState([]);
+    const [editThumbnailUrl, setEditThumbnailUrl] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [newImageUrl, setNewImageUrl] = useState('');
     const [editAmenities, setEditAmenities] = useState([]);
@@ -27,16 +42,96 @@ const PropertyManagementView = () => {
     const [newUnitTypeInput, setNewUnitTypeInput] = useState('');
     const [newUnitFloor, setNewUnitFloor] = useState('');
     const [newUnitBaseRent, setNewUnitBaseRent] = useState('');
+    const [newUnitSecurityDeposit, setNewUnitSecurityDeposit] = useState('2500');
+    const [newUnitRentPaymentTiming, setNewUnitRentPaymentTiming] = useState('ADVANCE');
+    const [newUnitUtilityPaymentTiming, setNewUnitUtilityPaymentTiming] = useState('ARREARS');
+    const [newUnitMaintenanceFee, setNewUnitMaintenanceFee] = useState('0');
     const [newUnitAmenities, setNewUnitAmenities] = useState([]);
+    const [customUnitTypes, setCustomUnitTypes] = useState(() => {
+        try {
+            const raw = localStorage.getItem('property_custom_unit_types');
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (_err) {
+            return [];
+        }
+    });
 
     const [amenities, setAmenities] = useState([]);
     const [newAmenity, setNewAmenity] = useState('');
 
     const PREDEFINED_UNIT_TYPES = ["1 BHK", "2 BHK", "Studio", "Single Sharing", "Double Sharing", "PG Bed"];
+    const ALL_UNIT_TYPES = [...new Set([...PREDEFINED_UNIT_TYPES, ...customUnitTypes])];
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSavingObject, setIsSavingObject] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const parseAddressParts = (property) => {
+        const pin = property?.pin_code ? String(property.pin_code) : '';
+        const area = property?.area || '';
+        const city = property?.city || '';
+        const state = property?.state || '';
+        if (pin || area || city || state || property?.street_address) {
+            return {
+                pin,
+                area,
+                city,
+                state,
+                street: property?.street_address || ''
+            };
+        }
+
+        const segments = String(property?.address || '').split(',').map((s) => s.trim()).filter(Boolean);
+        let guessedStreet = '';
+        let guessedArea = '';
+        let guessedCity = '';
+        let guessedState = '';
+
+        if (segments.length === 1) {
+            guessedStreet = segments[0];
+        } else if (segments.length === 2) {
+            guessedStreet = segments[0];
+            guessedCity = segments[1];
+        } else if (segments.length === 3) {
+            guessedStreet = segments[0];
+            guessedCity = segments[1];
+            guessedState = segments[2];
+        } else if (segments.length > 3) {
+            guessedStreet = segments[0];
+            guessedArea = segments.slice(1, segments.length - 2).join(', ');
+            guessedCity = segments[segments.length - 2];
+            guessedState = segments[segments.length - 1];
+        }
+
+        return { pin: '', area: guessedArea, city: guessedCity, state: guessedState, street: guessedStreet };
+    };
+
+    const composeAddress = ({ street, area, city, state, pin }) => {
+        return [street, area, city, state, pin].map((part) => String(part || '').trim()).filter(Boolean).join(', ');
+    };
+
+    const applyPinDetails = (pin, forceAddressRefresh = false) => {
+        const cleaned = String(pin || '').trim();
+        const known = PIN_DIRECTORY[cleaned];
+        if (!known) return;
+        setEditArea(known.area);
+        setEditCity(known.city);
+        setEditState(known.state);
+        const composed = composeAddress({ street: editAddress, area: editArea || known.area, city: editCity || known.city, state: editState || known.state, pin: cleaned });
+        if (forceAddressRefresh || !editAddress || editAddress.trim().length === 0) setEditAddress(composed);
+    };
+
+    useEffect(() => {
+        localStorage.setItem('property_custom_unit_types', JSON.stringify(customUnitTypes));
+    }, [customUnitTypes]);
+
+    useEffect(() => {
+        if (String(editPinCode).length === 6) {
+            applyPinDetails(editPinCode);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editPinCode]);
 
     const fetchProperties = async (selectId = null) => {
         try {
@@ -99,13 +194,19 @@ const PropertyManagementView = () => {
     };
 
     const handleSelect = (prop) => {
+        const parts = parseAddressParts(prop);
         setSelectedProperty(prop);
         setEditName(prop.name || '');
-        setEditAddress(prop.address || '');
+        setEditPinCode(parts.pin || '');
+        setEditArea(parts.area || '');
+        setEditCity(parts.city || '');
+        setEditState(parts.state || '');
+        setEditAddress(parts.street || prop.street_address || '');
         setEditDescription(prop.description || '');
         setEditGbl(prop.google_business_link || '');
         setEditFloors(prop.floors || '');
         setEditImages(prop.image_urls || []);
+        setEditThumbnailUrl(prop.thumbnail_url || prop.image_urls?.[0] || '');
         setEditAmenities(prop.amenities || []);
         setIsEditing(false);
         fetchUnitsAndAmenities(prop.id);
@@ -114,11 +215,16 @@ const PropertyManagementView = () => {
     const handleAddClick = () => {
         setSelectedProperty(null);
         setEditName('');
+        setEditPinCode('');
+        setEditArea('');
+        setEditCity('');
+        setEditState('');
         setEditAddress('');
         setEditDescription('');
         setEditGbl('');
         setEditFloors('');
         setEditImages([]);
+        setEditThumbnailUrl('');
         setEditAmenities([]);
         setUnits([]);
         setAmenities([]);
@@ -128,13 +234,38 @@ const PropertyManagementView = () => {
     const handleSavePrimary = async () => {
         setIsSavingObject(true);
         try {
+            const normalizedPin = String(editPinCode || '').trim();
+            const normalizedArea = String(editArea || '').trim();
+            const normalizedCity = String(editCity || '').trim();
+            const normalizedState = String(editState || '').trim();
+            const normalizedStreet = String(editAddress || '').trim();
+            const finalAddress = composeAddress({
+                street: normalizedStreet,
+                area: normalizedArea,
+                city: normalizedCity,
+                state: normalizedState,
+                pin: normalizedPin
+            });
+            const thumbnailUrl = editThumbnailUrl && editImages.includes(editThumbnailUrl)
+                ? editThumbnailUrl
+                : (editImages[0] || '');
+            const orderedImages = thumbnailUrl
+                ? [thumbnailUrl, ...editImages.filter((img) => img !== thumbnailUrl)]
+                : editImages;
+
             const payload = {
                 name: editName,
-                address: editAddress,
+                address: finalAddress,
+                pin_code: normalizedPin || undefined,
+                area: normalizedArea || undefined,
+                city: normalizedCity || undefined,
+                state: normalizedState || undefined,
+                street_address: normalizedStreet || undefined,
                 description: editDescription,
                 google_business_link: editGbl,
                 floors: editFloors ? parseInt(editFloors) : null,
-                image_urls: editImages,
+                image_urls: orderedImages,
+                thumbnail_url: thumbnailUrl || undefined,
                 amenities: editAmenities
             };
 
@@ -193,8 +324,13 @@ const PropertyManagementView = () => {
         setEditingUnitId(null);
         setNewUnitId('');
         setNewUnitFloor('');
-        setNewUnitBaseRent('');
+        setNewUnitBaseRent('12000');
+        setNewUnitSecurityDeposit('2500');
+        setNewUnitRentPaymentTiming('ADVANCE');
+        setNewUnitUtilityPaymentTiming('ARREARS');
+        setNewUnitMaintenanceFee('0');
         setNewUnitTypes([]);
+        setNewUnitTypeInput('');
 
         // Default select all property amenities for a new unit
         setNewUnitAmenities(selectedProperty?.amenities || []);
@@ -202,11 +338,17 @@ const PropertyManagementView = () => {
     };
 
     const handleEditUnitClick = (unit) => {
+        const rate = unit.rate_card || {};
         setEditingUnitId(unit.id);
         setNewUnitId(unit.unit_number);
         setNewUnitFloor(unit.floor);
         setNewUnitBaseRent(unit.base_rent || '');
+        setNewUnitSecurityDeposit(String(rate.security_deposit ?? '2500'));
+        setNewUnitRentPaymentTiming(rate.rent_payment_timing || 'ADVANCE');
+        setNewUnitUtilityPaymentTiming(rate.utility_payment_timing || 'ARREARS');
+        setNewUnitMaintenanceFee(String(rate.maintenance_fee ?? '0'));
         setNewUnitTypes(unit.types || []);
+        setNewUnitTypeInput('');
         setNewUnitAmenities(unit.amenities || []);
         setIsUnitModalOpen(true);
     };
@@ -218,14 +360,29 @@ const PropertyManagementView = () => {
         setIsSavingObject(true);
         try {
             const endpoint = editingUnitId ? 'update_unit' : 'add_unit';
+            const normalizedTypes = newUnitTypes.length > 0 ? newUnitTypes : ['Standard'];
             const payload = {
                 property_id: selectedProperty.id,
                 unit_number: newUnitId.trim(),
                 floor: parseInt(newUnitFloor),
-                types: newUnitTypes.length > 0 ? newUnitTypes : ['Standard'],
+                types: normalizedTypes,
                 base_rent: newUnitBaseRent ? parseInt(newUnitBaseRent) : 0,
+                rate_card: {
+                    base_rent: newUnitBaseRent ? parseInt(newUnitBaseRent) : 0,
+                    security_deposit: newUnitSecurityDeposit ? parseInt(newUnitSecurityDeposit) : 0,
+                    rent_payment_timing: newUnitRentPaymentTiming,
+                    utility_payment_timing: newUnitUtilityPaymentTiming,
+                    maintenance_fee: newUnitMaintenanceFee ? parseInt(newUnitMaintenanceFee) : 0,
+                },
                 amenities: newUnitAmenities
             };
+
+            const customFromSelection = normalizedTypes
+                .map((type) => String(type || '').trim())
+                .filter((type) => type && !PREDEFINED_UNIT_TYPES.includes(type));
+            if (customFromSelection.length > 0) {
+                setCustomUnitTypes((prev) => [...new Set([...prev, ...customFromSelection])]);
+            }
 
             if (editingUnitId) {
                 payload.unit_id = editingUnitId;
@@ -363,8 +520,8 @@ const PropertyManagementView = () => {
                         >
                             {/* Thumbnail */}
                             <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                                {prop.image_urls && prop.image_urls.length > 0 ? (
-                                    <img src={prop.image_urls[0]} alt={prop.name} className="w-full h-full object-cover" />
+                                {(prop.thumbnail_url || (prop.image_urls && prop.image_urls.length > 0)) ? (
+                                    <img src={prop.thumbnail_url || prop.image_urls[0]} alt={prop.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                                         <Building className="w-6 h-6" />
@@ -405,9 +562,46 @@ const PropertyManagementView = () => {
                                             <label className="text-xs font-semibold text-gray-500">Property Name</label>
                                             <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="e.g. Emerald Heights" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                         </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-gray-500">PIN Code</label>
+                                            <input
+                                                value={editPinCode}
+                                                onChange={e => setEditPinCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                onBlur={() => applyPinDetails(editPinCode)}
+                                                placeholder="e.g. 411014"
+                                                required
+                                                className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-gray-500">Area / Locality</label>
+                                            <input value={editArea} onChange={e => setEditArea(e.target.value)} placeholder="e.g. Viman Nagar" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-gray-500">City</label>
+                                            <input value={editCity} onChange={e => setEditCity(e.target.value)} placeholder="e.g. Pune" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-gray-500">State</label>
+                                            <input value={editState} onChange={e => setEditState(e.target.value)} placeholder="e.g. Maharashtra" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                        </div>
                                         <div className="col-span-2 space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">Full Address</label>
-                                            <input value={editAddress} onChange={e => setEditAddress(e.target.value)} placeholder="Full street address..." className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                            <label className="text-xs font-semibold text-gray-500">Street Address</label>
+                                            <div className="flex gap-2">
+                                                <input value={editAddress} onChange={e => setEditAddress(e.target.value)} placeholder="Building, street, landmark..." className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        applyPinDetails(editPinCode, true);
+                                                        if (!editAddress.trim()) {
+                                                            setEditAddress(composeAddress({ area: editArea, city: editCity, state: editState, pin: editPinCode }));
+                                                        }
+                                                    }}
+                                                    className="shrink-0 bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium"
+                                                >
+                                                    Auto Fill
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="col-span-2 space-y-1">
                                             <label className="text-xs font-semibold text-gray-500">Description</label>
@@ -445,7 +639,11 @@ const PropertyManagementView = () => {
                                                                 });
                                                                 const { success, data, error } = await res.json();
                                                                 if (success && data?.urls) {
-                                                                    setEditImages(prev => [...prev, ...data.urls]);
+                                                                    setEditImages(prev => {
+                                                                        const merged = [...prev, ...data.urls];
+                                                                        if (!editThumbnailUrl && merged.length > 0) setEditThumbnailUrl(merged[0]);
+                                                                        return merged;
+                                                                    });
                                                                 } else {
                                                                     alert("Upload failed: " + (error || "Unknown error"));
                                                                 }
@@ -464,7 +662,26 @@ const PropertyManagementView = () => {
                                                     {editImages.map((img, idx) => (
                                                         <div key={idx} className="relative group rounded border border-gray-200 overflow-hidden w-20 h-20 shadow-sm bg-gray-50">
                                                             <img src={img} alt="Property" className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://via.placeholder.com/80?text=Error'; }} />
-                                                            <button type="button" onClick={() => setEditImages(editImages.filter((_, i) => i !== idx))} className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const next = editImages.filter((_, i) => i !== idx);
+                                                                    setEditImages(next);
+                                                                    if (editThumbnailUrl === img) {
+                                                                        setEditThumbnailUrl(next[0] || '');
+                                                                    }
+                                                                }}
+                                                                className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setEditThumbnailUrl(img)}
+                                                                className={`absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded font-semibold ${editThumbnailUrl === img ? 'bg-indigo-600 text-white' : 'bg-white/90 text-gray-700'}`}
+                                                            >
+                                                                {editThumbnailUrl === img ? 'Thumbnail' : 'Set Thumb'}
+                                                            </button>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -501,7 +718,7 @@ const PropertyManagementView = () => {
                                         </div>
                                         <div className="col-span-2 mt-6 pt-4 border-t border-gray-100 flex justify-end gap-2">
                                             <button onClick={() => selectedProperty ? setIsEditing(false) : fetchProperties()} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors">Cancel</button>
-                                            <button onClick={handleSavePrimary} disabled={isSavingObject || !editName || editImages.length === 0} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                                            <button onClick={handleSavePrimary} disabled={isSavingObject || !editName || !editPinCode || editImages.length === 0} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
                                                 {isSavingObject ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Property
                                             </button>
                                         </div>
@@ -514,8 +731,14 @@ const PropertyManagementView = () => {
                             {/* Read Only Header */}
                             <div className="p-6 border-b border-gray-200 bg-white flex justify-between items-start shrink-0">
                                 <div className="flex items-start gap-4 flex-1">
-                                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
-                                        <Building className="w-8 h-8" />
+                                    <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-indigo-50 text-indigo-600 shrink-0">
+                                        {(selectedProperty.thumbnail_url || selectedProperty.image_urls?.[0]) ? (
+                                            <img src={selectedProperty.thumbnail_url || selectedProperty.image_urls?.[0]} alt={selectedProperty.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Building className="w-7 h-7" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex-1 mr-4">
                                         <div className="flex items-center gap-3 mb-1">
@@ -652,7 +875,7 @@ const PropertyManagementView = () => {
                                     <div className="col-span-2 space-y-2 pt-2 border-t border-gray-100">
                                         <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Unit Types</label>
                                         <div className="flex flex-wrap gap-1.5 mb-2">
-                                            {PREDEFINED_UNIT_TYPES.map(type => (
+                                            {ALL_UNIT_TYPES.map(type => (
                                                 <button
                                                     key={type}
                                                     type="button"
@@ -672,7 +895,11 @@ const PropertyManagementView = () => {
                                                 onKeyDown={(e) => {
                                                     if ((e.key === 'Tab' || e.key === 'Enter') && newUnitTypeInput.trim()) {
                                                         e.preventDefault();
-                                                        setNewUnitTypes([...new Set([...newUnitTypes, newUnitTypeInput.trim()])]);
+                                                        const custom = newUnitTypeInput.trim();
+                                                        setNewUnitTypes([...new Set([...newUnitTypes, custom])]);
+                                                        if (!PREDEFINED_UNIT_TYPES.includes(custom)) {
+                                                            setCustomUnitTypes((prev) => [...new Set([...prev, custom])]);
+                                                        }
                                                         setNewUnitTypeInput('');
                                                     }
                                                 }}
@@ -683,7 +910,11 @@ const PropertyManagementView = () => {
                                                 type="button"
                                                 onClick={() => {
                                                     if (newUnitTypeInput.trim()) {
-                                                        setNewUnitTypes([...new Set([...newUnitTypes, newUnitTypeInput.trim()])]);
+                                                        const custom = newUnitTypeInput.trim();
+                                                        setNewUnitTypes([...new Set([...newUnitTypes, custom])]);
+                                                        if (!PREDEFINED_UNIT_TYPES.includes(custom)) {
+                                                            setCustomUnitTypes((prev) => [...new Set([...prev, custom])]);
+                                                        }
                                                         setNewUnitTypeInput('');
                                                     }
                                                 }}
@@ -699,6 +930,34 @@ const PropertyManagementView = () => {
                                                 ))}
                                             </div>
                                         )}
+                                    </div>
+
+                                    <div className="col-span-2 space-y-2 pt-2 border-t border-gray-100">
+                                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Rate Card Details</label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-500">Security Deposit</label>
+                                                <input type="number" value={newUnitSecurityDeposit} onChange={(e) => setNewUnitSecurityDeposit(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-500">Maintenance Fee</label>
+                                                <input type="number" value={newUnitMaintenanceFee} onChange={(e) => setNewUnitMaintenanceFee(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-500">Rent Payment Timing</label>
+                                                <select value={newUnitRentPaymentTiming} onChange={(e) => setNewUnitRentPaymentTiming(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                                    <option value="ADVANCE">Advance</option>
+                                                    <option value="ARREARS">Arrears</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-500">Utility Payment Timing</label>
+                                                <select value={newUnitUtilityPaymentTiming} onChange={(e) => setNewUnitUtilityPaymentTiming(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                                    <option value="ARREARS">Arrears</option>
+                                                    <option value="ADVANCE">Advance</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="col-span-2 space-y-2 pt-2 border-t border-gray-100">
