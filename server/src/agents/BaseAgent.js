@@ -47,6 +47,16 @@ class BaseAgent extends EventEmitter {
     }));
   }
 
+  /**
+   * Returns business-aware operating instructions for MasterAI's system prompt.
+   * Each agent overrides this to provide context about how to use its tools correctly.
+   * This replaces manual prompt engineering — agents self-describe.
+   * @returns {string} Natural language instructions for the orchestrator.
+   */
+  getOperatingInstructions() {
+    return '';
+  }
+
   async callTool(name, args) {
     const tool = this.tools[name];
     if (tool) {

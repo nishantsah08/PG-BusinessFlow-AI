@@ -17,7 +17,7 @@ const SystemObservationPanel = ({
     const [activeTab, setActiveTab] = useState('events');
 
     return (
-        <div className="flex-1 flex flex-col w-full h-full relative">
+        <div className="absolute inset-0 flex flex-col w-full h-full">
 
             {/* Overlapping Cards Container */}
             <div className="flex-1 overflow-hidden p-4 md:p-6 flex flex-col relative">

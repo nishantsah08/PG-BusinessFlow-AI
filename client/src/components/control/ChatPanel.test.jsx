@@ -1,10 +1,17 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ChatPanel from './ChatPanel';
+import { ChatProvider } from '../../context/ChatContext';
 
 jest.mock('../../context/AuthContext', () => ({
     useAuth: () => ({
         user: { name: 'Test User', email: 'test@example.com' }
+    })
+}));
+
+jest.mock('../../context/SettingsContext', () => ({
+    useSettings: () => ({
+        settings: { timeZone: 'Asia/Kolkata', showSeconds: false, format24h: false }
     })
 }));
 
@@ -23,7 +30,11 @@ describe('ChatPanel Core Architectural States', () => {
     });
 
     it('renders the initial empty state', () => {
-        render(<ChatPanel onLogRequest={mockOnLogRequest} />);
+        render(
+            <ChatProvider>
+                <ChatPanel onLogRequest={mockOnLogRequest} />
+            </ChatProvider>
+        );
         expect(screen.getByText(/Send a message to MasterAI to begin/i)).toBeInTheDocument();
     });
 
@@ -34,7 +45,11 @@ describe('ChatPanel Core Architectural States', () => {
             resolveApi = resolve;
         }));
 
-        render(<ChatPanel onLogRequest={mockOnLogRequest} />);
+        render(
+            <ChatProvider>
+                <ChatPanel onLogRequest={mockOnLogRequest} />
+            </ChatProvider>
+        );
 
         const input = screen.getByRole('textbox');
         fireEvent.change(input, { target: { value: 'Hello' } });
@@ -74,7 +89,11 @@ describe('ChatPanel Core Architectural States', () => {
             })
         });
 
-        render(<ChatPanel onLogRequest={mockOnLogRequest} />);
+        render(
+            <ChatProvider>
+                <ChatPanel onLogRequest={mockOnLogRequest} />
+            </ChatProvider>
+        );
 
         const input = screen.getByRole('textbox');
         fireEvent.change(input, { target: { value: 'Who are you?' } });
@@ -103,7 +122,11 @@ describe('ChatPanel Core Architectural States', () => {
             })
         });
 
-        render(<ChatPanel onLogRequest={mockOnLogRequest} />);
+        render(
+            <ChatProvider>
+                <ChatPanel onLogRequest={mockOnLogRequest} />
+            </ChatProvider>
+        );
 
         const input = screen.getByRole('textbox');
         fireEvent.change(input, { target: { value: 'Crash' } });

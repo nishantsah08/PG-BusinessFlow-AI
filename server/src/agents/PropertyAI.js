@@ -1,4 +1,5 @@
 const BaseAgent = require('./BaseAgent');
+const BusinessConfig = require('../config/business');
 
 class PropertyAI extends BaseAgent {
     constructor() {
@@ -13,10 +14,11 @@ class PropertyAI extends BaseAgent {
                 tools: [
                     'add_property', 'update_property', 'delete_property', 'get_properties',
                     'add_unit', 'update_unit', 'delete_unit', 'get_units',
-                    'add_meter', 'update_meter', 'delete_meter', 'get_meters',
-                    'add_meter_reading', 'update_meter_reading', 'get_meter_readings',
+                    'assign_tenant', 'vacate_tenant',
+                    'add_meter', 'get_meters', 'delete_meter',
+                    'update_meter_reading', 'delete_meter_reading',
                     'calculate_deposit', 'get_public_rate_card', 'get_amenities',
-                    'interpret_structure', 'get_analytics_stats', 'get_maintenance_reqs',
+                    'get_analytics_stats', 'get_maintenance_reqs',
                     'log_maintenance_req', 'update_maintenance_req'
                 ]
             },
@@ -527,23 +529,22 @@ class PropertyAI extends BaseAgent {
             },
             required: ['monthly_rent', 'start_date']
         }, async (args) => {
+            const rates = BusinessConfig.rates;
             const date = new Date(args.start_date);
             const day = date.getDate();
-            let deposit = 2500; // Base Standard Deposit
+            let deposit = rates.base_security_deposit;
 
-            if (day >= 6 && day <= 10) {
-                // Dynamic Calculation
-                const dailyRent = args.monthly_rent / 30; // Approx
-                let dynamicPart = dailyRent * 5;
-                // Round to nearest 50
-                dynamicPart = Math.round(dynamicPart / 50) * 50;
+            if (day >= rates.deposit_rules.dynamic_range_start && day <= rates.deposit_rules.dynamic_range_end) {
+                const dailyRent = args.monthly_rent / 30;
+                let dynamicPart = dailyRent * rates.deposit_rules.dynamic_multiplier_days;
+                dynamicPart = Math.round(dynamicPart / rates.deposit_rules.rounding) * rates.deposit_rules.rounding;
                 deposit += dynamicPart;
             }
 
             return {
-                base_deposit: 2500,
+                base_deposit: rates.base_security_deposit,
                 total_deposit: deposit,
-                rule_applied: (day >= 6 && day <= 10) ? "Standard + Dynamic (6th-10th)" : "Standard (1st-5th)"
+                rule_applied: (day >= rates.deposit_rules.dynamic_range_start && day <= rates.deposit_rules.dynamic_range_end) ? "Standard + Dynamic (6th-10th)" : "Standard (1st-5th)"
             };
         });
 
@@ -551,15 +552,16 @@ class PropertyAI extends BaseAgent {
             type: 'object',
             properties: {}
         }, async () => {
+            const rates = BusinessConfig.rates;
             return {
-                monthly_rent: 12000,
-                base_security_deposit: 2500,
-                payment_cycle_rules: "1st-5th: Standard; 6th-10th: Standard + 5 Days Rent",
-                notice_period_days: 30,
-                min_stay_months: 6,
-                early_exit_rule: "DEPOSIT_FORFEIT",
-                rent_payment_timing: "ADVANCE",
-                utility_payment_timing: "ARREARS"
+                monthly_rent: rates.monthly_rent,
+                base_security_deposit: rates.base_security_deposit,
+                payment_cycle_rules: `1st-${rates.deposit_rules.dynamic_range_start - 1}th: Standard; ${rates.deposit_rules.dynamic_range_start}th-${rates.deposit_rules.dynamic_range_end}th: Standard + ${rates.deposit_rules.dynamic_multiplier_days} Days Rent`,
+                notice_period_days: rates.notice_period_days,
+                min_stay_months: rates.min_stay_months,
+                early_exit_rule: rates.early_exit_rule,
+                rent_payment_timing: rates.rent_payment_timing,
+                utility_payment_timing: rates.utility_payment_timing
             };
         });
 
@@ -702,7 +704,13 @@ class PropertyAI extends BaseAgent {
             // Dynamic Calculation based on active units
             let relevantUnits = this.units.filter(u => u.status !== 'DELETED');
             if (args.property_id) {
-                relevantUnits = relevantUnits.filter(u => u.property_id === args.property_id);
+                const propId = args.property_id;
+                const resolvedProp = this.properties.find(p => p.id === propId && p.status !== 'DELETED');
+                if (resolvedProp) {
+                    relevantUnits = relevantUnits.filter(u => u.property_id === resolvedProp.id);
+                } else {
+                    relevantUnits = [];
+                }
             }
 
             const capacity = relevantUnits.length;
@@ -734,6 +742,20 @@ class PropertyAI extends BaseAgent {
                 }
             };
         });
+    }
+
+    getOperatingInstructions() {
+        const rates = BusinessConfig.rates;
+        return `## PropertyAI — Operating Instructions
+- **IDs**: Properties use \`PROP-X\` format. Units use \`UNIT-X\` format. When a user refers to a unit by its human name (e.g., "unit 101"), you MUST first call \`get_units\` with the \`property_id\` to look up the correct \`unit_id\`. Never guess unit IDs.
+- **Creating a Property**: REQUIRED: name, address. OPTIONAL: floors, amenities, description, google_business_link, image_urls. Before creating, list what you have and what optional fields are available.
+- **Creating Multiple Units**: When the user asks to create multiple units (e.g., "101A to 101F" or "101, 102, 201, 202"), YOU must parse the list/range yourself and call \`add_unit\` for EACH unit individually. Call add_unit in parallel for all units once confirmed.
+- **Unit Floor**: Derive the floor from the unit number convention (e.g., 1xx = floor 1, 2xx = floor 2) or ask if unclear.
+- **Amenities**: Units inherit amenities from their parent property by default.
+- **Rate Card**: Standard rent is ₹${rates.monthly_rent}/month. Base deposit is ₹${rates.base_security_deposit}. Days ${rates.deposit_rules.dynamic_range_start}-${rates.deposit_rules.dynamic_range_end}: additional deposit = (daily_rent × ${rates.deposit_rules.dynamic_multiplier_days}) rounded to nearest ${rates.deposit_rules.rounding}.
+- **Booking a Unit**: Use \`assign_tenant\` with the correct \`unit_id\` (not unit number). The unit must be AVAILABLE or NOTICE.
+- **Maintenance**: Use \`log_maintenance_req\` with the correct \`property_id\` and \`unit_id\`. Look these up first if unsure.
+- **Analytics**: When calling \`get_analytics_stats\`, pass the \`property_id\` (e.g., "PROP-1"), NOT the property name.`;
     }
 }
 

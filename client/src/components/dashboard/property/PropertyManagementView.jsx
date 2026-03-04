@@ -431,11 +431,29 @@ const PropertyManagementView = () => {
                                                         multiple
                                                         accept="image/*"
                                                         className="hidden"
-                                                        onChange={(e) => {
+                                                        onChange={async (e) => {
                                                             const files = Array.from(e.target.files);
                                                             if (files.length === 0) return;
-                                                            const newImageUrls = files.map(file => URL.createObjectURL(file));
-                                                            setEditImages(prev => [...prev, ...newImageUrls]);
+
+                                                            try {
+                                                                const formData = new FormData();
+                                                                files.forEach(f => formData.append('images', f));
+
+                                                                const res = await fetch('/api/upload/images', {
+                                                                    method: 'POST',
+                                                                    body: formData
+                                                                });
+                                                                const { success, data, error } = await res.json();
+                                                                if (success && data?.urls) {
+                                                                    setEditImages(prev => [...prev, ...data.urls]);
+                                                                } else {
+                                                                    alert("Upload failed: " + (error || "Unknown error"));
+                                                                }
+                                                            } catch (err) {
+                                                                console.error("Failed to upload images", err);
+                                                                alert("Failed to upload images. Please try again.");
+                                                            }
+
                                                             e.target.value = '';
                                                         }}
                                                     />

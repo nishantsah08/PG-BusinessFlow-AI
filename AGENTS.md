@@ -31,3 +31,16 @@ When presenting analysis, plans, or recommendations:
 
 1. Use the full terminal width/space effectively.
 2. Avoid narrow, left-heavy output formatting when a wider layout improves readability.
+
+## Startup Behavior
+
+1. When Codex starts, read the `@docs` folder first.
+
+## Change Completion Standard
+
+1. Whenever new changes are made, identify and update related documentation with explicit user confirmation first.
+2. Run tests according to the testing philosophy documented in `@docs` for the affected feature, and expand test scope when required.
+
+## Architecture Clarification Policy
+
+1. If any system architecture detail is missing or unclear, do not assume; ask the user for clarification first.

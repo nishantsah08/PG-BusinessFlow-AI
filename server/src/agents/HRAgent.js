@@ -385,6 +385,15 @@ class HRAgent extends BaseAgent {
             };
         });
     }
-}
 
+    getOperatingInstructions() {
+        return `## HRAgent — Operating Instructions
+- **Staff IDs**: Use \`STF-XX\` format. Always look up via \`get_all_staff\` if unsure.
+- **Hiring**: Required fields are: name, designation, contact.primary (phone in E.164 format). If base_salary is not specified, ask.
+- **Salary Card**: A salary card MUST be created after hiring. It requires: staff_id, base_salary, bank_details (account_number, ifsc). Without a salary card, FinanceAI cannot process payroll.
+- **Incentive Structure**: Incentives can be defined as amount_per_unit (e.g., ₹50 per occupied unit). The formula is: metric_value × amount_per_unit.
+- **Leave Management**: Leave types are: ADVANCE, EMERGENCY, CASUAL, SICK. Always specify start_date. Leaves start as PENDING and need approval.
+- **Termination**: Requires a reason. Sets status to TERMINATED. Cannot be undone.`;
+    }
+}
 module.exports = HRAgent;

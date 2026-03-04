@@ -1,6 +1,7 @@
 const BaseAgent = require('./BaseAgent');
 const WhatsAppAdapter = require('./WhatsAppAdapter');
 const TimeAuthorityService = require('../services/TimeAuthorityService');
+const { getTemplateByName } = require('../config/whatsappTemplates');
 
 class CommunicationsAI extends BaseAgent {
     constructor() {
@@ -152,7 +153,21 @@ class CommunicationsAI extends BaseAgent {
             },
             required: ['recipient_phone', 'template_name']
         }, async (args) => {
-            return await this.whatsapp.sendTemplateMessage(args.recipient_phone, args.template_name, args.language_code, args.components);
+            const template = getTemplateByName(args.template_name);
+            if (!template) {
+                return {
+                    status: 'error',
+                    error: `Template '${args.template_name}' not present in local template inventory.`
+                };
+            }
+
+            const languageCode = args.language_code || template.language;
+            return await this.whatsapp.sendTemplateMessage(
+                args.recipient_phone,
+                args.template_name,
+                languageCode,
+                args.components
+            );
         });
 
         this.registerTool('send_location_message', 'Send location pin via WhatsApp', {
