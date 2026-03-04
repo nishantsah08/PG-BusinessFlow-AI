@@ -19,8 +19,12 @@ const BookingOverviewView = () => {
         const loadData = async () => {
             try {
                 // Fetch Properties
-                const propRes = await fetch('/api/property/tools/get_properties', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+                const propRes = await fetch('/api/master_ai/tools/execute', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                        agent_name: 'PropertyAI',
+                        tool_name: 'get_properties',
+                        parameters: {}
+                    })
                 });
                 const propBody = await propRes.json();
                 const loadedProps = propBody.data || [];
@@ -49,15 +53,23 @@ const BookingOverviewView = () => {
             setIsLoading(true);
             try {
                 // Fetch Units for explicit floor mapping
-                const unitsRes = await fetch('/api/property/tools/get_units', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ property_id: selectedPropertyId })
+                const unitsRes = await fetch('/api/master_ai/tools/execute', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                        agent_name: 'PropertyAI',
+                        tool_name: 'get_units',
+                        parameters: { property_id: selectedPropertyId }
+                    })
                 });
                 const unitsBody = await unitsRes.json();
                 setUnits(unitsBody.data || []);
 
                 // Fetch Analytics for charts
-                const statsRes = await fetch('/api/property/tools/get_analytics_stats', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ property_id: selectedPropertyId })
+                const statsRes = await fetch('/api/master_ai/tools/execute', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                        agent_name: 'PropertyAI',
+                        tool_name: 'get_analytics_stats',
+                        parameters: { property_id: selectedPropertyId }
+                    })
                 });
                 const statsBody = await statsRes.json();
                 if (statsBody.success && statsBody.data) {

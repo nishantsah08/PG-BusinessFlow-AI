@@ -15,6 +15,7 @@ import Shell from './components/layout/Shell';
 import ControlPanel from './pages/ControlPanel';
 import AgentDashboard from './components/dashboard/AgentDashboard';
 import PropertyBooking from './components/dashboard/PropertyBooking';
+import CRMConsole from './components/dashboard/CRMConsole';
 import LoginPage from './pages/LoginPage';
 
 // Placeholder Pages for routing
@@ -70,6 +71,9 @@ function App() {
 
                                                 {/* Property & Booking */}
                                                 <Route path="property" element={<PropertyBooking />} />
+
+                                                {/* CRM */}
+                                                <Route path="crm" element={<CRMConsole />} />
 
                                                 {/* Phase 3: Agent Dashboard */}
                                                 <Route path="dashboard" element={<AgentDashboard />} />
