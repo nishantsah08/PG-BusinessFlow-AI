@@ -929,11 +929,6 @@ Rules:
             throw new Error(`SubAgent '${agentName}' not found or not connected to MasterAI.`);
         }
 
-        // Check if the tool exists on the agent
-        if (!agent.capabilities?.tools?.includes(toolName) && typeof agent[toolName] !== 'function') {
-            throw new Error(`Tool '${toolName}' not found on Agent '${agentName}'.`);
-        }
-
         try {
             this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name, source: 'dashboard' });
 
@@ -945,6 +940,9 @@ Rules:
             this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result, source: 'dashboard' });
             return result;
         } catch (err) {
+            if (String(err.message || '').includes(`Tool ${toolName} not found`)) {
+                throw new Error(`Tool '${toolName}' not found on Agent '${agentName}'.`);
+            }
             console.error(`[MasterAI] Exec Tool Error (${agentName}.${toolName}):`, err.message);
             this._emitSystemEvent('tool.error', null, { tool: toolName, agent: agent.name, error: err.message, source: 'dashboard' });
             throw err;
