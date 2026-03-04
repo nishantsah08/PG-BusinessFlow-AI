@@ -10,6 +10,7 @@ const HRAgent = require('./agents/HRAgent');
 const FinanceAI = require('./agents/FinanceAI');
 const CommunicationsAI = require('./agents/CommunicationsAI');
 const TimeAuthorityService = require('./services/TimeAuthorityService');
+const BusinessConfig = require('./config/business');
 const WorkflowStore = require('./storage/WorkflowStore');
 const ImageStore = require('./storage/ImageStore');
 const {
@@ -19,7 +20,7 @@ const {
 const multer = require('multer');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3101;
 const APP_ENV = process.env.APP_ENV || 'development';
 const IS_PROD = APP_ENV === 'production';
 const ALLOW_DEBUG_ENDPOINTS = !IS_PROD && process.env.ALLOW_DEBUG_ENDPOINTS !== 'false';
@@ -74,6 +75,135 @@ ensurePredefinedFinancialWorkflows(workflowStore);
 
 app.use('/images', express.static(IMAGE_DIR));
 
+const ADMIN_ADAPTER_POLICY = {
+    CRMAgent: new Set([
+        'get_dashboard_stats',
+        'get_recent_leads',
+        'search_leads',
+        'get_lead',
+        'get_lead_by_phone',
+        'get_lead_by_email',
+        'get_timeline',
+        'get_leads_by_status',
+        'get_lead_artifacts',
+        'update_lead_snapshot',
+        'add_secondary_phone',
+        'add_manual_note',
+        'change_status',
+        'link_artifact',
+        'merge_leads',
+        'archive_lead',
+        'set_primary_phone',
+    ]),
+};
+
+const ADMIN_ROLE_PERMISSIONS = {
+    CEO: {
+        CRMAgent: new Set(Array.from(ADMIN_ADAPTER_POLICY.CRMAgent)),
+    },
+    Staff: {
+        CRMAgent: new Set([
+            'get_dashboard_stats',
+            'get_recent_leads',
+            'search_leads',
+            'get_lead',
+            'get_lead_by_phone',
+            'get_lead_by_email',
+            'get_timeline',
+            'get_leads_by_status',
+            'get_lead_artifacts',
+            'update_lead_snapshot',
+            'add_secondary_phone',
+            'add_manual_note',
+            'change_status',
+            'link_artifact',
+        ]),
+    },
+    Customer: {
+        CRMAgent: new Set([
+            'get_lead',
+            'get_lead_by_phone',
+            'get_lead_by_email',
+            'get_timeline',
+            'get_lead_artifacts',
+        ]),
+    },
+};
+
+function getDevRequesterEmail(req) {
+    if (IS_PROD) return null;
+    const headerEmail = req.headers['x-actor-email'] || req.headers['x-admin-email'];
+    if (!headerEmail || typeof headerEmail !== 'string') return null;
+    return headerEmail.trim().toLowerCase();
+}
+
+async function resolveAuthContext(req) {
+    const trustedEmail = (req.authUser?.email || getDevRequesterEmail(req) || '').trim().toLowerCase();
+    const ceoEmail = String(BusinessConfig.persona?.ceo_email || '').trim().toLowerCase();
+    let profileType = 'Customer';
+    let crmLead = null;
+
+    if (trustedEmail && trustedEmail === ceoEmail) {
+        profileType = 'CEO';
+    } else if (trustedEmail) {
+        try {
+            const lookup = await crmAgent.callTool('get_lead_by_email', { email: trustedEmail });
+            if (lookup?.status === 'Found' && lookup.lead) {
+                crmLead = lookup.lead;
+                profileType = lookup.lead.profile_type || 'Customer';
+            }
+        } catch (_err) {
+            // Fail closed to default profile type.
+        }
+    }
+
+    const normalizedProfile = ['CEO', 'Staff', 'Customer'].includes(profileType) ? profileType : 'Customer';
+    const permissions = ADMIN_ROLE_PERMISSIONS[normalizedProfile] || ADMIN_ROLE_PERMISSIONS.Customer;
+
+    return {
+        email: trustedEmail || null,
+        profile_type: normalizedProfile,
+        crm_lead_id: crmLead?.lead_id || null,
+        permissions: {
+            admin_adapter: Object.fromEntries(
+                Object.entries(permissions).map(([agent, tools]) => [agent, Array.from(tools)])
+            ),
+        },
+    };
+}
+
+function validateAdminAdapterPolicy(agentName, toolName, parameters = {}, authContext = null) {
+    const policy = ADMIN_ADAPTER_POLICY[agentName];
+    if (policy && !policy.has(toolName)) {
+        return {
+            ok: false,
+            status: 403,
+            error: `Admin adapter policy blocks ${agentName}.${toolName}. Route this through approved workflow/authorization path.`,
+        };
+    }
+
+    const profileType = authContext?.profile_type || 'Customer';
+    const rolePermissions = ADMIN_ROLE_PERMISSIONS[profileType] || ADMIN_ROLE_PERMISSIONS.Customer;
+    const allowedForRole = rolePermissions[agentName];
+    if (allowedForRole && !allowedForRole.has(toolName)) {
+        return {
+            ok: false,
+            status: 403,
+            error: `${profileType} role is not permitted to execute ${agentName}.${toolName}.`,
+        };
+    }
+
+    if (agentName === 'CRMAgent' && toolName === 'change_status' && !String(parameters.reason || '').trim()) {
+        return {
+            ok: false,
+            status: 400,
+            error: 'change_status requires a non-empty reason.',
+        };
+    }
+
+    return { ok: true };
+}
+
 app.get('/health', (_req, res) => {
     res.json({
         status: 'ok',
@@ -97,6 +227,15 @@ app.get('/ready', (_req, res) => {
         return res.status(503).json({ status: 'not_ready', missing });
     }
     return res.json({ status: 'ready', env: APP_ENV });
+});
+
+app.get('/api/auth/context', requireAuth, async (req, res) => {
+    try {
+        const context = await resolveAuthContext(req);
+        return res.json({ success: true, data: context });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 async function verifyGoogleToken(idToken) {
@@ -438,6 +577,12 @@ app.post('/api/master_ai/tools/execute', requireAuth, async (req, res) => {
 
         if (!agent_name || !tool_name) {
             return res.status(400).json({ success: false, error: 'agent_name and tool_name are required.' });
+        }
+
+        const authContext = await resolveAuthContext(req);
+        const policyCheck = validateAdminAdapterPolicy(agent_name, tool_name, parameters || {}, authContext);
+        if (!policyCheck.ok) {
+            return res.status(policyCheck.status).json({ success: false, error: policyCheck.error });
         }
 
         console.log(`[API] Dashboard requested MasterAI to execute ${agent_name}.${tool_name}`);

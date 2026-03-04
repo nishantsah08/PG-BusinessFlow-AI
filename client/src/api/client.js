@@ -44,12 +44,16 @@ const executeRequest = async (url, options = {}) => {
     const requestId = generateRequestId();
     const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
     let authHeader = {};
+    let actorHeader = {};
     try {
         const rawUser = localStorage.getItem('master_ai_user');
         if (rawUser) {
             const parsed = JSON.parse(rawUser);
             if (parsed?.idToken) {
                 authHeader = { Authorization: `Bearer ${parsed.idToken}` };
+            }
+            if (parsed?.email) {
+                actorHeader = { 'X-Actor-Email': String(parsed.email).toLowerCase() };
             }
         }
     } catch (_e) {
@@ -61,6 +65,7 @@ const executeRequest = async (url, options = {}) => {
         'Content-Type': 'application/json',
         'X-Request-ID': requestId,
         ...authHeader,
+        ...actorHeader,
         ...options.headers,
     };
 

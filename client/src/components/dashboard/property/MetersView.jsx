@@ -22,8 +22,12 @@ const MetersView = () => {
         setIsLoading(true);
         try {
             // Fetch properties
-            const propRes = await fetch('/api/property/tools/get_properties', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+            const propRes = await fetch('/api/master_ai/tools/execute', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    agent_name: 'PropertyAI',
+                    tool_name: 'get_properties',
+                    parameters: {}
+                })
             });
             const { data: propData } = await propRes.json();
             setProperties(propData || []);
@@ -34,8 +38,12 @@ const MetersView = () => {
             }
 
             // Fetch meters
-            const meterRes = await fetch('/api/property/tools/get_meters', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+            const meterRes = await fetch('/api/master_ai/tools/execute', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    agent_name: 'PropertyAI',
+                    tool_name: 'get_meters',
+                    parameters: {}
+                })
             });
             const { data: meterData } = await meterRes.json();
             setMeters(meterData || []);
@@ -55,8 +63,12 @@ const MetersView = () => {
 
     const fetchUnitsForProperty = async (propId) => {
         try {
-            const unitRes = await fetch('/api/property/tools/get_units', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ property_id: propId })
+            const unitRes = await fetch('/api/master_ai/tools/execute', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    agent_name: 'PropertyAI',
+                    tool_name: 'get_units',
+                    parameters: { property_id: propId }
+                })
             });
             const { data: unitData } = await unitRes.json();
             setUnits(unitData || []);
@@ -80,13 +92,17 @@ const MetersView = () => {
     const handleAddMeter = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch('/api/property/tools/add_meter', {
+            const res = await fetch('/api/master_ai/tools/execute', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    consumer_number: newConsumerNumber,
-                    type: newType,
-                    linked_units: newLinkedUnits,
-                    initial_reading: newInitialReading ? parseFloat(newInitialReading) : undefined
+                    agent_name: 'PropertyAI',
+                    tool_name: 'add_meter',
+                    parameters: {
+                        consumer_number: newConsumerNumber,
+                        type: newType,
+                        linked_units: newLinkedUnits,
+                        initial_reading: newInitialReading ? parseFloat(newInitialReading) : undefined
+                    }
                 })
             });
             if (res.ok) {
@@ -107,8 +123,12 @@ const MetersView = () => {
     const handleDeleteMeter = async (meterId) => {
         if (!window.confirm("Delete this meter?")) return;
         try {
-            await fetch('/api/property/tools/delete_meter', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meter_id: meterId })
+            await fetch('/api/master_ai/tools/execute', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    agent_name: 'PropertyAI',
+                    tool_name: 'delete_meter',
+                    parameters: { meter_id: meterId }
+                })
             });
             fetchData();
         } catch (e) { console.error(e); }
@@ -118,9 +138,13 @@ const MetersView = () => {
         e.preventDefault();
         if (!selectedMeterId || !newReadingVal) return;
         try {
-            const res = await fetch('/api/property/tools/update_meter_reading', {
+            const res = await fetch('/api/master_ai/tools/execute', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ meter_id: selectedMeterId, reading: parseFloat(newReadingVal), date: new Date().toISOString() })
+                body: JSON.stringify({
+                    agent_name: 'PropertyAI',
+                    tool_name: 'update_meter_reading',
+                    parameters: { meter_id: selectedMeterId, reading: parseFloat(newReadingVal), date: new Date().toISOString() }
+                })
             });
             if (res.ok) {
                 setNewReadingVal('');
@@ -194,7 +218,7 @@ const MetersView = () => {
                         <form onSubmit={handleAddMeter} className="space-y-4 max-w-lg">
                             <div>
                                 <label className="text-sm font-semibold text-gray-600 block mb-1">Consumer / Meter Number</label>
-                                <input required value={newConsumerNumber} onChange={e => setNewConsumerNumber(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                                <input aria-label="Consumer / Meter Number" required value={newConsumerNumber} onChange={e => setNewConsumerNumber(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
                             </div>
                             <div>
                                 <label className="text-sm font-semibold text-gray-600 block mb-1">Utility Type</label>
@@ -213,7 +237,7 @@ const MetersView = () => {
                             </div>
                             <div>
                                 <label className="text-sm font-semibold text-gray-600 block mb-1">Initial Reading</label>
-                                <input type="number" value={newInitialReading} onChange={e => setNewInitialReading(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                                <input aria-label="Initial Reading" type="number" value={newInitialReading} onChange={e => setNewInitialReading(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
                             </div>
                             <div className="pt-4 flex gap-2">
                                 <button type="button" onClick={() => setIsAddingMeter(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700">Cancel</button>

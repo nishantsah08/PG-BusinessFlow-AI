@@ -44,6 +44,31 @@ test.describe('Core GUI smoke', () => {
                 }),
             });
         });
+
+        await page.route('**/api/auth/context', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    success: true,
+                    data: {
+                        email: 'qa@test.local',
+                        profile_type: 'Staff',
+                        permissions: {
+                            admin_adapter: {
+                                CRMAgent: [
+                                    'get_dashboard_stats',
+                                    'get_recent_leads',
+                                    'search_leads',
+                                    'get_lead',
+                                    'get_timeline'
+                                ]
+                            }
+                        }
+                    }
+                }),
+            });
+        });
     });
 
     test('loads core routes and sends one chat message', async ({ page }) => {

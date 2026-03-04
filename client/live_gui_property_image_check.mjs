@@ -1,6 +1,6 @@
 import { chromium } from '@playwright/test';
 
-const baseUrl = 'http://localhost:5174';
+const baseUrl = process.env.GUI_BASE_URL || 'http://localhost:5274';
 const image1 = '/home/nishant/PG-BusinessFlow.ai/images/chat_upload_1772543951413_jl1q89.jpg';
 const image2 = '/home/nishant/PG-BusinessFlow.ai/images/chat_upload_1772543951414_7ot31a.png';
 const unique = `LiveCheck_${Date.now()}`;
