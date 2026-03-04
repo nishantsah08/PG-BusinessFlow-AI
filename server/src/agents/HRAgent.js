@@ -5,7 +5,32 @@ class HRAgent extends BaseAgent {
     constructor(config = {}) {
         super({
             name: 'HRAgent',
-            // ... (rest of config passed to super, but we need to extract crmAgent from incoming config)
+            identity: {
+                role: 'Staff Manager',
+                description: 'Handles staff lifecycle, leaves, and salary-card definitions.'
+            },
+            capabilities: {
+                skills: ['Staff Lifecycle', 'Salary Card Management', 'Leave Management'],
+                tools: [
+                    'hire_staff',
+                    'update_staff_profile',
+                    'terminate_staff',
+                    'get_staff_details',
+                    'get_all_staff',
+                    'create_salary_card',
+                    'update_salary_card',
+                    'get_salary_card',
+                    'record_leave',
+                    'get_staff_leaves',
+                    'approve_leave_request',
+                    'calculate_incentive',
+                    'get_performance_metrics'
+                ]
+            },
+            directives: {
+                goals: ['Maintain accurate staff records', 'Define compensation contracts for Finance'],
+                constraints: ['Does not disburse money']
+            },
             ...config
         });
 

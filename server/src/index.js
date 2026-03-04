@@ -24,6 +24,7 @@ const PORT = process.env.PORT || 3101;
 const APP_ENV = process.env.APP_ENV || 'development';
 const IS_PROD = APP_ENV === 'production';
 const ALLOW_DEBUG_ENDPOINTS = !IS_PROD && process.env.ALLOW_DEBUG_ENDPOINTS !== 'false';
+const ALLOW_DEV_BYPASS_IN_PROD = process.env.ALLOW_DEV_BYPASS_IN_PROD === 'true';
 const upload = multer({ storage: multer.memoryStorage() });
 const googleTokenCache = new Map();
 
@@ -95,11 +96,56 @@ const ADMIN_ADAPTER_POLICY = {
         'archive_lead',
         'set_primary_phone',
     ]),
+    CommunicationsAI: new Set([
+        'send_text_message',
+        'send_media_message',
+        'send_template_message',
+        'send_location_message',
+        'send_contact_message',
+        'send_interactive_message',
+        'check_contact_status',
+        'mark_message_as_read',
+        'get_business_profile',
+        'update_business_profile',
+        'download_media',
+    ]),
+    HRAgent: new Set([
+        'hire_staff',
+        'update_staff_profile',
+        'terminate_staff',
+        'get_staff_details',
+        'get_all_staff',
+        'create_salary_card',
+        'update_salary_card',
+        'get_salary_card',
+        'record_leave',
+        'get_staff_leaves',
+        'approve_leave_request',
+        'calculate_incentive',
+        'get_performance_metrics',
+    ]),
+    FinanceAI: new Set([
+        'record_incoming_txn',
+        'get_incoming_txns',
+        'get_txn_details',
+        'record_outgoing_txn',
+        'get_expenses',
+        'get_ledger',
+        'add_ledger_entry',
+        'generate_monthly_bills',
+        'onboard_tenant_contract',
+        'process_salary_payout',
+        'get_financial_summary',
+        'get_defaulters_list',
+    ]),
 };
 
 const ADMIN_ROLE_PERMISSIONS = {
     CEO: {
         CRMAgent: new Set(Array.from(ADMIN_ADAPTER_POLICY.CRMAgent)),
+        CommunicationsAI: new Set(Array.from(ADMIN_ADAPTER_POLICY.CommunicationsAI)),
+        HRAgent: new Set(Array.from(ADMIN_ADAPTER_POLICY.HRAgent)),
+        FinanceAI: new Set(Array.from(ADMIN_ADAPTER_POLICY.FinanceAI)),
     },
     Staff: {
         CRMAgent: new Set([
@@ -118,6 +164,41 @@ const ADMIN_ROLE_PERMISSIONS = {
             'change_status',
             'link_artifact',
         ]),
+        HRAgent: new Set([
+            'get_salary_card',
+            'get_staff_details',
+            'get_all_staff',
+            'get_staff_leaves',
+            'calculate_incentive',
+            'get_performance_metrics',
+            'record_leave',
+            'approve_leave_request',
+        ]),
+        FinanceAI: new Set([
+            'get_incoming_txns',
+            'get_txn_details',
+            'get_expenses',
+            'get_ledger',
+            'get_financial_summary',
+            'get_defaulters_list',
+            'record_incoming_txn',
+            'record_outgoing_txn',
+            'add_ledger_entry',
+            'generate_monthly_bills',
+            'onboard_tenant_contract',
+            'process_salary_payout',
+        ]),
+        CommunicationsAI: new Set([
+            'send_text_message',
+            'send_media_message',
+            'send_template_message',
+            'send_location_message',
+            'send_contact_message',
+            'send_interactive_message',
+            'check_contact_status',
+            'mark_message_as_read',
+            'get_business_profile',
+        ]),
     },
     Customer: {
         CRMAgent: new Set([
@@ -127,14 +208,29 @@ const ADMIN_ROLE_PERMISSIONS = {
             'get_timeline',
             'get_lead_artifacts',
         ]),
+        HRAgent: new Set([]),
+        FinanceAI: new Set([
+            'get_incoming_txns',
+            'get_financial_summary',
+            'get_defaulters_list',
+            'get_ledger',
+            'get_txn_details',
+        ]),
+        CommunicationsAI: new Set([
+            'send_text_message',
+            'check_contact_status',
+        ]),
     },
 };
 
 function getDevRequesterEmail(req) {
-    if (IS_PROD) return null;
     const headerEmail = req.headers['x-actor-email'] || req.headers['x-admin-email'];
     if (!headerEmail || typeof headerEmail !== 'string') return null;
-    return headerEmail.trim().toLowerCase();
+    const email = headerEmail.trim().toLowerCase();
+    if (!email) return null;
+    if (!IS_PROD) return email;
+    // Production bypass is opt-in and disabled by default.
+    return ALLOW_DEV_BYPASS_IN_PROD ? email : null;
 }
 
 async function resolveAuthContext(req) {
@@ -260,7 +356,19 @@ async function requireAuth(req, res, next) {
     try {
         const header = req.headers.authorization || '';
         const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-        if (!token) return res.status(401).json({ success: false, error: 'Missing bearer token' });
+        if (!token) {
+            const bypassEmail = getDevRequesterEmail(req);
+            if (bypassEmail) {
+                req.authUser = {
+                    email: bypassEmail,
+                    name: 'Dev Bypass User',
+                    picture: null,
+                    type: 'Bypass'
+                };
+                return next();
+            }
+            return res.status(401).json({ success: false, error: 'Missing bearer token' });
+        }
         const payload = await verifyGoogleToken(token);
 
         const authMode = (process.env.GOOGLE_AUTH_MODE || 'internal').toLowerCase();
@@ -348,6 +456,364 @@ const commsAI = new CommunicationsAI();
 const masterAI = new MasterAI([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
 
 const allAgents = [masterAI, propertyAI, crmAgent, hrAgent, financeAI, commsAI];
+
+async function seedSystemDemoData() {
+    if (process.env.SEED_DEMO_DATA === 'false') return;
+    if (crmAgent.leads.size > 0 || propertyAI.properties.length > 0 || hrAgent.staff.length > 0 || financeAI.transactions.length > 0) {
+        return;
+    }
+
+    const safeCall = async (agent, tool, parameters) => {
+        try {
+            return await agent.callTool(tool, parameters);
+        } catch (error) {
+            console.warn(`[Demo Seed] ${agent.name}.${tool} failed: ${error.message}`);
+            return null;
+        }
+    };
+
+    const allImageFiles = fs.readdirSync(IMAGE_DIR)
+        .filter((name) => /\.(jpg|jpeg|png)$/i.test(name))
+        .sort();
+    const propertyImageFiles = allImageFiles.filter((name) => name.startsWith('prop_'));
+    const fallbackImageFiles = allImageFiles.filter((name) => !name.startsWith('prop_'));
+    const seedImages = (propertyImageFiles.length > 0 ? propertyImageFiles : fallbackImageFiles).map((name) => `/images/${name}`);
+    const property1Images = seedImages.slice(0, 5);
+    const property2Images = seedImages.slice(5, 10).length > 0 ? seedImages.slice(5, 10) : seedImages.slice(0, 3);
+    const leadArtifactImages = seedImages.slice(0, 3);
+
+    const ensureCrmProfile = async ({ name, phone, email, profile_type = 'Customer', status = 'Enquiry', source = { category: 'Demo', detail: 'System Seed' } }) => {
+        const existing = await safeCall(crmAgent, 'get_lead_by_phone', { phone });
+        if (existing?.status === 'Found' && existing.lead) {
+            await safeCall(crmAgent, 'update_lead_snapshot', {
+                lead_id: existing.lead.lead_id,
+                email: email || undefined,
+                profile_type
+            });
+            return existing.lead.lead_id;
+        }
+
+        const created = await safeCall(crmAgent, 'add_lead', {
+            name,
+            primary_phone: phone,
+            email,
+            profile_type,
+            source
+        });
+        const leadId = created?.lead_id || phone;
+
+        if (status !== 'Enquiry') {
+            if (status === 'Visited' || status === 'Onboarded' || status === 'Left') {
+                await safeCall(crmAgent, 'change_status', {
+                    lead_id: leadId,
+                    to_status: 'Visited',
+                    reason: 'Demo seed status setup'
+                });
+            }
+            if (status === 'Onboarded' || status === 'Left') {
+                await safeCall(crmAgent, 'change_status', {
+                    lead_id: leadId,
+                    to_status: 'Onboarded',
+                    reason: 'Demo seed status setup'
+                });
+            }
+            if (status === 'Left') {
+                await safeCall(crmAgent, 'change_status', {
+                    lead_id: leadId,
+                    to_status: 'Left',
+                    reason: 'Demo seed status setup'
+                });
+            }
+        }
+        return leadId;
+    };
+
+    // HR staff and salary setup.
+    const staffRecords = [
+        { name: 'Ramesh Kumar', designation: 'Property Manager', phone: '+919833334444', email: 'ramesh@pgflow.ai', salary: 4000 },
+        { name: 'Meera Joshi', designation: 'Sales Executive', phone: '+919844445555', email: 'meera@pgflow.ai', salary: 3500 },
+        { name: 'Arun Singh', designation: 'Maintenance Supervisor', phone: '+919855556666', email: 'arun@pgflow.ai', salary: 3800 }
+    ];
+
+    for (const staff of staffRecords) {
+        const hired = await safeCall(hrAgent, 'hire_staff', {
+            name: staff.name,
+            designation: staff.designation,
+            contact: {
+                primary: staff.phone,
+                email: staff.email
+            },
+            base_salary: staff.salary
+        });
+        const staffId = hired?.staff_id;
+        if (!staffId) continue;
+
+        await safeCall(hrAgent, 'create_salary_card', {
+            staff_id: staffId,
+            base_salary: staff.salary,
+            bank_details: {
+                account_holder: staff.name,
+                account_number: `000${staffId.replace('STF-', '')}123456`,
+                ifsc: 'HDFC0001234',
+                bank_name: 'HDFC Bank',
+                upi_id: `${staff.name.split(' ')[0].toLowerCase()}@hdfcbank`
+            },
+            components: {
+                incentives: { logic: 'Units Occupied * Amount Per Unit', amount_per_unit: 350 },
+                allowances: { travel: 1000, phone: 500 }
+            }
+        });
+
+        await ensureCrmProfile({
+            name: staff.name,
+            phone: staff.phone,
+            email: staff.email,
+            profile_type: 'Staff',
+            status: 'Enquiry'
+        });
+    }
+
+    // CRM customer setup.
+    const customerLeadA = await ensureCrmProfile({
+        name: 'Amit Sharma',
+        phone: '+919800098000',
+        email: 'amit@demo.pgflow.ai',
+        profile_type: 'Customer',
+        status: 'Onboarded'
+    });
+    const customerLeadB = await ensureCrmProfile({
+        name: 'Neha Gupta',
+        phone: '+919811112222',
+        email: 'neha@demo.pgflow.ai',
+        profile_type: 'Customer',
+        status: 'Visited'
+    });
+    const customerLeadC = await ensureCrmProfile({
+        name: 'Rohit Verma',
+        phone: '+919822223333',
+        email: 'rohit@demo.pgflow.ai',
+        profile_type: 'Customer',
+        status: 'Enquiry'
+    });
+
+    for (const leadId of [customerLeadA, customerLeadB, customerLeadC]) {
+        await safeCall(crmAgent, 'log_session', {
+            lead_id: leadId,
+            summary: 'Customer requested room details and pricing.',
+            sentiment: 'Neutral',
+            tone: 'Professional',
+            links: {
+                artifacts: leadArtifactImages
+            }
+        });
+    }
+    await safeCall(crmAgent, 'add_manual_note', {
+        lead_id: customerLeadA,
+        content: 'Customer prefers double sharing close to office.',
+        author: 'demo_seed'
+    });
+    if (leadArtifactImages[0]) {
+        await safeCall(crmAgent, 'link_artifact', {
+            lead_id: customerLeadA,
+            file_url: leadArtifactImages[0],
+            file_type: 'Image',
+            description: 'Room preference sample image'
+        });
+    }
+    if (leadArtifactImages[1]) {
+        await safeCall(crmAgent, 'link_artifact', {
+            lead_id: customerLeadB,
+            file_url: leadArtifactImages[1],
+            file_type: 'Image',
+            description: 'Visit reference image'
+        });
+    }
+
+    // Property and tenancy setup.
+    await safeCall(propertyAI, 'add_property', {
+        name: 'Sunrise Residency',
+        address: '12 Lake View Road, Pune',
+        pin_code: '411014',
+        area: 'Viman Nagar',
+        city: 'Pune',
+        state: 'Maharashtra',
+        description: 'Primary occupied property for demo operations.',
+        floors: 3,
+        amenities: ['WiFi', 'Parking', 'CCTV', 'RO Water'],
+        image_urls: property1Images,
+        thumbnail_url: property1Images[0] || ''
+    });
+    await safeCall(propertyAI, 'add_property', {
+        name: 'Maple Heights',
+        address: '88 Hill Street, Pune',
+        pin_code: '411001',
+        area: 'Camp',
+        city: 'Pune',
+        state: 'Maharashtra',
+        description: 'Secondary property for demo leads.',
+        floors: 2,
+        amenities: ['WiFi', 'Power Backup'],
+        image_urls: property2Images,
+        thumbnail_url: property2Images[0] || ''
+    });
+
+    await safeCall(propertyAI, 'add_unit', {
+        property_id: 'PROP-1',
+        unit_number: '101',
+        floor: 1,
+        types: ['Double Sharing'],
+        base_rent: 12000,
+        rate_card: {
+            base_rent: 12000,
+            security_deposit: 2500,
+            rent_payment_timing: 'ADVANCE',
+            utility_payment_timing: 'ARREARS',
+            maintenance_fee: 0
+        },
+        amenities: ['WiFi', 'Parking']
+    });
+    await safeCall(propertyAI, 'add_unit', {
+        property_id: 'PROP-1',
+        unit_number: '102',
+        floor: 1,
+        types: ['Single Sharing'],
+        base_rent: 14000,
+        rate_card: {
+            base_rent: 14000,
+            security_deposit: 3000,
+            rent_payment_timing: 'ADVANCE',
+            utility_payment_timing: 'ARREARS',
+            maintenance_fee: 0
+        },
+        amenities: ['WiFi']
+    });
+    await safeCall(propertyAI, 'add_unit', {
+        property_id: 'PROP-2',
+        unit_number: '201',
+        floor: 2,
+        types: ['Double Sharing'],
+        base_rent: 11500,
+        rate_card: {
+            base_rent: 11500,
+            security_deposit: 2500,
+            rent_payment_timing: 'ADVANCE',
+            utility_payment_timing: 'ARREARS',
+            maintenance_fee: 0
+        },
+        amenities: ['WiFi']
+    });
+
+    await safeCall(propertyAI, 'assign_tenant', {
+        unit_id: 'UNIT-1',
+        lead_id: customerLeadA,
+        start_date: '2026-03-01',
+        monthly_rent: 12000,
+        security_deposit: 2500
+    });
+    await safeCall(propertyAI, 'assign_tenant', {
+        unit_id: 'UNIT-3',
+        lead_id: customerLeadB,
+        start_date: '2026-03-02',
+        monthly_rent: 11500,
+        security_deposit: 2500
+    });
+
+    await safeCall(propertyAI, 'add_meter', {
+        consumer_number: 'EL-1001',
+        linked_units: ['UNIT-1'],
+        initial_reading: 420
+    });
+    await safeCall(propertyAI, 'update_meter_reading', {
+        meter_id: 'METER-1',
+        reading: 448,
+        date: '2026-03-03'
+    });
+    await safeCall(propertyAI, 'log_maintenance_req', {
+        property_id: 'PROP-1',
+        unit_id: 'UNIT-1',
+        category: 'PLUMBING',
+        description: 'Washroom tap leakage in Unit 101',
+        priority: 'HIGH',
+        reported_by: 'STF-03',
+        reported_by_name: 'Shankar Patil',
+        resident_name: 'Amit Sharma',
+        image_urls: leadArtifactImages
+    });
+
+    // Finance setup.
+    await safeCall(financeAI, 'onboard_tenant_contract', {
+        lead_id: customerLeadA,
+        negotiated_rent: 12000,
+        security_deposit: 2500,
+        rent_payment_timing: 'ADVANCE',
+        utility_payment_timing: 'ARREARS',
+        effective_from: '2026-03-01'
+    });
+    await safeCall(financeAI, 'onboard_tenant_contract', {
+        lead_id: customerLeadB,
+        negotiated_rent: 11500,
+        security_deposit: 2500,
+        rent_payment_timing: 'ADVANCE',
+        utility_payment_timing: 'ARREARS',
+        effective_from: '2026-03-01'
+    });
+
+    await safeCall(financeAI, 'add_ledger_entry', {
+        payer_id: customerLeadA,
+        category: 'Rent',
+        amount_due: 12000,
+        month_year: 'Mar 2026',
+        reason: 'Monthly rent'
+    });
+    await safeCall(financeAI, 'add_ledger_entry', {
+        payer_id: customerLeadB,
+        category: 'Rent',
+        amount_due: 11500,
+        month_year: 'Mar 2026',
+        reason: 'Monthly rent'
+    });
+
+    await safeCall(financeAI, 'record_incoming_txn', {
+        payer_id: customerLeadA,
+        amount: 15000,
+        payment_mode: 'UPI',
+        date: '2026-03-01',
+        txn_id: 'IN-240301-001'
+    });
+    await safeCall(financeAI, 'record_incoming_txn', {
+        payer_id: customerLeadB,
+        amount: 12000,
+        payment_mode: 'Bank Transfer',
+        date: '2026-03-02',
+        txn_id: 'IN-240302-002'
+    });
+    await safeCall(financeAI, 'record_outgoing_txn', {
+        category: 'OpEx',
+        sub_category: 'Plumbing',
+        work_done: 'Pipe replacement in Block A',
+        property_id: 'PROP-1',
+        amount: 2500,
+        payee: 'Ravi Plumbing Works',
+        payment_mode: 'UPI',
+        approved_by: 'demo_seed'
+    });
+    await safeCall(financeAI, 'record_outgoing_txn', {
+        category: 'CapEx',
+        sub_category: 'Furniture',
+        work_done: 'New cots for Unit 102',
+        property_id: 'PROP-1',
+        amount: 9800,
+        payee: 'Urban Furnishers',
+        payment_mode: 'Bank Transfer',
+        approved_by: 'demo_seed'
+    });
+
+    console.log('[Demo Seed] System demo data initialized.');
+}
+
+(async () => {
+    await seedSystemDemoData();
+})();
 
 // SSE Event Clients
 let sseClients = [];
@@ -586,8 +1052,19 @@ app.post('/api/master_ai/tools/execute', requireAuth, async (req, res) => {
         }
 
         console.log(`[API] Dashboard requested MasterAI to execute ${agent_name}.${tool_name}`);
+        const enrichedParameters = {
+            ...parameters,
+            requested_by: authContext.email || req.authUser?.email || null,
+            requested_by_role: authContext.profile_type || 'Customer',
+        };
 
-        const result = await masterAI.executeSubagentTool(agent_name, tool_name, parameters || {});
+        const isCeo = authContext.profile_type === 'CEO' && authContext.email;
+        if (isCeo && enrichedParameters) {
+            enrichedParameters.ceo_authorized = true;
+            enrichedParameters.approved_by = authContext.email;
+        }
+
+        const result = await masterAI.executeSubagentTool(agent_name, tool_name, enrichedParameters);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error(`[API] MasterAI Tool Execution Error:`, error.message);
