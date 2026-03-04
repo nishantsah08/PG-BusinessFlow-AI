@@ -29,6 +29,7 @@ The `ChatPanel` provides the primary user interface for text-based interaction w
 - API target unreachable: Component state switches to `error` and renders `StateWrapper` error fallback.
 - Optimistic update failure: User message is removed from the local list to prevent "ghost" messages.
 - Empty response parsing error: Caught and transitioned to `error` state.
+- Tiny/invalid image uploads may be skipped by backend validation and therefore not appear in returned property image sets.
 
 ## Limitations
 - Chat history is frontend-session scoped and resets on explicit "New Chat".

@@ -11,10 +11,19 @@ const IMAGE_MD_REGEX = /!\[([^\]]*)\]\(([^)]+)\)/g;
 
 const normalizeImageSource = (src) => {
     if (!src || typeof src !== 'string') return src;
-    if (src.startsWith('sandbox:/images/')) {
-        return src.replace(/^sandbox:/, '');
+    let normalized = src.trim();
+
+    // Remove surrounding wrappers sometimes produced by LLM formatting.
+    normalized = normalized.replace(/^<+|>+$/g, '');
+    normalized = normalized.replace(/^['"]+|['"]+$/g, '');
+
+    // Remove common trailing punctuation artifacts from prose lists.
+    normalized = normalized.replace(/[),.;:!?]+$/g, (m) => (m.includes(')') ? ')' : ''));
+
+    if (normalized.startsWith('sandbox:/images/')) {
+        normalized = normalized.replace(/^sandbox:/, '');
     }
-    return src;
+    return normalized;
 };
 
 const isImageSource = (src) => {
@@ -117,30 +126,31 @@ const renderMessageContent = (msg, onOpenImage) => {
                 }
 
                 return (
-                    <div
-                        key={`images-${idx}`}
-                        className="flex gap-3 overflow-x-auto pb-1"
-                        data-testid="assistant-image-strip"
-                    >
-                        {block.images.map((img) => {
-                            return (
-                                <button
-                                    key={`${img.src}-${img.globalIndex}`}
-                                    type="button"
-                                    onClick={() => onOpenImage(allImages.map(i => i.src), img.globalIndex)}
-                                    className="block text-left shrink-0"
-                                    data-testid="inline-image-button"
-                                >
-                                    <img
-                                        src={img.src}
-                                        alt={`attachment-${img.globalIndex + 1}`}
-                                        className="w-40 h-32 object-cover rounded-lg border border-gray-200"
-                                        loading="lazy"
-                                    />
-                                    <div className="mt-1 text-[11px] text-gray-500">{img.label}</div>
-                                </button>
-                            );
-                        })}
+                    <div key={`images-wrap-${idx}`} className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                        <div
+                            className="flex gap-3 overflow-x-auto pb-1"
+                            data-testid="assistant-image-strip"
+                        >
+                            {block.images.map((img) => {
+                                return (
+                                    <button
+                                        key={`${img.src}-${img.globalIndex}`}
+                                        type="button"
+                                        onClick={() => onOpenImage(allImages.map(i => i.src), img.globalIndex)}
+                                        className="block text-left shrink-0"
+                                        data-testid="inline-image-button"
+                                    >
+                                        <img
+                                            src={img.src}
+                                            alt={`attachment-${img.globalIndex + 1}`}
+                                            className="w-40 h-32 object-cover rounded-lg border border-gray-200 bg-white"
+                                            loading="lazy"
+                                        />
+                                        <div className="mt-1 text-[11px] text-gray-500">{img.label}</div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 );
             })}

@@ -67,6 +67,7 @@ const fs = require('fs');
 const IMAGE_DIR = path.join(__dirname, '..', '..', 'images');
 if (!fs.existsSync(IMAGE_DIR)) fs.mkdirSync(IMAGE_DIR, { recursive: true });
 const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'local';
+const MIN_IMAGE_BYTES = 1024;
 const workflowStore = new WorkflowStore({ backend: STORAGE_BACKEND });
 const imageStore = new ImageStore({ backend: STORAGE_BACKEND, imageDir: IMAGE_DIR });
 ensurePredefinedFinancialWorkflows(workflowStore);
@@ -178,10 +179,19 @@ app.post('/api/upload/images', requireAuth, upload.array('images', 20), (req, re
             return res.status(400).json({ success: false, error: 'No files provided' });
         }
         const urls = [];
+        const skipped = [];
         for (const f of req.files) {
+            if (!f.mimetype.startsWith('image/')) {
+                skipped.push({ name: f.originalname, reason: 'non-image' });
+                continue;
+            }
+            if (f.size < MIN_IMAGE_BYTES) {
+                skipped.push({ name: f.originalname, reason: 'too-small' });
+                continue;
+            }
             urls.push(imageStore.saveBuffer(f.buffer, f.originalname, 'prop'));
         }
-        res.json({ success: true, data: { urls } });
+        res.json({ success: true, data: { urls, skipped } });
     } catch (error) {
         console.error('Image Upload Error:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -284,11 +294,14 @@ const chatHandler = async (req, res) => {
 
             for (const f of req.files) {
                 console.log('[ChatHandler] File received:', f.fieldname, f.originalname, f.mimetype, f.size + ' bytes');
-                if (f.mimetype.startsWith('image/')) {
-                    // Save to disk (Phase 1: local file storage per implementation_plan.md)
-                    const savedUrl = imageStore.saveBuffer(f.buffer, f.originalname, 'chat_upload');
-                    savedUrls.push(savedUrl);
+                if (!f.mimetype.startsWith('image/')) continue;
+                if (f.size < MIN_IMAGE_BYTES) {
+                    console.warn('[ChatHandler] Skipping tiny image upload:', f.originalname, f.size + ' bytes');
+                    continue;
                 }
+                // Save to disk (Phase 1: local file storage per implementation_plan.md)
+                const savedUrl = imageStore.saveBuffer(f.buffer, f.originalname, 'chat_upload');
+                savedUrls.push(savedUrl);
             }
 
             // Append image URLs directly to the user's message text so the LLM can't miss them
