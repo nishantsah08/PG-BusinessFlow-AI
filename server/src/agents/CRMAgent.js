@@ -16,7 +16,7 @@ class CRMAgent extends BaseAgent {
                     'add_lead', 'change_status', 'merge_leads', 'archive_lead',
                     'update_lead_snapshot', 'add_secondary_phone', 'set_primary_phone',
                     'log_session', 'add_manual_note', 'get_timeline',
-                    'get_lead_by_phone', 'search_leads', 'get_leads_by_status', 'get_recent_leads', 'get_dashboard_stats',
+                    'get_lead', 'get_lead_by_phone', 'get_lead_by_email', 'search_leads', 'get_leads_by_status', 'get_recent_leads', 'get_dashboard_stats',
                     'link_artifact', 'get_lead_artifacts'
                 ]
             },

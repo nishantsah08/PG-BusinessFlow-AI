@@ -55,9 +55,23 @@ const CRMConsole = () => {
     };
 
     const hydrateLead = async (leadId) => {
-        const details = await executeCRMTool('get_lead', { phone: leadId });
-        const lead = details?.lead || null;
-        const leadTimeline = Array.isArray(details?.timeline) ? [...details.timeline] : [];
+        let lead = null;
+        let leadTimeline = [];
+
+        try {
+            const details = await executeCRMTool('get_lead', { phone: leadId });
+            lead = details?.lead || null;
+            leadTimeline = Array.isArray(details?.timeline) ? [...details.timeline] : [];
+        } catch (_err) {
+            // Compatibility fallback for environments where get_lead is unavailable.
+            const fallbackLead = await executeCRMTool('get_lead_by_phone', { phone: leadId });
+            lead = fallbackLead?.lead || null;
+            if (lead?.lead_id) {
+                const timelinePayload = await executeCRMTool('get_timeline', { lead_id: lead.lead_id, limit: 200 });
+                leadTimeline = Array.isArray(timelinePayload?.events) ? [...timelinePayload.events] : [];
+            }
+        }
+
         leadTimeline.sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
         setSelectedLead(lead);
         setEmailDraft(lead?.email || '');
