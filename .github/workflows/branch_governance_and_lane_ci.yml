@@ -1,0 +1,109 @@
+name: Branch Governance And Lane CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'lane/**'
+
+jobs:
+  branch-governance:
+    name: Branch Governance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch flow and checklist
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          echo "Base branch: ${BASE_REF}"
+          echo "Head branch: ${HEAD_REF}"
+
+          if [[ "${BASE_REF}" == "main" ]]; then
+            if [[ ! "${HEAD_REF}" =~ ^lane/ && ! "${HEAD_REF}" =~ ^integration/ ]]; then
+              echo "PRs into main must come from lane/* or integration/* branches."
+              exit 1
+            fi
+          elif [[ "${BASE_REF}" =~ ^lane/ ]]; then
+            if [[ ! "${HEAD_REF}" =~ ^ai/ && ! "${HEAD_REF}" =~ ^integration/ && "${HEAD_REF}" != "${BASE_REF}" ]]; then
+              echo "PRs into lane/* must come from ai/*, integration/*, or the same lane branch."
+              exit 1
+            fi
+          fi
+
+          required_items=(
+            "- [x] session intent confirmed with the user"
+            "- [x] execution plan was shown and user approved"
+            "- [x] target lane/domain is explicitly stated"
+          )
+
+          body_lower="$(printf '%s' "${PR_BODY}" | tr '[:upper:]' '[:lower:]')"
+          for item in "${required_items[@]}"; do
+            if ! grep -Fq "${item}" <<< "${body_lower}"; then
+              echo "Missing required PR checklist item: ${item}"
+              exit 1
+            fi
+          done
+
+  lane-ci:
+    name: Lane CI
+    runs-on: ubuntu-latest
+    needs: branch-governance
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed areas
+        id: changes
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "${BASE_REF}" --depth=1
+          changed_files="$(git diff --name-only "origin/${BASE_REF}...HEAD")"
+          echo "Changed files:"
+          printf '%s\n' "${changed_files}"
+
+          run_server=false
+          run_client=false
+
+          if grep -Eq '^(server/|testing/)' <<< "${changed_files}"; then
+            run_server=true
+          fi
+
+          if grep -Eq '^(client/)' <<< "${changed_files}"; then
+            run_client=true
+          fi
+
+          echo "run_server=${run_server}" >> "$GITHUB_OUTPUT"
+          echo "run_client=${run_client}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        if: steps.changes.outputs.run_server == 'true' || steps.changes.outputs.run_client == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Server tests
+        if: steps.changes.outputs.run_server == 'true'
+        run: |
+          set -euo pipefail
+          cd server
+          npm ci
+          npm test
+
+      - name: Client tests
+        if: steps.changes.outputs.run_client == 'true'
+        run: |
+          set -euo pipefail
+          cd client
+          npm ci
+          npm test
+
+      - name: No test-impact changes
+        if: steps.changes.outputs.run_server != 'true' && steps.changes.outputs.run_client != 'true'
+        run: echo "No server/client/testing changes detected; test jobs skipped."

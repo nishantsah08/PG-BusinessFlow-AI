@@ -26,6 +26,8 @@ When presenting analysis, plans, or recommendations:
 1. Prefer business-oriented language.
 2. Keep explanations abstract where practical.
 3. Frame decisions from a higher-level system viewpoint.
+4. Use simple English and avoid heavy technical wording where possible.
+5. When it helps explain architecture or flow, include a text-based diagram (no images).
 
 ## CLI Usage Preference
 
@@ -35,6 +37,13 @@ When presenting analysis, plans, or recommendations:
 ## Startup Behavior
 
 1. When Codex starts, read the `@docs` folder first.
+
+## Session Start Protocol
+
+1. At the start of every development session, verify the user's intended outcome before coding.
+2. Confirm the target lane/domain and expected branch strategy.
+3. Present a short execution plan and wait for explicit user confirmation before implementing.
+4. If scope changes during the session, reconfirm intent and adjust the plan before continuing.
 
 ## Change Completion Standard
 
