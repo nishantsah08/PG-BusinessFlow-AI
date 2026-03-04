@@ -53,3 +53,12 @@ When presenting analysis, plans, or recommendations:
 ## Architecture Clarification Policy
 
 1. If any system architecture detail is missing or unclear, do not assume; ask the user for clarification first.
+
+## Secrets And Credentials Policy
+
+1. Credentials must live in a single root `.env` file.
+2. Environment-specific runtime values in production or hosting platforms should be provided by deployment environment variables, not repo files.
+3. Do not create `.env` files under `server/`, `client/`, `infra/`, or test folders.
+4. Only template files are allowed in version control, such as `.env.example`.
+5. Do not embed secrets in code, tests, fixtures, or docs.
+6. Before coding changes, verify credentials are only in root `.env` and not duplicated.

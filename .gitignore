@@ -1,12 +1,19 @@
 node_modules
 .env
 dist
-.DS_Store
 .idea
 .vscode
 coverage
 build
 .system_generated
+
+# local credentials and config
+*.env
+*.env.*
+!.env.example
+.secrets/
+
+.DS_Store
 
 *.log
 webhook_log.json
