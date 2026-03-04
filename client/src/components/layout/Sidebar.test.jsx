@@ -27,6 +27,14 @@ describe('Sidebar Component', () => {
 
         const masterAiLink = screen.getByText('Master AI').closest('a');
         expect(masterAiLink).toHaveAttribute('href', '/master');
+        const propertyLink = screen.getByText('Property & Booking').closest('a');
+        expect(propertyLink).toHaveAttribute('href', '/property');
+        const crmLink = screen.getByText('CRM').closest('a');
+        expect(crmLink).toHaveAttribute('href', '/crm');
+        const hrLink = screen.getByText('HR').closest('a');
+        expect(hrLink).toHaveAttribute('href', '/hr');
+        const financeLink = screen.getByText('Finance').closest('a');
+        expect(financeLink).toHaveAttribute('href', '/finance');
 
         const dashboardLink = screen.getByText('Agent Dashboard').closest('a');
         expect(dashboardLink).toHaveAttribute('href', '/dashboard');
@@ -38,18 +46,21 @@ describe('Sidebar Component', () => {
     });
 
     it('applies active styling to the matched route', () => {
-        // Render starting already on the /dashboard route
-        renderWithRouter('/dashboard');
+        // Render starting already on the /finance route
+        renderWithRouter('/finance');
 
-        const dashboardLink = screen.getByText('Agent Dashboard').closest('a');
+        const financeLink = screen.getByText('Finance').closest('a');
         const masterAiLink = screen.getByText('Master AI').closest('a');
+        const dashboardLink = screen.getByText('Agent Dashboard').closest('a');
 
         // NavLink applies an inner class via a callback. We test that the custom classes apply.
-        expect(dashboardLink).toHaveClass('bg-indigo-50');
-        expect(dashboardLink).toHaveClass('text-indigo-700');
+        expect(financeLink).toHaveClass('bg-indigo-50');
+        expect(financeLink).toHaveClass('text-indigo-700');
 
         // The unselected link should have the default classes
         expect(masterAiLink).toHaveClass('text-gray-500');
         expect(masterAiLink).not.toHaveClass('bg-indigo-50');
+
+        expect(dashboardLink).toHaveAttribute('href', '/dashboard');
     });
 });

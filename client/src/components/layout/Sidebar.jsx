@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { MessageSquareCode, Activity, Building2, Users } from 'lucide-react';
+import { MessageSquareCode, Activity, Building2, Users, UserRound, Banknote } from 'lucide-react';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
 
 const Sidebar = () => {
@@ -9,7 +9,9 @@ const Sidebar = () => {
     const navItems = [
         { path: '/master', icon: MessageSquareCode, label: 'Master AI' },
         { path: '/property', icon: Building2, label: 'Property & Booking' },
-        { path: '/crm', icon: Users, label: 'CRM' }
+        { path: '/crm', icon: Users, label: 'CRM' },
+        { path: '/hr', icon: UserRound, label: 'HR' },
+        { path: '/finance', icon: Banknote, label: 'Finance' }
     ];
 
     return (

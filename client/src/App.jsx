@@ -17,6 +17,8 @@ import AgentDashboard from './components/dashboard/AgentDashboard';
 import PropertyBooking from './components/dashboard/PropertyBooking';
 import CRMConsole from './components/dashboard/CRMConsole';
 import LoginPage from './pages/LoginPage';
+import HRPage from './pages/HRPage';
+import FinancePage from './pages/FinancePage';
 
 // Placeholder Pages for routing
 const Placeholder = ({ title }) => (
@@ -71,6 +73,12 @@ function App() {
 
                                                 {/* Property & Booking */}
                                                 <Route path="property" element={<PropertyBooking />} />
+
+                                                {/* HR */}
+                                                <Route path="hr" element={<HRPage />} />
+
+                                                {/* Finance */}
+                                                <Route path="finance" element={<FinancePage />} />
 
                                                 {/* CRM */}
                                                 <Route path="crm" element={<CRMConsole />} />
