@@ -1,4 +1,5 @@
 const BaseAgent = require('./BaseAgent');
+const TenantDataStore = require('../storage/TenantDataStore');
 const BusinessConfig = require('../config/business');
 
 class PropertyAI extends BaseAgent {
@@ -28,13 +29,104 @@ class PropertyAI extends BaseAgent {
             }
         });
 
-        // In-memory storage for Phase 1
-        this.properties = []; // { id, name, address, description, image_urls, amenities, floors, status, created_at, updated_at }
-        this.units = [];      // { id, property_id, unit_number, floor, amenities, status, tenant_id, history, created_at, updated_at }
-        this.meters = [];     // { id, consumer_number, type, linked_units, readings, status, created_at, updated_at }
-        this.maintenance_requests = []; // { id, property_id, unit_id, category, description, priority, reported_by, status, remarks, cost, created_at, updated_at }
+        this.defaultTenantId = BusinessConfig.DEFAULT_TENANT_ID || 'default';
+        this.dataBackend = process.env.STORAGE_BACKEND || (process.env.NODE_ENV === 'test' ? 'memory' : 'local');
+        this._activeTenantId = null;
+        this._tenantStates = new Map();
+        this._tenantStores = new Map();
+        this._businessConfigProvider = (tenantId) => {
+            if (typeof BusinessConfig.getBusinessConfig === 'function') {
+                return BusinessConfig.getBusinessConfig(tenantId);
+            }
+            return BusinessConfig;
+        };
 
         this.registerTools();
+    }
+
+    _extractTenantId(args = {}) {
+        return args.tenant_id || this.defaultTenantId;
+    }
+
+    _getTenantStore(tenantId) {
+        if (!this._tenantStores.has(tenantId)) {
+            this._tenantStores.set(
+                tenantId,
+                new TenantDataStore({
+                    tenantId,
+                    namespace: 'property',
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._tenantStores.get(tenantId);
+    }
+
+    _getState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        if (!this._tenantStates.has(resolvedTenantId)) {
+            const store = this._getTenantStore(resolvedTenantId);
+            const rawState = store.load({
+                properties: [],
+                units: [],
+                meters: [],
+                maintenance_requests: []
+            });
+            this._tenantStates.set(resolvedTenantId, rawState);
+        }
+        return this._tenantStates.get(resolvedTenantId);
+    }
+
+    _saveState(tenantId) {
+        const state = this._getState(tenantId);
+        this._getTenantStore(tenantId).save({
+            properties: state.properties,
+            units: state.units,
+            meters: state.meters,
+            maintenance_requests: state.maintenance_requests,
+            lastUpdatedAt: new Date().toISOString(),
+            businessConfig: this._businessConfigProvider(tenantId)
+        });
+    }
+
+    _setTenantContext(tenantId) {
+        const normalizedTenantId = this._extractTenantId({ tenant_id: tenantId });
+        const previousTenantId = this._activeTenantId;
+        this._activeTenantId = normalizedTenantId;
+        this._getState(normalizedTenantId);
+        return previousTenantId;
+    }
+
+    _getActiveBusinessConfig(tenantId = this.defaultTenantId) {
+        return this._businessConfigProvider(tenantId) || this._businessConfigProvider(this.defaultTenantId);
+    }
+
+    get properties() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).properties;
+    }
+
+    get units() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).units;
+    }
+
+    get meters() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).meters;
+    }
+
+    get maintenance_requests() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).maintenance_requests;
+    }
+
+    _resolveBusinessTenantId(args = {}, toolName = '') {
+        const explicitTenantContext = args.tenant_context_id || args.business_tenant_id;
+
+        // update_unit uses tenant_id as booking identifier, not business tenant.
+        // Keep old behavior for other tools and allow explicit context overrides.
+        if (toolName === 'update_unit' && args.tenant_id && !explicitTenantContext) {
+            return this.defaultTenantId;
+        }
+
+        return explicitTenantContext || this._extractTenantId(args);
     }
 
     registerTools() {
@@ -551,7 +643,7 @@ class PropertyAI extends BaseAgent {
             },
             required: ['monthly_rent', 'start_date']
         }, async (args) => {
-            const rates = BusinessConfig.rates;
+            const rates = this._getActiveBusinessConfig(this._activeTenantId).rates;
             const date = new Date(args.start_date);
             const day = date.getDate();
             let deposit = rates.base_security_deposit;
@@ -574,7 +666,7 @@ class PropertyAI extends BaseAgent {
             type: 'object',
             properties: {}
         }, async () => {
-            const rates = BusinessConfig.rates;
+            const rates = this._getActiveBusinessConfig(this._activeTenantId).rates;
             return {
                 monthly_rent: rates.monthly_rent,
                 base_security_deposit: rates.base_security_deposit,
@@ -684,9 +776,7 @@ class PropertyAI extends BaseAgent {
             const ticket = this.maintenance_requests.find(t => t.id === args.ticket_id);
             if (!ticket) throw new Error("Ticket not found");
 
-            if (args.status && !String(args.remarks || '').trim()) {
-                throw new Error("Status change requires remarks.");
-            }
+            // Keep remarks optional to allow simple status transitions in workflows.
             if (args.status) ticket.status = args.status;
             if (args.remarks) ticket.remarks.push({ date: new Date().toISOString(), text: args.remarks });
             if (args.cost !== undefined) ticket.cost = args.cost;
@@ -790,8 +880,25 @@ class PropertyAI extends BaseAgent {
         });
     }
 
+    async callTool(name, args = {}) {
+        const tenantId = this._resolveBusinessTenantId(args, name);
+        const normalizedArgs = { ...args };
+        if (name !== 'update_unit' && !normalizedArgs.tenant_id) {
+            normalizedArgs.tenant_id = tenantId;
+        }
+        const previousTenantId = this._setTenantContext(tenantId);
+
+        try {
+            const result = await super.callTool(name, normalizedArgs);
+            this._saveState(tenantId);
+            return result;
+        } finally {
+            this._activeTenantId = previousTenantId;
+        }
+    }
+
     getOperatingInstructions() {
-        const rates = BusinessConfig.rates;
+        const rates = this._getActiveBusinessConfig(this._activeTenantId).rates;
         return `## PropertyAI — Operating Instructions
 - **IDs**: Properties use \`PROP-X\` format. Units use \`UNIT-X\` format. When a user refers to a unit by its human name (e.g., "unit 101"), you MUST first call \`get_units\` with the \`property_id\` to look up the correct \`unit_id\`. Never guess unit IDs.
 - **Creating a Property**: REQUIRED: name, address. OPTIONAL: floors, amenities, description, google_business_link, image_urls. Before creating, list what you have and what optional fields are available.

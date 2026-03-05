@@ -14,7 +14,8 @@ Provide an operations console for the `Property & Booking` domain so teams can m
 - Require PIN-first address capture for property create/update and persist structured address fields.
 - Support property thumbnail selection and deterministic thumbnail rendering in list/header views.
 - Support date-range filtering for Booking Overview trend charts.
-- Require status-change remarks in Maintenance workflow and display failures in centered blocking dialogs.
+- Support optional remarks on maintenance status updates (remarks improve audit traceability, but are not mandatory for status transitions).
+- Display failures in centered blocking dialogs.
 
 ## Inputs
 None via props. Component state is internal and section-specific.

@@ -79,7 +79,7 @@
     *   **Unit Specs**: Units have `types` (e.g., "Double Sharing", "Bunk Bed", "Balcony") and `floor`. A unit can have multiple types.
     *   **Tenancy**: Map Tenants to Units (`assign_tenant` / `vacate_tenant`).
     *   **Meters**: Manage Electricity Meters and Readings (A group of units share a single meter).
-    *   **Maintenance**: Track repair requests (`Log Ticket` -> `Resolve`).
+    *   **Maintenance**: Track repair requests (`Log Ticket` -> status updates).
     *   **Public Rates**: Maintain standard market prices (MRP).
     *   **Logical Delete**: If a Unit/Property has *accounts history*, it is Disabled (soft delete), never hard-deleted.
     *   **Amenities Management**:
@@ -87,6 +87,7 @@
         *   Units inherit these amenities (subset possible).
         *   *Customer Query*: When asked for facilities, quote the Property-level amenities.
 *   **Status Transitions**: `AVAILABLE`, `BOOKED`, `NOTICE`.
+    *   **Tenant scope**: Property state is tenant-scoped; business tenant context and unit booking tenant id are kept separate to support multi-business use.
     *   **Double Booking Prevention**:
         *   New booking on a unit is ONLY allowed if the current tenant is in 'Notice Period' (or if it's empty).
     *   **Tenant Mapping**:

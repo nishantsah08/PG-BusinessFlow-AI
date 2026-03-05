@@ -28,4 +28,9 @@
 **Version 1.5.0**
 - Date: 2026-03-04
 - Change: Redesigned Maintenance ticket operations with expandable cards, remarks history, and blocking failure dialogs with explicit reasons.
-- Reason: Provide business-readable failure handling and enforce remark-driven status transitions.
+- Reason: Provide business-readable failure handling and maintain maintenance audit traceability.
+
+**Version 1.5.1**
+- Date: 2026-03-05
+- Change: Synced doc language with backend behavior after PropertyAI maintenance and tenant-context updates.
+- Reason: Status updates are now valid without mandatory remarks, and tenant context is now explicitly tenant-scoped in local persistence.

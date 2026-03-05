@@ -20,8 +20,9 @@ The following strategic updates are now implemented and should be treated as the
    - Live server now exposes `GET /health` and `GET /ready`.
    - Correlation IDs are attached per request (`X-Correlation-ID`).
 5. **Storage Abstraction Seam**
-   - Workflow and image persistence now use storage interfaces (`WorkflowStore`, `ImageStore`) with `STORAGE_BACKEND`.
-   - Current backend remains `local`; Firestore/GCS patch remains a controlled next phase.
+    - Workflow and image persistence now use storage interfaces (`WorkflowStore`, `ImageStore`) with `STORAGE_BACKEND`.
+    - Property domain now uses tenant-scoped local persistence (`TenantDataStore`) on top of the same backend abstraction.
+    - Current backend remains `local`; Firestore/GCS patch remains a controlled next phase.
 6. **Deployment Structure**
    - Separate GCP development/production deployment scripts and environment files are defined under `infra/gcp/`.
    - Firebase Hosting targets for development and production are defined for web deployment.
@@ -796,20 +797,24 @@ The WhatsApp Adapter exposes a comprehensive set of tools for MasterAI to manage
 
 ---
 
-## 8. Multi-Tenant Architecture (Future)
+## 8. Multi-Tenant Architecture (Current + Future)
 
 > [!NOTE]
-> This section documents the migration path from single-tenant (Phase 1) to multi-tenant SaaS.
+> Multi-tenant primitives are partly implemented for Property domain in Phase 1.
+> Full platform-wide Firestore migration remains a Phase 2 activity.
 
 ### Current State (Phase 1)
-- All business rules are centralized in `server/src/config/business.js` as a single hardcoded JS object
-- Agents read from this config using `const BusinessConfig = require('../config/business')`
-- Agent operating instructions are self-describing via `getOperatingInstructions()` and auto-injected into MasterAI's system prompt
+- Property domain state is tenant-scoped in local storage using `TenantDataStore`:
+  - `data/tenants/<tenant_id>/property.json` for properties/units/meters/maintenance
+  - default tenant id remains `default` until request-level context is provided
+- PropertyAI resolves business context from `tenant_context_id` / `business_tenant_id` when present; otherwise it falls back to request-level `tenant_id`.
+- PropertyAI keeps unit-level booking `tenant_id` separate from business tenant context to avoid mixed meanings in state transitions.
+- Agent operating instructions remain self-describing via `getOperatingInstructions()` and are auto-injected into MasterAI's system prompt.
 
 ### Migration to Multi-Tenant
 
 #### Step 1: Config Store
-Replace the static `business.js` export with a dynamic lookup:
+General migration target remains dynamic config lookup:
 ```javascript
 // Before (Phase 1):
 module.exports = { tenant_id: 'default', rates: { monthly_rent: 12000, ... } };
@@ -845,6 +850,9 @@ class PropertyAI extends BaseAgent {
     }
 }
 ```
+
+> Current implementation note:
+> PropertyAI now uses per-tenant state storage with local defaults and dynamic config providers before full external ConfigStore rollout.
 
 #### Step 4: MasterAI Loads Config Per Session
 ```javascript
