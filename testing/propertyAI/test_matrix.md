@@ -9,6 +9,9 @@
 | **Double Book** | Domain | Unit BOOKED | Update -> BOOKED | Fail | INV-BS-01 | High |
 | **Unit Amenity** | Domain | Prop: [WiFi], Unit: [AC] | Create Unit | Fail (Subset violation) | INV-AM-02 | Low |
 | **Unique Prop** | Domain | Prop "A" exists | Create Prop "A" | Fail | INV-DI-01 | Med |
-| **Soft Delete** | Lifecycle | Unit has history | Delete Unit | Status -> DELETED | INV-LD-01 | Med |
+| **Soft Delete** | Lifecycle | Unit has history | Delete Unit | is_enabled=false and status `Unit Disabled` | INV-LD-01 | Med |
 | **Hard Delete** | Lifecycle | Unit fresh | Delete Unit | Removed from array | INV-LD-03 | Low |
 | **Meter Dup Link** | Domain | Unit linked to Meter A | Link to Meter B | Fail (already linked) | INV-DI-05 | Med |
+| **Disable Property** | Domain | Property has units | disable_property | property.is_enabled=false | INV-OS-01 | Med |
+| **Disable Unit** | Domain | Unit exists | disable_unit | unit.is_enabled=false; `assign_tenant` blocked | INV-OS-02 | Med |
+| **Expanded Rate Card** | Domain | property config loaded | get_public_rate_card | includes notice, stay, exit fee fields | INV-DF-01 | Low |

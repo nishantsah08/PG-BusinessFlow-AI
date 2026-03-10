@@ -1,0 +1,161 @@
+{
+    "properties": [
+        {
+            "id": "PROP-1",
+            "name": "Rohan Habitat 1",
+            "address": "Tower A, Madhapur Main Road, Madhapur, Hyderabad, Telangana, 500081",
+            "street_address": "Tower A, Madhapur Main Road",
+            "area": "Madhapur",
+            "city": "Hyderabad",
+            "state": "Telangana",
+            "pin_code": "500081",
+            "description": "Rohan Habitat 1 is configured for CEO persona testing with multi-image support.",
+            "google_business_link": "https://maps.google.com/?q=Tower%20A%2C%20Madhapur%20Main%20Road%20Hyderabad",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p1-1/1200/800",
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p1-2/1200/800",
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p1-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p1-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 3,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_rohan_iyer_example_com",
+            "requested_by": "ceo.rohan.iyer@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.rohan.iyer@example.com",
+            "created_at": "2026-03-07T05:26:55.985Z",
+            "updated_at": "2026-03-07T05:26:55.985Z"
+        },
+        {
+            "id": "PROP-2",
+            "name": "Rohan Habitat 2",
+            "address": "Tower B, Madhapur Main Road, Madhapur, Hyderabad, Telangana, 500081",
+            "street_address": "Tower B, Madhapur Main Road",
+            "area": "Madhapur",
+            "city": "Hyderabad",
+            "state": "Telangana",
+            "pin_code": "500081",
+            "description": "Rohan Habitat 2 is configured for CEO persona testing with multi-image support.",
+            "google_business_link": "https://maps.google.com/?q=Tower%20B%2C%20Madhapur%20Main%20Road%20Hyderabad",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p2-1/1200/800",
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p2-2/1200/800",
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p2-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p2-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 4,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_rohan_iyer_example_com",
+            "requested_by": "ceo.rohan.iyer@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.rohan.iyer@example.com",
+            "created_at": "2026-03-07T05:26:55.985Z",
+            "updated_at": "2026-03-07T05:26:55.985Z"
+        },
+        {
+            "id": "PROP-3",
+            "name": "Rohan Habitat 3",
+            "address": "Tower C, Madhapur Main Road, Madhapur, Hyderabad, Telangana, 500081",
+            "street_address": "Tower C, Madhapur Main Road",
+            "area": "Madhapur",
+            "city": "Hyderabad",
+            "state": "Telangana",
+            "pin_code": "500081",
+            "description": "Rohan Habitat 3 is configured for CEO persona testing with multi-image support.",
+            "google_business_link": "https://maps.google.com/?q=Tower%20C%2C%20Madhapur%20Main%20Road%20Hyderabad",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p3-1/1200/800",
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p3-2/1200/800",
+                "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p3-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_rohan_iyer_example_com-p3-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 5,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_rohan_iyer_example_com",
+            "requested_by": "ceo.rohan.iyer@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.rohan.iyer@example.com",
+            "created_at": "2026-03-07T05:26:55.986Z",
+            "updated_at": "2026-03-07T05:26:55.986Z"
+        }
+    ],
+    "units": [],
+    "meters": [],
+    "maintenance_requests": [],
+    "lastUpdatedAt": "2026-03-07T05:26:55.986Z",
+    "businessConfig": {
+        "tenant_id": "ceo_rohan_iyer_example_com",
+        "business_name": "Rohan Iyer's Workspace",
+        "persona": {
+            "name": "Rohan Iyer",
+            "role": "CEO",
+            "ceo_email": "ceo.rohan.iyer@example.com",
+            "ceo_phone": "+919800098003",
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350
+        }
+    }
+}

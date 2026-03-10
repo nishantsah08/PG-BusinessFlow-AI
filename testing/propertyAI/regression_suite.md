@@ -7,9 +7,10 @@ These tests must **always pass**. Failure indicates a regression in core busines
 - [ ] `deposit.test.js`: Boundary check for 5th vs 6th of month.
 - [ ] `status_transitions.test.js`: Invalid transition guards (Booked -> Available).
 - [ ] `uniqueness.test.js`: Property name uniqueness.
-- [ ] `amenities.test.js`: Amenity subset enforcement (cannot add non-existent amenity).
+- [ ] `amenities.test.js`: Unit cannot add non-existent amenity.
+- [ ] `disable_state.test.js`: Disabled entities reject active operations; enable/disable tools work.
 - [ ] `soft_delete.test.js`: History preservation check.
 
 ## Last Run Status
-- Status: Pending
-- Date: N/A
+- Status: Passed
+- Date: 2026-03-10

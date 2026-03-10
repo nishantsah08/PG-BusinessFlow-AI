@@ -39,14 +39,80 @@ class MasterAI extends BaseAgent {
 
         this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-        // Session Manager: Map<PhoneNumber, ConversationSession>
+        // Session Manager: Map<tenantId::sessionKey, ConversationSession>
+        this.defaultTenantId = BusinessConfig.DEFAULT_TENANT_ID || 'default';
         this.sessions = new Map();
-        this.SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes
+        const defaultConfig = typeof BusinessConfig.getBusinessConfig === 'function'
+            ? BusinessConfig.getBusinessConfig(this.defaultTenantId)
+            : BusinessConfig;
+        this.SESSION_TIMEOUT_MS = defaultConfig?.persona?.session_timeout_ms || 15 * 60 * 1000; // 15 Minutes
         this.financeAuthorizationRequests = new Map();
 
         ensurePredefinedFinancialWorkflows(workflowStore);
 
         this._setupSelfTools();
+    }
+
+    _normalizeTenantId(tenantId) {
+        const normalized = typeof tenantId === 'string' ? tenantId.trim() : '';
+        return normalized || this.defaultTenantId;
+    }
+
+    _getTenantIdFromContext(context = {}) {
+        const safeContext = context || {};
+        return this._normalizeTenantId(safeContext.tenant_id || safeContext.tenantId || safeContext.business_id);
+    }
+
+    _buildSessionMapKey(tenantId, sessionKey) {
+        return `${this._normalizeTenantId(tenantId)}::${sessionKey}`;
+    }
+
+    _buildAuthRequestKey(tenantId, authorizationId) {
+        return `${this._normalizeTenantId(tenantId)}::${authorizationId}`;
+    }
+
+    _extractTenantFromArgs(args = {}) {
+        return this._getTenantIdFromContext(args);
+    }
+
+    _getAuthRequest(authorization_id, tenantId = this.defaultTenantId) {
+        const direct = this.financeAuthorizationRequests.get(this._buildAuthRequestKey(tenantId, authorization_id));
+        if (direct) return direct;
+
+        for (const request of this.financeAuthorizationRequests.values()) {
+            if (request.authorization_id === authorization_id) {
+                return request;
+            }
+        }
+
+        return undefined;
+    }
+
+    _setAuthRequest(authorization_id, tenantId, request) {
+        this.financeAuthorizationRequests.set(this._buildAuthRequestKey(tenantId, authorization_id), request);
+    }
+
+    _listPendingFinanceRequests(tenantId = null) {
+        const allRequests = Array.from(this.financeAuthorizationRequests.values())
+            .filter(r => r && r.status === 'PENDING_CEO_AUTHORIZATION');
+
+        if (!tenantId) return allRequests;
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
+        return allRequests.filter((request) => request.tenant_id === normalizedTenantId);
+    }
+
+    _buildTenantContextArgs(args = {}, tenantId = this.defaultTenantId) {
+        if (!args || typeof args !== 'object') return { tenant_id: tenantId };
+        return {
+            ...args,
+            tenant_id: args.tenant_id || args.tenantId || tenantId
+        };
+    }
+
+    _getRuntimeConfig(tenantId = this.defaultTenantId) {
+        return typeof BusinessConfig.getBusinessConfig === 'function'
+            ? BusinessConfig.getBusinessConfig(tenantId)
+            : BusinessConfig;
     }
 
     _isFinanceMutationTool(agentName, toolName) {
@@ -71,16 +137,21 @@ class MasterAI extends BaseAgent {
         return resolved;
     }
 
-    _isCeoApprover(identity) {
+    _isCeoApprover(identity, tenantId = this.defaultTenantId) {
         if (!identity) return false;
-        const ceoEmail = (BusinessConfig.persona?.ceo_email || '').toLowerCase();
-        const ceoPhone = BusinessConfig.persona?.ceo_phone;
+        const config = typeof BusinessConfig.getBusinessConfig === 'function'
+            ? BusinessConfig.getBusinessConfig(tenantId)
+            : BusinessConfig;
+        const ceoEmail = (config.persona?.ceo_email || '').toLowerCase();
+        const ceoPhone = config.persona?.ceo_phone;
         return String(identity).toLowerCase() === ceoEmail || identity === ceoPhone;
     }
 
-    _createFinanceAuthorizationRequest(toolName, args, workflowId, source) {
+    _createFinanceAuthorizationRequest(toolName, args, workflowId, source, tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
         const authorization_id = `FIN-AUTH-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         const request = {
+            tenant_id: normalizedTenantId,
             authorization_id,
             workflow_id: workflowId,
             tool_name: toolName,
@@ -93,11 +164,12 @@ class MasterAI extends BaseAgent {
             decided_at: null,
             decided_by: null
         };
-        this.financeAuthorizationRequests.set(authorization_id, request);
+        this._setAuthRequest(authorization_id, normalizedTenantId, request);
         return request;
     }
 
-    async _executeDeterministicFinanceWorkflow(toolName, args, source = 'chat') {
+    async _executeDeterministicFinanceWorkflow(toolName, args, source = 'chat', tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
         const workflowId = FINANCIAL_MUTATION_TOOL_TO_WORKFLOW[toolName];
         if (!workflowId) {
             throw new Error(`No deterministic workflow mapping found for FinanceAI.${toolName}`);
@@ -114,7 +186,7 @@ class MasterAI extends BaseAgent {
         }
 
         if (args?.ceo_authorized !== true) {
-            const pending = this._createFinanceAuthorizationRequest(toolName, args, workflowId, source);
+            const pending = this._createFinanceAuthorizationRequest(toolName, args, workflowId, source, normalizedTenantId);
             this._emitSystemEvent('workflow.authorization_requested', null, {
                 workflow_id: workflowId,
                 authorization_id: pending.authorization_id,
@@ -133,7 +205,7 @@ class MasterAI extends BaseAgent {
             };
         }
 
-        if (!this._isCeoApprover(args?.approved_by)) {
+        if (!this._isCeoApprover(args?.approved_by, normalizedTenantId)) {
             return {
                 status: 'REJECTED',
                 workflow_id: workflowId,
@@ -148,7 +220,7 @@ class MasterAI extends BaseAgent {
         }
 
         this._emitSystemEvent('workflow.started', null, { workflow_id: workflowId, source });
-        const result = await financeAgent.callTool(toolName, financeArgs);
+        const result = await financeAgent.callTool(toolName, this._buildTenantContextArgs(financeArgs, normalizedTenantId));
         this._emitSystemEvent('workflow.ended', null, { workflow_id: workflowId, source });
 
         return {
@@ -258,10 +330,12 @@ class MasterAI extends BaseAgent {
 
         this.registerTool('list_pending_financial_workflow_requests', 'List all pending CEO authorization requests for financial workflows.', {
             type: 'object',
-            properties: {}
-        }, async () => {
-            const pending = Array.from(this.financeAuthorizationRequests.values())
-                .filter(r => r.status === 'PENDING_CEO_AUTHORIZATION');
+            properties: {
+                tenant_id: { type: 'string' }
+            }
+        }, async (args = {}) => {
+            const tenantId = this._getTenantIdFromContext(args);
+            const pending = this._listPendingFinanceRequests(tenantId || null);
             return { success: true, pending };
         });
 
@@ -274,14 +348,15 @@ class MasterAI extends BaseAgent {
             },
             required: ['authorization_id', 'approved_by']
         }, async (args) => {
-            const request = this.financeAuthorizationRequests.get(args.authorization_id);
+            const tenantId = this._getTenantIdFromContext(args);
+            const request = this._getAuthRequest(args.authorization_id, tenantId);
             if (!request) {
                 return { success: false, status: 'NOT_FOUND', error: `Authorization request '${args.authorization_id}' not found.` };
             }
             if (request.status !== 'PENDING_CEO_AUTHORIZATION') {
                 return { success: false, status: request.status, error: `Authorization request is already ${request.status}.` };
             }
-            if (!this._isCeoApprover(args.approved_by)) {
+            if (!this._isCeoApprover(args.approved_by, request.tenant_id || tenantId)) {
                 return { success: false, status: 'REJECTED', error: 'Only CEO can approve financial workflow requests.' };
             }
 
@@ -298,7 +373,8 @@ class MasterAI extends BaseAgent {
                     ceo_authorized: true,
                     approved_by: args.approved_by
                 },
-                'authorization'
+                'authorization',
+                request.tenant_id || tenantId
             );
 
             request.execution_result = result;
@@ -323,14 +399,15 @@ class MasterAI extends BaseAgent {
             },
             required: ['authorization_id', 'rejected_by']
         }, async (args) => {
-            const request = this.financeAuthorizationRequests.get(args.authorization_id);
+            const tenantId = this._getTenantIdFromContext(args);
+            const request = this._getAuthRequest(args.authorization_id, tenantId);
             if (!request) {
                 return { success: false, status: 'NOT_FOUND', error: `Authorization request '${args.authorization_id}' not found.` };
             }
             if (request.status !== 'PENDING_CEO_AUTHORIZATION') {
                 return { success: false, status: request.status, error: `Authorization request is already ${request.status}.` };
             }
-            if (!this._isCeoApprover(args.rejected_by)) {
+            if (!this._isCeoApprover(args.rejected_by, request.tenant_id || tenantId)) {
                 return { success: false, status: 'REJECTED', error: 'Only CEO can reject financial workflow requests.' };
             }
 
@@ -359,8 +436,10 @@ class MasterAI extends BaseAgent {
 
     // --- Session Logic ---
 
-    async getOrCreateSession(identifier) {
+    async getOrCreateSession(identifier, context = {}) {
         // Determine lookup strategy: phone number (string) or email (object { email })
+        const tenantId = this._getTenantIdFromContext(context) || this._getTenantIdFromContext(identifier);
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
         const isEmailLookup = typeof identifier === 'object' && identifier.email;
         let phone = null;
         let email = null;
@@ -377,12 +456,19 @@ class MasterAI extends BaseAgent {
         }
 
         const sessionKey = phone || email;
+        const sessionMapKey = this._buildSessionMapKey(normalizedTenantId, sessionKey);
 
-        if (this.sessions.has(sessionKey)) {
-            const session = this.sessions.get(sessionKey);
+        const existingSessionKey = this.sessions.has(sessionMapKey)
+            ? sessionMapKey
+            : (this.sessions.has(sessionKey) ? sessionKey : null);
+
+        if (existingSessionKey) {
+            const session = this.sessions.get(existingSessionKey);
             // Reset Timeout on activity
             clearTimeout(session.timeoutId);
-            session.timeoutId = setTimeout(() => this.flushSession(sessionKey), this.SESSION_TIMEOUT_MS);
+            session.timeoutId = setTimeout(() => this.flushSession(sessionMapKey), this.SESSION_TIMEOUT_MS);
+            session.tenantId = normalizedTenantId;
+            session.sessionMapKey = sessionMapKey;
             return session;
         }
 
@@ -400,7 +486,7 @@ class MasterAI extends BaseAgent {
             // Step 1: CRM Lookup — phone first, then email (§2.1 Fail Fast, Zero Retries)
             if (phone) {
                 try {
-                    lookup = await crm.callTool('get_lead_by_phone', { phone });
+                    lookup = await crm.callTool('get_lead_by_phone', this._buildTenantContextArgs({ phone }, normalizedTenantId));
                 } catch (err) {
                     console.error("[MasterAI] CRM Phone Lookup Failed:", err.message);
                 }
@@ -408,7 +494,7 @@ class MasterAI extends BaseAgent {
 
             if (lookup.status !== 'Found' && email) {
                 try {
-                    lookup = await crm.callTool('get_lead_by_email', { email });
+                    lookup = await crm.callTool('get_lead_by_email', this._buildTenantContextArgs({ email }, normalizedTenantId));
                 } catch (err) {
                     console.error("[MasterAI] CRM Email Lookup Failed:", err.message);
                 }
@@ -424,7 +510,8 @@ class MasterAI extends BaseAgent {
                     const timeline = await crm.callTool('get_timeline', {
                         lead_id: leadId,
                         limit: 3,
-                        type_filter: 'SESSION'
+                        type_filter: 'SESSION',
+                        ...this._buildTenantContextArgs({}, normalizedTenantId)
                     });
                     recentSessions = timeline.events || [];
                     if (recentSessions.length > 0) {
@@ -454,33 +541,33 @@ class MasterAI extends BaseAgent {
         const session = {
             startTime: TimeAuthorityService.nowIST(),
             sessionKey: sessionKey,
+            sessionMapKey,
+            tenantId: normalizedTenantId,
             leadId: leadId,
             leadContext: leadContext,
             recentSessions: recentSessions,
             messages: [],
-            timeoutId: setTimeout(() => this.flushSession(sessionKey), this.SESSION_TIMEOUT_MS)
+            timeoutId: setTimeout(() => this.flushSession(sessionMapKey), this.SESSION_TIMEOUT_MS)
         };
 
         this.sessions.set(sessionKey, session);
+        this.sessions.set(sessionMapKey, session);
         return session;
     }
 
     async flushSession(sessionKey) {
-        // sessionKey can be E.164 phone or email
-        // Try to normalize if it looks like a phone, otherwise use as-is
-        let key = sessionKey;
-        if (typeof sessionKey === 'string' && !sessionKey.includes('@')) {
-            try {
-                key = PhoneNormalizationService.normalizeToE164(sessionKey);
-            } catch (err) {
-                // Not a phone — use as-is (email)
-            }
-        }
-
-        const session = this.sessions.get(key);
+        const key = typeof sessionKey === 'string' && sessionKey.includes('::')
+            ? sessionKey.split('::')[1]
+            : sessionKey;
+        const session = this.sessions.get(sessionKey) || this.sessions.get(key);
         if (!session) return;
 
-        this._emitSystemEvent('session.closed', session.leadId || key, { sessionKey: key, messageCount: session.messages.length });
+        const tenantId = session.tenantId || this.defaultTenantId;
+        this._emitSystemEvent('session.closed', session.leadId || key, {
+            sessionKey: key,
+            tenant_id: tenantId,
+            messageCount: session.messages.length
+        });
 
         console.log(`[MasterAI] Session Timeout for ${key}. Processing flush...`);
 
@@ -522,7 +609,8 @@ Rules:
                             const newLead = await crm.callTool('add_lead', {
                                 name: verdict.extracted_name || 'WhatsApp User',
                                 primary_phone: phone,
-                                source: { category: 'WhatsApp', detail: 'Auto-created after conversation' }
+                                source: { category: 'WhatsApp', detail: 'Auto-created after conversation' },
+                                ...this._buildTenantContextArgs({}, tenantId)
                             });
 
                             if (newLead.status === 'Lead Created' || newLead.status === 'Conflict') {
@@ -536,6 +624,7 @@ Rules:
                                     tone: verdict.tone,
                                     financial_impact: 'None',
                                     compliance_impact: 'None',
+                                    ...this._buildTenantContextArgs({}, tenantId),
                                     links: { artifacts: [] }
                                 });
                                 console.log(`[MasterAI] Deferred lead created and session logged for ${phone} (Reason: ${verdict.reason})`);
@@ -573,6 +662,7 @@ Rules:
                     tone: 'Neutral',
                     financial_impact: 'None',
                     compliance_impact: 'None',
+                    ...this._buildTenantContextArgs({}, tenantId),
                     links: { artifacts: [] }
                 });
                 console.log(`[MasterAI] Session flushed successfully.`);
@@ -583,6 +673,8 @@ Rules:
             console.log(`[MasterAI] Empty or unlinked session. Dropped.`);
         }
 
+        const flushSessionMapKey = session.sessionMapKey || this._buildSessionMapKey(tenantId, key);
+        this.sessions.delete(flushSessionMapKey);
         this.sessions.delete(key);
     }
 
@@ -623,8 +715,12 @@ Rules:
 
     async chat(history, userContext = null) {
         try {
+            const tenantId = this._getTenantIdFromContext(userContext);
+            const runtimeConfig = this._getRuntimeConfig(tenantId);
+            const runtimePersona = runtimeConfig?.persona || BusinessConfig.persona;
+
             // Check identity (Email via Dashboard, or profile_type via WhatsApp CRM Context)
-            const ceoEmail = BusinessConfig.persona.ceo_email;
+            const ceoEmail = runtimePersona?.ceo_email;
             const isCEO = userContext?.email === ceoEmail || userContext?.profile_type === 'CEO';
             const isStaff = !isCEO && (userContext?.profile_type === 'Staff'
                 || (userContext?.email && userContext?.email !== ceoEmail));
@@ -674,7 +770,11 @@ Rules:
                 });
             }
 
-            const persona = BusinessConfig.persona;
+            const persona = runtimePersona;
+            const publicPersona = {
+                name: this.identity.personaName,
+                role: this.identity.role
+            };
             let systemPrompt = `You are ${persona.name} (${persona.role}). ${this.identity.description}. 
                 
                 **Communication Rules**:
@@ -720,10 +820,10 @@ Rules:
                 - You must NOT reveal AI architecture, sub-agent names, tool prefixes, or system internals.
                 - You must NOT share individual tenant financial details (specific amounts, payment history) unless the staff member's role requires it.
                 - You must NOT reveal that you are an AI "Orchestrator" routing tasks to other AI models.
-                - Act as ${persona.name}, the ${persona.role}. Treat this as a professional internal conversation.`;
+                - Act as ${publicPersona.name}, the ${publicPersona.role}. Treat this as a professional internal conversation.`;
             } else {
                 systemPrompt += `\n\n**STRICT IDENTITY GUARDRAIL**: You are speaking to an external customer or prospective tenant.
-                - Act as a unified, singular human representative named ${persona.name}.
+                - Act as a unified, singular human representative named ${publicPersona.name}.
                 - You MAY share: available room types, pricing (public rate card), amenities, location details, visit scheduling, their own booking status, their own payment dues.
                 - You must NOT share: other tenants' information, internal staff details, occupancy numbers, business revenue, operational costs, or any internal metrics.
                 - You must NOT mention internal tools, AI agents, tool prefixes (e.g., PropertyAI_, CRMAgent_), or system architecture.
@@ -796,17 +896,23 @@ Rules:
                 for (const toolCall of assistantMessage.tool_calls) {
                     const fnName = toolCall.function.name;
                     const parsedArgs = JSON.parse(toolCall.function.arguments);
+                    const executionTenantId = this._normalizeTenantId(tenantId);
 
                     if (agentMap[fnName]) {
                         const { agent, toolName } = agentMap[fnName];
-                        const args = this._injectImageUrlsIntoPropertyArgs(agent, toolName, parsedArgs, history);
+                        const args = this._injectImageUrlsIntoPropertyArgs(
+                            agent,
+                            toolName,
+                            this._buildTenantContextArgs(parsedArgs, executionTenantId),
+                            history
+                        );
                         console.log(`[MasterAI] Iteration ${iteration}: Calling ${toolName} on ${agent.name}`);
 
                         let result;
                         try {
                             this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name });
                             if (this._isFinanceMutationTool(agent.name, toolName)) {
-                                result = await this._executeDeterministicFinanceWorkflow(toolName, args, 'chat');
+                                result = await this._executeDeterministicFinanceWorkflow(toolName, args, 'chat', executionTenantId);
                             } else {
                                 result = await agent.callTool(toolName, args);
                             }
@@ -863,6 +969,7 @@ Rules:
         // Generic Message Handler for ANY source (WhatsApp, Email, Portal, etc.)
         if (event.event_type === 'message.received') {
             const from = event.payload?.from;
+            const tenantId = this._getTenantIdFromContext(event.context || {});
             let text = event.payload?.body;
             const source = event.context?.channel || 'Unknown';
             const msgType = event.payload?.raw?.type;
@@ -879,9 +986,9 @@ Rules:
             console.log(`[MasterAI] Processing ${source} from ${from}: ${text}`);
 
             // 1. Get/Create Session (Manages Context & Timeout)
-            const session = await this.getOrCreateSession(from);
+            const session = await this.getOrCreateSession(from, { ...(event.context || {}), tenant_id: tenantId });
 
-            this._emitSystemEvent('workflow.started', session.leadId || from, { source, from });
+            this._emitSystemEvent('workflow.started', session.leadId || from, { source, from, tenant_id: tenantId || session.tenantId });
 
             // 2. Buffer User Message
             session.messages.push({ role: 'user', content: text, timestamp: TimeAuthorityService.nowIST() });
@@ -891,7 +998,7 @@ Rules:
             const history = session.messages.map(m => ({ role: m.role, content: m.content }));
 
             // 4. Autonomous Decision (Chat) - Pass the CRM Context as User Identity
-            const response = await this.chat(history, session.leadContext);
+            const response = await this.chat(history, { ...(session.leadContext || {}), tenant_id: tenantId || session.tenantId });
 
             // 5. Handle Response
             if (response && response.content) {
@@ -918,7 +1025,7 @@ Rules:
                 }
             }
 
-            this._emitSystemEvent('workflow.ended', session.leadId || from, { source, from });
+            this._emitSystemEvent('workflow.ended', session.leadId || from, { source, from, tenant_id: tenantId || session.tenantId });
         }
     }
 
@@ -928,16 +1035,17 @@ Rules:
         if (!agent) {
             throw new Error(`SubAgent '${agentName}' not found or not connected to MasterAI.`);
         }
+        const tenantId = this._extractTenantFromArgs(args);
 
         try {
-            this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name, source: 'dashboard' });
+            this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name, source: 'dashboard', tenant_id: tenantId });
 
             // Execute the tool
             const result = this._isFinanceMutationTool(agent.name, toolName)
-                ? await this._executeDeterministicFinanceWorkflow(toolName, args, 'dashboard')
-                : await agent.callTool(toolName, args);
+                ? await this._executeDeterministicFinanceWorkflow(toolName, this._buildTenantContextArgs(args, tenantId), 'dashboard', tenantId)
+                : await agent.callTool(toolName, this._buildTenantContextArgs(args, tenantId));
 
-            this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result, source: 'dashboard' });
+            this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result, source: 'dashboard', tenant_id: tenantId });
             return result;
         } catch (err) {
             if (String(err.message || '').includes(`Tool ${toolName} not found`)) {

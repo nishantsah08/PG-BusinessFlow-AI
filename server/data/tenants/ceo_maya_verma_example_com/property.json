@@ -1,0 +1,292 @@
+{
+    "properties": [
+        {
+            "id": "PROP-1",
+            "name": "R2Chat 06-59-50 Name",
+            "address": "Tower A, Viman Nagar Main Road, Viman Nagar, Pune, Maharashtra, 411014",
+            "street_address": "R2 Chat Tower 06-59",
+            "area": "Hitech City",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "pin_code": "500081",
+            "description": "R2 chat fieldwise EDIT-ALL-CEOS-FIELDWISE-CHECK-R2-2026-03-07T06-59-50-944Z",
+            "google_business_link": "https://maps.app.goo.gl/r2-fieldwise-chat",
+            "image_urls": [
+                "https://picsum.photos/seed/EDIT-ALL-CEOS-FIELDWISE-CHECK-R2-2026-03-07T06-59-50-944Z/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_maya_verma_example_com-p1-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 11,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_maya_verma_example_com",
+            "requested_by": "ceo.maya.verma@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.maya.verma@example.com",
+            "created_at": "2026-03-07T05:26:55.986Z",
+            "updated_at": "2026-03-07T07:05:47.282Z"
+        },
+        {
+            "id": "PROP-2",
+            "name": "Maya Habitat 2",
+            "address": "Tower B, Viman Nagar Main Road, Viman Nagar, Pune, Maharashtra, 411014",
+            "street_address": "Tower B, Viman Nagar Main Road",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "pin_code": "411014",
+            "description": "Maya Habitat 2 is configured for CEO persona testing with multi-image support.",
+            "google_business_link": "https://maps.google.com/?q=Tower%20B%2C%20Viman%20Nagar%20Main%20Road%20Pune",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_maya_verma_example_com-p2-1/1200/800",
+                "https://picsum.photos/seed/ceo_maya_verma_example_com-p2-2/1200/800",
+                "https://picsum.photos/seed/ceo_maya_verma_example_com-p2-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_maya_verma_example_com-p2-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 4,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_maya_verma_example_com",
+            "requested_by": "ceo.maya.verma@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.maya.verma@example.com",
+            "created_at": "2026-03-07T05:26:55.986Z",
+            "updated_at": "2026-03-07T05:26:55.986Z"
+        },
+        {
+            "id": "PROP-3",
+            "name": "Maya Habitat 3",
+            "address": "Tower C, Viman Nagar Main Road, Viman Nagar, Pune, Maharashtra, 411014",
+            "street_address": "Tower C, Viman Nagar Main Road",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "pin_code": "411014",
+            "description": "Maya Habitat 3 is configured for CEO persona testing with multi-image support.",
+            "google_business_link": "https://maps.google.com/?q=Tower%20C%2C%20Viman%20Nagar%20Main%20Road%20Pune",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_maya_verma_example_com-p3-1/1200/800",
+                "https://picsum.photos/seed/ceo_maya_verma_example_com-p3-2/1200/800",
+                "https://picsum.photos/seed/ceo_maya_verma_example_com-p3-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_maya_verma_example_com-p3-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 5,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_maya_verma_example_com",
+            "requested_by": "ceo.maya.verma@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.maya.verma@example.com",
+            "created_at": "2026-03-07T05:26:55.986Z",
+            "updated_at": "2026-03-07T05:26:55.986Z"
+        }
+    ],
+    "units": [
+        {
+            "id": "UNIT-1",
+            "property_id": "PROP-1",
+            "unit_number": "MAYA-U1",
+            "floor": 1,
+            "types": [
+                "Single Sharing"
+            ],
+            "base_rent": 12500,
+            "tenant_id": "ceo_maya_verma_example_com",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "rate_card": null,
+            "status": "AVAILABLE",
+            "history": [],
+            "created_at": "2026-03-07T07:15:00.310Z",
+            "updated_at": "2026-03-07T07:15:00.310Z"
+        },
+        {
+            "id": "UNIT-2",
+            "property_id": "PROP-1",
+            "unit_number": "MAYA-U2",
+            "floor": 2,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 14500,
+            "tenant_id": "ceo_maya_verma_example_com",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "rate_card": null,
+            "status": "AVAILABLE",
+            "history": [],
+            "created_at": "2026-03-07T07:15:16.965Z",
+            "updated_at": "2026-03-07T07:15:16.965Z"
+        },
+        {
+            "id": "UNIT-3",
+            "property_id": "PROP-1",
+            "unit_number": "MAYA-U3",
+            "floor": 3,
+            "types": [
+                "Triple Sharing"
+            ],
+            "base_rent": 16500,
+            "tenant_id": "ceo_maya_verma_example_com",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "rate_card": null,
+            "status": "AVAILABLE",
+            "history": [],
+            "created_at": "2026-03-07T07:15:31.677Z",
+            "updated_at": "2026-03-07T07:15:31.677Z"
+        },
+        {
+            "id": "UNIT-4",
+            "property_id": "PROP-1",
+            "unit_number": "CHAT-U1",
+            "floor": 1,
+            "types": [
+                "Single Sharing"
+            ],
+            "base_rent": 12500,
+            "tenant_id": "ceo_maya_verma_example_com",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "rate_card": null,
+            "status": "AVAILABLE",
+            "history": [],
+            "created_at": "2026-03-07T07:16:55.506Z",
+            "updated_at": "2026-03-07T07:16:55.506Z"
+        },
+        {
+            "id": "UNIT-5",
+            "property_id": "PROP-1",
+            "unit_number": "CHAT-U2",
+            "floor": 2,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 14500,
+            "tenant_id": "ceo_maya_verma_example_com",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "rate_card": null,
+            "status": "AVAILABLE",
+            "history": [],
+            "created_at": "2026-03-07T07:17:06.499Z",
+            "updated_at": "2026-03-07T07:17:06.499Z"
+        },
+        {
+            "id": "UNIT-6",
+            "property_id": "PROP-1",
+            "unit_number": "CHAT-U3",
+            "floor": 3,
+            "types": [
+                "Triple Sharing"
+            ],
+            "base_rent": 16500,
+            "tenant_id": "ceo_maya_verma_example_com",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "rate_card": null,
+            "status": "AVAILABLE",
+            "history": [],
+            "created_at": "2026-03-07T07:17:18.740Z",
+            "updated_at": "2026-03-07T07:17:18.740Z"
+        }
+    ],
+    "meters": [],
+    "maintenance_requests": [],
+    "lastUpdatedAt": "2026-03-10T06:59:44.233Z",
+    "businessConfig": {
+        "tenant_id": "ceo_maya_verma_example_com",
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.maya.verma@example.com",
+            "ceo_phone": "+917588498834",
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350
+        }
+    }
+}

@@ -1,6 +1,8 @@
 const BaseAgent = require('./BaseAgent');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
 const TimeAuthorityService = require('../services/TimeAuthorityService');
+const TenantDataStore = require('../storage/TenantDataStore');
+const BusinessConfig = require('../config/business');
 
 class CRMAgent extends BaseAgent {
     constructor() {
@@ -26,11 +28,134 @@ class CRMAgent extends BaseAgent {
             }
         });
 
-        // Data Store (In-Memory for Phase 1)
-        this.leads = new Map(); // Key: lead_id (primary phone), Value: Lead Snapshot
-        this.timelines = new Map(); // Key: lead_id, Value: Array of Events
+        this.defaultTenantId = BusinessConfig.DEFAULT_TENANT_ID || 'default';
+        this.dataBackend = process.env.STORAGE_BACKEND || (process.env.NODE_ENV === 'test' ? 'memory' : 'local');
+        this._activeTenantId = null;
+        this._tenantStates = new Map();
+        this._tenantStores = new Map();
+        this._businessConfigProvider = (tenantId) => {
+            if (typeof BusinessConfig.getBusinessConfig === 'function') {
+                return BusinessConfig.getBusinessConfig(tenantId);
+            }
+            return BusinessConfig;
+        };
 
         this.registerTools();
+    }
+
+    _extractTenantId(args = {}) {
+        return args.tenant_id || this.defaultTenantId;
+    }
+
+    _getTenantStore(tenantId) {
+        if (!this._tenantStores.has(tenantId)) {
+            this._tenantStores.set(
+                tenantId,
+                new TenantDataStore({
+                    tenantId,
+                    namespace: 'crm',
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._tenantStores.get(tenantId);
+    }
+
+    _hydrateMapsFromStore(rawState) {
+        const leadsMap = new Map();
+        const timelineMap = new Map();
+
+        if (Array.isArray(rawState?.leads)) {
+            rawState.leads.forEach((lead) => {
+                if (lead && lead.lead_id) {
+                    leadsMap.set(lead.lead_id, lead);
+                }
+            });
+        } else if (rawState?.leads && typeof rawState.leads === 'object') {
+            Object.entries(rawState.leads).forEach(([leadId, lead]) => {
+                if (leadId) {
+                    leadsMap.set(leadId, lead);
+                }
+            });
+        }
+
+        if (Array.isArray(rawState?.timelines)) {
+            rawState.timelines.forEach((entry) => {
+                if (entry && entry.lead_id) {
+                    timelineMap.set(entry.lead_id, entry.events || []);
+                }
+            });
+        } else if (rawState?.timelines && typeof rawState.timelines === 'object') {
+            Object.entries(rawState.timelines).forEach(([leadId, events]) => {
+                timelineMap.set(leadId, Array.isArray(events) ? events : []);
+            });
+        }
+
+        return {
+            leads: leadsMap,
+            timelines: timelineMap,
+            businessConfig: rawState?.businessConfig || null,
+            lastUpdatedAt: rawState?.lastUpdatedAt || TimeAuthorityService.nowIST()
+        };
+    }
+
+    _getState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        if (!this._tenantStates.has(resolvedTenantId)) {
+            const store = this._getTenantStore(resolvedTenantId);
+            const rawState = store.load({
+                leads: {},
+                timelines: {},
+                lastUpdatedAt: TimeAuthorityService.nowIST()
+            });
+            const hydrated = this._hydrateMapsFromStore(rawState);
+            this._tenantStates.set(resolvedTenantId, hydrated);
+        }
+        return this._tenantStates.get(resolvedTenantId);
+    }
+
+    _saveState(tenantId) {
+        const state = this._getState(tenantId);
+        const payload = {
+            leads: Object.fromEntries(state.leads.entries()),
+            timelines: Object.fromEntries(
+                [...state.timelines.entries()].map(([leadId, events]) => [
+                    leadId,
+                    Array.isArray(events) ? events : []
+                ])
+            ),
+            lastUpdatedAt: TimeAuthorityService.nowIST(),
+            businessConfig: this._businessConfigProvider(tenantId)
+        };
+        this._getTenantStore(tenantId).save(payload);
+    }
+
+    _getActiveBusinessConfig(tenantId = this.defaultTenantId) {
+        return this._businessConfigProvider(tenantId) || this._businessConfigProvider(this.defaultTenantId);
+    }
+
+    _getTenantStateCounts(tenantId = this.defaultTenantId) {
+        const state = this._getState(tenantId);
+        return {
+            leads: state.leads.size,
+            timelines: state.timelines.size
+        };
+    }
+
+    _setTenantContext(tenantId) {
+        const normalizedTenantId = this._extractTenantId({ tenant_id: tenantId });
+        const previousTenantId = this._activeTenantId;
+        this._activeTenantId = normalizedTenantId;
+        this._getState(normalizedTenantId);
+        return previousTenantId;
+    }
+
+    get leads() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).leads;
+    }
+
+    get timelines() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).timelines;
     }
 
     registerTools() {
@@ -575,27 +700,40 @@ class CRMAgent extends BaseAgent {
 
     async callTool(name, args) {
         // Global interceptor for CRM Agent to normalize all identity-based arguments to E.164
-        const phoneArgs = ['lead_id', 'source_lead_id', 'target_lead_id', 'primary_phone', 'phone', 'phone_number'];
+        const tenantId = this._extractTenantId(args || {});
+        const normalizedArgs = { ...(args || {}) };
+        const previousTenantId = this._setTenantContext(tenantId);
 
-        // Clone args to avoid mutating the original reference if it matters to caller, although typically safe here
-        const normalizedArgs = { ...args };
+        if (!normalizedArgs.tenant_id) {
+            normalizedArgs.tenant_id = tenantId;
+        }
+
+        const phoneArgs = ['lead_id', 'source_lead_id', 'target_lead_id', 'primary_phone', 'phone', 'phone_number'];
 
         for (const key of phoneArgs) {
             if (normalizedArgs[key] && typeof normalizedArgs[key] === 'string') {
                 try {
                     normalizedArgs[key] = PhoneNormalizationService.normalizeToE164(normalizedArgs[key]);
                 } catch (err) {
+                    this._activeTenantId = previousTenantId;
                     return { status: "Invalid Input", message: `Invalid phone number format for ${key}: ${normalizedArgs[key]}` };
                 }
             }
         }
 
-        return super.callTool(name, normalizedArgs);
+        try {
+            const result = await super.callTool(name, normalizedArgs);
+            this._saveState(tenantId);
+            return result;
+        } finally {
+            this._activeTenantId = previousTenantId;
+        }
     }
 
-    async _findLeadByPhone(phone) {
-        if (this.leads.has(phone)) return this.leads.get(phone);
-        for (const lead of this.leads.values()) {
+    async _findLeadByPhone(phone, tenantId = this._activeTenantId) {
+        const state = this._getState(tenantId);
+        if (state.leads.has(phone)) return state.leads.get(phone);
+        for (const lead of state.leads.values()) {
             if (lead.phones.others.some(p => p.number === phone)) {
                 return lead;
             }
@@ -603,11 +741,12 @@ class CRMAgent extends BaseAgent {
         return null;
     }
 
-    _logEvent(leadId, type, data) {
-        let timeline = this.timelines.get(leadId);
+    _logEvent(leadId, type, data, tenantId = this._activeTenantId) {
+        const state = this._getState(tenantId);
+        let timeline = state.timelines.get(leadId);
         if (!timeline) {
             timeline = [];
-            this.timelines.set(leadId, timeline);
+            state.timelines.set(leadId, timeline);
         }
 
         const event = {

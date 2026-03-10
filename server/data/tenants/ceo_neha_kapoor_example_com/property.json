@@ -1,0 +1,161 @@
+{
+    "properties": [
+        {
+            "id": "PROP-1",
+            "name": "R2 06-59-50 Name",
+            "address": "Tower J 06-59, Koramangala, Bengaluru, Karnataka, 560095",
+            "street_address": "Tower J 06-59",
+            "area": "Koramangala",
+            "city": "Bengaluru",
+            "state": "Karnataka",
+            "pin_code": "560095",
+            "description": "R2 fieldwise EDIT-ALL-CEOS-FIELDWISE-CHECK-R2-2026-03-07T06-59-50-944Z",
+            "google_business_link": "https://maps.app.goo.gl/r2-fieldwise",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p1-1/1200/800",
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p1-2/1200/800",
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p1-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p1-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 10,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_neha_kapoor_example_com",
+            "requested_by": "ceo.neha.kapoor@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.neha.kapoor@example.com",
+            "created_at": "2026-03-07T05:26:55.985Z",
+            "updated_at": "2026-03-07T07:04:13.153Z"
+        },
+        {
+            "id": "PROP-2",
+            "name": "Neha Habitat 2",
+            "address": "Tower B, Andheri East Main Road, Andheri East, Mumbai, Maharashtra, 400069",
+            "street_address": "Tower B, Andheri East Main Road",
+            "area": "Andheri East",
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "pin_code": "400069",
+            "description": "Neha Habitat 2 is configured for CEO persona testing with multi-image support.",
+            "google_business_link": "https://maps.google.com/?q=Tower%20B%2C%20Andheri%20East%20Main%20Road%20Mumbai",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p2-1/1200/800",
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p2-2/1200/800",
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p2-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p2-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 4,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_neha_kapoor_example_com",
+            "requested_by": "ceo.neha.kapoor@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.neha.kapoor@example.com",
+            "created_at": "2026-03-07T05:26:55.985Z",
+            "updated_at": "2026-03-07T05:26:55.985Z"
+        },
+        {
+            "id": "PROP-3",
+            "name": "Neha Habitat 3",
+            "address": "Tower C, Andheri East Main Road, Andheri East, Mumbai, Maharashtra, 400069",
+            "street_address": "Tower C, Andheri East Main Road",
+            "area": "Andheri East",
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "pin_code": "400069",
+            "description": "Neha Habitat 3 is configured for CEO persona testing with multi-image support.",
+            "google_business_link": "https://maps.google.com/?q=Tower%20C%2C%20Andheri%20East%20Main%20Road%20Mumbai",
+            "image_urls": [
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p3-1/1200/800",
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p3-2/1200/800",
+                "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p3-3/1200/800"
+            ],
+            "thumbnail_url": "https://picsum.photos/seed/ceo_neha_kapoor_example_com-p3-1/1200/800",
+            "amenities": [
+                "Wi-Fi",
+                "CCTV",
+                "Power Backup",
+                "Laundry"
+            ],
+            "floors": 5,
+            "status": "ACTIVE",
+            "tenant_id": "ceo_neha_kapoor_example_com",
+            "requested_by": "ceo.neha.kapoor@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "ceo.neha.kapoor@example.com",
+            "created_at": "2026-03-07T05:26:55.985Z",
+            "updated_at": "2026-03-07T05:26:55.985Z"
+        }
+    ],
+    "units": [],
+    "meters": [],
+    "maintenance_requests": [],
+    "lastUpdatedAt": "2026-03-10T06:59:09.502Z",
+    "businessConfig": {
+        "tenant_id": "ceo_neha_kapoor_example_com",
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.neha.kapoor@example.com",
+            "ceo_phone": "+917588498834",
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350
+        }
+    }
+}

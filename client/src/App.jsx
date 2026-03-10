@@ -10,6 +10,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import GlobalLoader from './components/common/GlobalLoader';
 import NotificationSystem from './components/common/NotificationSystem';
 import Shell from './components/layout/Shell';
+import { getViteEnv } from './lib/runtimeEnv';
 
 // Pages
 import ControlPanel from './pages/ControlPanel';
@@ -41,7 +42,7 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
     // Use a placeholder Google Client ID for non-production local boot.
-    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "739328227651-placeholder.apps.googleusercontent.com";
+    const GOOGLE_CLIENT_ID = getViteEnv('VITE_GOOGLE_CLIENT_ID', "739328227651-placeholder.apps.googleusercontent.com");
 
     return (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

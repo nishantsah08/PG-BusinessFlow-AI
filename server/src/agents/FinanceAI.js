@@ -1,5 +1,6 @@
 const BaseAgent = require('./BaseAgent');
 const BusinessConfig = require('../config/business');
+const TenantDataStore = require('../storage/TenantDataStore');
 
 /**
  * Finance AI (CFO)
@@ -33,15 +34,20 @@ class FinanceAI extends BaseAgent {
             }
         });
 
-        // In-memory simulation of Firestore
-        this.ledgerEntries = [];
-        this.transactions = [];
-        this.contracts = {};     // lead_id -> Negotiated Rate Card
-        this.salaryCards = {};   // staff_id -> Salary Card (Mocked handover from HR)
-        this.carryForwardCredits = {}; // payer_id -> [{ id, amount_remaining, available_from_key, available_from_month_year, source_txn_id }]
+        this.defaultTenantId = BusinessConfig.DEFAULT_TENANT_ID || 'default';
+        this.dataBackend = process.env.STORAGE_BACKEND || (process.env.NODE_ENV === 'test' ? 'memory' : 'local');
+        this._activeTenantId = null;
+        this._tenantStates = new Map();
+        this._tenantStores = new Map();
+        this._businessConfigProvider = (tenantId) => {
+            if (typeof BusinessConfig.getBusinessConfig === 'function') {
+                return BusinessConfig.getBusinessConfig(tenantId);
+            }
+            return BusinessConfig;
+        };
 
         this.PRIORITY = {};
-        BusinessConfig.finance.waterfall_priority.forEach((cat, idx) => {
+        this._businessConfigProvider(this.defaultTenantId).finance.waterfall_priority.forEach((cat, idx) => {
             this.PRIORITY[cat] = idx + 1;
         });
 
@@ -50,7 +56,124 @@ class FinanceAI extends BaseAgent {
 
     // --- Helper Logic (Sub-Agent Delegations) ---
 
-    _calculateWaterfall(payer_id, amount) {
+    _extractTenantId(args = {}) {
+        return args.tenant_id || this.defaultTenantId;
+    }
+
+    _getTenantStore(tenantId) {
+        if (!this._tenantStores.has(tenantId)) {
+            this._tenantStores.set(
+                tenantId,
+                new TenantDataStore({
+                    tenantId,
+                    namespace: 'finance',
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._tenantStores.get(tenantId);
+    }
+
+    _hydrateState(rawState) {
+        const safe = rawState || {};
+        return {
+            ledgerEntries: Array.isArray(safe.ledgerEntries) ? safe.ledgerEntries : [],
+            transactions: Array.isArray(safe.transactions) ? safe.transactions : [],
+            contracts: safe.contracts && typeof safe.contracts === 'object' ? safe.contracts : {},
+            salaryCards: safe.salaryCards && typeof safe.salaryCards === 'object' ? safe.salaryCards : {},
+            carryForwardCredits: safe.carryForwardCredits && typeof safe.carryForwardCredits === 'object'
+                ? safe.carryForwardCredits
+                : {}
+        };
+    }
+
+    _getState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        if (!this._tenantStates.has(resolvedTenantId)) {
+            const store = this._getTenantStore(resolvedTenantId);
+            const rawState = store.load({
+                ledgerEntries: [],
+                transactions: [],
+                contracts: {},
+                salaryCards: {},
+                carryForwardCredits: {}
+            });
+
+            this._tenantStates.set(resolvedTenantId, this._hydrateState(rawState));
+        }
+
+        return this._tenantStates.get(resolvedTenantId);
+    }
+
+    _saveState(tenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const state = this._getState(resolvedTenantId);
+        this._getTenantStore(resolvedTenantId).save({
+            ...state,
+            lastUpdatedAt: new Date().toISOString(),
+            businessConfig: this._businessConfigProvider(resolvedTenantId)
+        });
+    }
+
+    _setTenantContext(tenantId) {
+        const previousTenantId = this._activeTenantId;
+        this._activeTenantId = tenantId || this.defaultTenantId;
+        this._getState(this._activeTenantId);
+        return previousTenantId;
+    }
+
+    _getActiveBusinessConfig(tenantId = this.defaultTenantId) {
+        return this._businessConfigProvider(tenantId) || this._businessConfigProvider(this.defaultTenantId);
+    }
+
+    _getPriorityIndex(category, tenantId = this._activeTenantId) {
+        const config = this._getActiveBusinessConfig(tenantId);
+        const priorities = Array.isArray(config?.finance?.waterfall_priority) ? config.finance.waterfall_priority : [];
+        const idx = priorities.indexOf(category);
+        return idx >= 0 ? idx + 1 : 99;
+    }
+
+    get ledgerEntries() {
+        return this._getState(this._activeTenantId).ledgerEntries;
+    }
+
+    set ledgerEntries(value) {
+        this._getState(this._activeTenantId).ledgerEntries = value;
+    }
+
+    get transactions() {
+        return this._getState(this._activeTenantId).transactions;
+    }
+
+    set transactions(value) {
+        this._getState(this._activeTenantId).transactions = value;
+    }
+
+    get contracts() {
+        return this._getState(this._activeTenantId).contracts;
+    }
+
+    set contracts(value) {
+        this._getState(this._activeTenantId).contracts = value;
+    }
+
+    get salaryCards() {
+        return this._getState(this._activeTenantId).salaryCards;
+    }
+
+    set salaryCards(value) {
+        this._getState(this._activeTenantId).salaryCards = value;
+    }
+
+    get carryForwardCredits() {
+        return this._getState(this._activeTenantId).carryForwardCredits;
+    }
+
+    set carryForwardCredits(value) {
+        this._getState(this._activeTenantId).carryForwardCredits = value;
+    }
+
+    _calculateWaterfall(payer_id, amount, tenantId = this._activeTenantId) {
         let remaining = amount;
         const allocations = [];
 
@@ -61,8 +184,8 @@ class FinanceAI extends BaseAgent {
 
         // Sort by Priority then by month_year (oldest first)
         pending.sort((a, b) => {
-            const pA = this.PRIORITY[a.category] || 99;
-            const pB = this.PRIORITY[b.category] || 99;
+            const pA = this._getPriorityIndex(a.category, tenantId);
+            const pB = this._getPriorityIndex(b.category, tenantId);
             if (pA !== pB) return pA - pB;
 
             const dateA = this._parseMonthYear(a.month_year);
@@ -177,11 +300,12 @@ class FinanceAI extends BaseAgent {
         const billDate = this._parseMonthYear(month_year);
         const billMonthKey = this._monthKeyFromDate(billDate);
 
+        const currentTenantId = this._activeTenantId || tenantId;
         const targets = this.ledgerEntries
             .filter(e => generated_entry_ids.includes(e.id) && e.balance > 0)
             .sort((a, b) => {
-                const pA = this.PRIORITY[a.category] || 99;
-                const pB = this.PRIORITY[b.category] || 99;
+            const pA = this._getPriorityIndex(a.category, currentTenantId);
+            const pB = this._getPriorityIndex(b.category, currentTenantId);
                 if (pA !== pB) return pA - pB;
                 return String(a.id).localeCompare(String(b.id));
             });
@@ -435,8 +559,10 @@ class FinanceAI extends BaseAgent {
             required: ['staff_id']
         }, async (args) => {
             // Fetch salary config from BusinessConfig defaults (or HR card if available)
-            const base_salary = BusinessConfig.finance.default_base_salary;
-            const incentives = BusinessConfig.finance.default_incentive_per_unit;
+            const config = this._getActiveBusinessConfig(this._activeTenantId);
+            const base_salary = (this.salaryCards[args.staff_id]?.base_salary) || (config.finance?.default_base_salary || BusinessConfig.finance.default_base_salary);
+            const incentives = (this.salaryCards[args.staff_id]?.components?.incentives?.amount_per_unit)
+                || (config.finance?.default_incentive_per_unit || BusinessConfig.finance.default_incentive_per_unit);
             const advances = 0;
             const total = base_salary + incentives - advances;
 
@@ -476,12 +602,26 @@ class FinanceAI extends BaseAgent {
         });
     }
 
+    async callTool(name, args = {}) {
+        const tenantId = this._extractTenantId(args);
+        const normalizedArgs = { ...args, tenant_id: args.tenant_id || tenantId };
+        const previousTenantId = this._setTenantContext(tenantId);
+
+        try {
+            const result = await super.callTool(name, normalizedArgs);
+            this._saveState(tenantId);
+            return result;
+        } finally {
+            this._activeTenantId = previousTenantId;
+        }
+    }
+
     getOperatingInstructions() {
-        const rates = BusinessConfig.rates;
+        const rates = this._getActiveBusinessConfig(this._activeTenantId).rates;
         return `## FinanceAI — Operating Instructions
 - **Payer ID**: Always use the tenant's \`lead_id\` in E.164 format (e.g., "+919800098000"). Never use names.
 - **Deposit Rules**: Base deposit is ₹${rates.base_security_deposit}. For move-in dates on the ${rates.deposit_rules.dynamic_range_start}th-${rates.deposit_rules.dynamic_range_end}th: Standard + (daily_rent × ${rates.deposit_rules.dynamic_multiplier_days}).
-- **Waterfall Priority**: Incoming payments are auto-allocated in this order: ${BusinessConfig.finance.waterfall_priority.join(' → ')}.
+- **Waterfall Priority**: Incoming payments are auto-allocated in this order: ${(this._getActiveBusinessConfig(this._activeTenantId).finance?.waterfall_priority || []).join(' → ')}.
 - **Contracts**: Before generating bills, a tenant must have a negotiated rate card via \`onboard_tenant_contract\`. If not present, ask the CEO to set it up.
 - **Ledger**: The ledger is append-only. Use \`get_ledger\` to check a tenant's current balance. Never manually adjust paid amounts.
 - **Bills**: Use \`generate_monthly_bills\` with \`payer_id\` and \`month_year\` (e.g., "Mar 2026").`;

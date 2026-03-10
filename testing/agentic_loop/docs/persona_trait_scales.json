@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "line_word": "spectrum",
+  "scale": {
+    "direction": "left_to_right",
+    "left_meaning": "ideal_or_baseline",
+    "right_meaning": "worst_or_extreme",
+    "range": {
+      "min": 0,
+      "max": 100
+    }
+  },
+  "traits": {
+    "operational_tempo": "deliberate_to_rapid",
+    "risk_appetite": "conservative_to_aggressive",
+    "validation_depth": "deep_to_shallow",
+    "channel_preference": "module_forms_to_chat_only"
+  },
+  "personas": [
+    {
+      "name": "Neha Kapoor",
+      "tenant_id": "ceo_neha_kapoor_example_com",
+      "ceo_email": "ceo.neha.kapoor@example.com",
+      "ceo_phone": "+919800098002",
+      "execution_channel": "application_ui_pg_businessflow_ai",
+      "backend_fallback_allowed": false,
+      "scores": {
+        "operational_tempo": 85,
+        "risk_appetite": 60,
+        "validation_depth": 55,
+        "channel_preference": 35
+      }
+    },
+    {
+      "name": "Rohan Iyer",
+      "tenant_id": "ceo_rohan_iyer_example_com",
+      "ceo_email": "ceo.rohan.iyer@example.com",
+      "ceo_phone": "+919800098003",
+      "execution_channel": "whatsapp_simulator_chat",
+      "execution_channel_path": "/home/nishant/PG-BusinessFlow.ai/whatsapp_simulator",
+      "conversation_protocol": "whatsapp_simulator_multi_turn_response_driven",
+      "incoming_message_source": "/api/simulator/whatsapp/thread",
+      "backend_fallback_allowed": false,
+      "scores": {
+        "operational_tempo": 45,
+        "risk_appetite": 35,
+        "validation_depth": 25,
+        "channel_preference": 95
+      }
+    },
+    {
+      "name": "Maya Verma",
+      "tenant_id": "ceo_maya_verma_example_com",
+      "ceo_email": "ceo.maya.verma@example.com",
+      "ceo_phone": "+919800098000",
+      "execution_channel": "masterai_chat_ui",
+      "conversation_protocol": "masterai_chat_multi_turn_response_driven",
+      "incoming_message_source": "/api/communications/chat",
+      "backend_fallback_allowed": false,
+      "scores": {
+        "operational_tempo": 65,
+        "risk_appetite": 50,
+        "validation_depth": 70,
+        "channel_preference": 95
+      }
+    }
+  ]
+}

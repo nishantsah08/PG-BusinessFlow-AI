@@ -1,5 +1,7 @@
 const BaseAgent = require('./BaseAgent');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
+const TenantDataStore = require('../storage/TenantDataStore');
+const BusinessConfig = require('../config/business');
 
 class HRAgent extends BaseAgent {
     constructor(config = {}) {
@@ -38,11 +40,82 @@ class HRAgent extends BaseAgent {
         // this.crmAgent = config.crmAgent;
 
         // ... (rest of constructor)
-        this.staff = [];
-        this.salary_cards = [];
-        this.leaves = [];
+        this.defaultTenantId = BusinessConfig.DEFAULT_TENANT_ID || 'default';
+        this.dataBackend = process.env.STORAGE_BACKEND || (process.env.NODE_ENV === 'test' ? 'memory' : 'local');
+        this._activeTenantId = null;
+        this._tenantStates = new Map();
+        this._tenantStores = new Map();
+        this._businessConfigProvider = (tenantId) => {
+            if (typeof BusinessConfig.getBusinessConfig === 'function') {
+                return BusinessConfig.getBusinessConfig(tenantId);
+            }
+            return BusinessConfig;
+        };
 
         this.registerTools();
+    }
+
+    _extractTenantId(args = {}) {
+        return args.tenant_id || this.defaultTenantId;
+    }
+
+    _getTenantStore(tenantId) {
+        if (!this._tenantStores.has(tenantId)) {
+            this._tenantStores.set(
+                tenantId,
+                new TenantDataStore({
+                    tenantId,
+                    namespace: 'hr',
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._tenantStores.get(tenantId);
+    }
+
+    _getState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        if (!this._tenantStates.has(resolvedTenantId)) {
+            const store = this._getTenantStore(resolvedTenantId);
+            const rawState = store.load({
+                staff: [],
+                salary_cards: [],
+                leaves: []
+            });
+            this._tenantStates.set(resolvedTenantId, rawState);
+        }
+        return this._tenantStates.get(resolvedTenantId);
+    }
+
+    _saveState(tenantId) {
+        const state = this._getState(tenantId);
+        this._getTenantStore(tenantId).save({
+            staff: state.staff,
+            salary_cards: state.salary_cards,
+            leaves: state.leaves,
+            lastUpdatedAt: new Date().toISOString(),
+            businessConfig: this._businessConfigProvider(tenantId)
+        });
+    }
+
+    _setTenantContext(tenantId) {
+        const resolvedTenantId = this._extractTenantId({ tenant_id: tenantId });
+        const previousTenantId = this._activeTenantId;
+        this._activeTenantId = resolvedTenantId;
+        this._getState(resolvedTenantId);
+        return previousTenantId;
+    }
+
+    get staff() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).staff;
+    }
+
+    get salary_cards() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).salary_cards;
+    }
+
+    get leaves() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).leaves;
     }
 
     registerTools() {
@@ -390,7 +463,7 @@ class HRAgent extends BaseAgent {
             };
         });
 
-        this.registerTool('get_performance_metrics', 'Get staff performance metrics', {
+    this.registerTool('get_performance_metrics', 'Get staff performance metrics', {
             type: 'object',
             properties: {
                 staff_id: { type: 'string' },
@@ -409,6 +482,20 @@ class HRAgent extends BaseAgent {
                 note: "Simulated Phase 1 Metrics"
             };
         });
+    }
+
+    async callTool(name, args = {}) {
+        const tenantId = this._extractTenantId(args);
+        const normalizedArgs = { ...args, tenant_id: args.tenant_id || tenantId };
+        const previousTenantId = this._setTenantContext(tenantId);
+
+        try {
+            const result = await super.callTool(name, normalizedArgs);
+            this._saveState(tenantId);
+            return result;
+        } finally {
+            this._activeTenantId = previousTenantId;
+        }
     }
 
     getOperatingInstructions() {

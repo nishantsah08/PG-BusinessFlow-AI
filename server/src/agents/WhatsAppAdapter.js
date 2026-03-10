@@ -1,5 +1,6 @@
 const axios = require('axios');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
+const WhatsAppSimulatorBus = require('../observability/WhatsAppSimulatorBus');
 
 class WhatsAppAdapter {
     constructor() {
@@ -14,7 +15,11 @@ class WhatsAppAdapter {
         // Safety Check: External Send Flag
         if (!this.allowExternalSend) {
             console.log(`[WhatsAppAdapter] [SIMULATION] Would send to ${endpoint}:`, JSON.stringify(data).substring(0, 100) + "...");
-            return { status: "success", data: { id: `sim_${Date.now()}` }, simulated: true };
+            const simulated = { status: "success", data: { id: `sim_${Date.now()}` }, simulated: true };
+            if (endpoint === 'messages') {
+                WhatsAppSimulatorBus.recordOutbound(data, simulated);
+            }
+            return simulated;
         }
 
         try {
@@ -24,7 +29,11 @@ class WhatsAppAdapter {
                     'Content-Type': 'application/json'
                 }
             });
-            return { status: "success", data: response.data };
+            const success = { status: "success", data: response.data };
+            if (endpoint === 'messages') {
+                WhatsAppSimulatorBus.recordOutbound(data, success);
+            }
+            return success;
         } catch (error) {
             if (retries > 0) {
                 if (this.logLevel === 'debug') console.log(`[WhatsAppAdapter] Failure in ${endpoint}. Retrying... (${retries} left)`);

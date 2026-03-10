@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Building, Search, Save, Loader2, Edit2, Trash2, X, Tag, ListFilter } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Building, Search, Save, Loader2, Edit2, Trash2, X, Tag, ListFilter, MoreVertical } from 'lucide-react';
 
 const PIN_DIRECTORY = {
     '411001': { area: 'Camp', city: 'Pune', state: 'Maharashtra' },
@@ -10,6 +10,16 @@ const PIN_DIRECTORY = {
     '560001': { area: 'Ashok Nagar', city: 'Bengaluru', state: 'Karnataka' },
     '110001': { area: 'Connaught Place', city: 'New Delhi', state: 'Delhi' },
 };
+
+const LEGACY_CANONICAL_PAYMENT_CYCLE_RULE = '1st-5th: Standard Deposit; 6th-10th: Additional Deposit';
+const CANONICAL_PAYMENT_CYCLE_RULE = '1st-5th of every month: Standard Deposit; 6th-10th of every month: Additional Deposit';
+const LEGACY_DYNAMIC_PAYMENT_CYCLE_RULE = '1st-5th: Standard; 6th-10th: Standard + 5 Days Rent';
+const PAYMENT_CYCLE_RULE_OPTIONS = [
+    {
+        value: CANONICAL_PAYMENT_CYCLE_RULE,
+        label: 'Standard monthly 2-cycle rule'
+    }
+];
 
 const PropertyManagementView = () => {
     const [properties, setProperties] = useState([]);
@@ -46,6 +56,10 @@ const PropertyManagementView = () => {
     const [newUnitRentPaymentTiming, setNewUnitRentPaymentTiming] = useState('ADVANCE');
     const [newUnitUtilityPaymentTiming, setNewUnitUtilityPaymentTiming] = useState('ARREARS');
     const [newUnitMaintenanceFee, setNewUnitMaintenanceFee] = useState('0');
+    const [newUnitNoticePeriodDays, setNewUnitNoticePeriodDays] = useState('30');
+    const [newUnitMinStayMonths, setNewUnitMinStayMonths] = useState('6');
+    const [newUnitEarlyExitRule, setNewUnitEarlyExitRule] = useState('DEPOSIT_FORFEIT');
+    const [newUnitPaymentCycleRules, setNewUnitPaymentCycleRules] = useState(CANONICAL_PAYMENT_CYCLE_RULE);
     const [newUnitAmenities, setNewUnitAmenities] = useState([]);
     const [customUnitTypes, setCustomUnitTypes] = useState(() => {
         try {
@@ -66,45 +80,324 @@ const PropertyManagementView = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSavingObject, setIsSavingObject] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isPropertyActionMenuOpen, setIsPropertyActionMenuOpen] = useState(false);
+    const [openUnitMenuId, setOpenUnitMenuId] = useState(null);
+    const propertyActionMenuRef = useRef(null);
+    const unitActionMenuRefs = useRef({});
+
+    useEffect(() => {
+        const handleCloseMenus = (event) => {
+            if (propertyActionMenuRef.current && !propertyActionMenuRef.current.contains(event.target)) {
+                setIsPropertyActionMenuOpen(false);
+            }
+
+            if (openUnitMenuId && unitActionMenuRefs.current[openUnitMenuId] && !unitActionMenuRefs.current[openUnitMenuId].contains(event.target)) {
+                setOpenUnitMenuId(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleCloseMenus);
+        const handleEscapeMenu = (event) => {
+            if (event.key === 'Escape') {
+                setIsPropertyActionMenuOpen(false);
+                setOpenUnitMenuId(null);
+            }
+        };
+
+        document.addEventListener('keydown', handleEscapeMenu);
+        return () => {
+            document.removeEventListener('keydown', handleEscapeMenu);
+            document.removeEventListener('mousedown', handleCloseMenus);
+        };
+    }, [openUnitMenuId]);
+
+    const getTenantIdFromLocalUser = () => {
+        try {
+            const rawUser = localStorage.getItem('master_ai_user');
+            if (!rawUser) return '';
+            const user = JSON.parse(rawUser);
+            const deriveTenantFromEmail = (value) => {
+                if (typeof value !== 'string') return '';
+                const normalizedEmail = value.trim().toLowerCase();
+                if (!normalizedEmail.endsWith('@example.com')) return '';
+                return normalizedEmail.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            };
+
+            const emailTenant = deriveTenantFromEmail(user?.email);
+            if (emailTenant) return emailTenant;
+
+            if (typeof user?.tenant_id === 'string' && user.tenant_id.trim()) {
+                return String(user.tenant_id).trim();
+            }
+            if (typeof user?.tenantId === 'string' && user.tenantId.trim()) {
+                return String(user.tenantId).trim();
+            }
+        } catch (_error) {
+            // Local auth context is optional in mocked/test paths.
+        }
+        return '';
+    };
+
+    const getApiHeaders = (forJson = false) => {
+        const headers = {};
+        if (forJson) headers['Content-Type'] = 'application/json';
+        const tenantId = getTenantIdFromLocalUser();
+        if (tenantId) {
+            headers['X-Tenant-ID'] = tenantId;
+        }
+        try {
+            const rawUser = localStorage.getItem('master_ai_user');
+            if (rawUser) {
+                const user = JSON.parse(rawUser);
+                if (user?.idToken) {
+                    headers.Authorization = `Bearer ${user.idToken}`;
+                }
+                if (user?.email) {
+                    headers['X-Actor-Email'] = String(user.email).toLowerCase();
+                }
+            }
+        } catch (_error) {
+            // Local auth context is optional in mocked/test paths.
+        }
+        return headers;
+    };
+
+    const parseToolResponse = async (response) => {
+        const payload = await response.json();
+        if (payload && typeof payload === 'object' && Object.prototype.hasOwnProperty.call(payload, 'success')) {
+            if (response.status !== 200 || payload.success === false) {
+                throw new Error(payload.error || `Tool call failed with status ${response.status}`);
+            }
+            return payload;
+        }
+        if (!response.ok) {
+            throw new Error(payload?.error || `Tool call failed with status ${response.status}`);
+        }
+        if (payload && typeof payload === 'object' && Object.prototype.hasOwnProperty.call(payload, 'data')) {
+            return { success: true, data: payload.data };
+        }
+        return { success: true, data: payload };
+    };
+
+    const executeTool = async (tool, parameters = {}) => {
+        const tenantId = getTenantIdFromLocalUser();
+        const body = {
+            agent_name: 'PropertyAI',
+            tool_name: tool,
+            parameters
+        };
+        if (tenantId) {
+            body.tenant_id = tenantId;
+        }
+        const response = await fetch('/api/master_ai/tools/execute', {
+            method: 'POST',
+            headers: getApiHeaders(true),
+            body: JSON.stringify(body)
+        });
+        return parseToolResponse(response);
+    };
 
     const parseAddressParts = (property) => {
-        const pin = property?.pin_code ? String(property.pin_code) : '';
+        const pin = property?.pin_code ? String(property.pin_code).trim() : '';
         const area = property?.area || '';
         const city = property?.city || '';
         const state = property?.state || '';
-        if (pin || area || city || state || property?.street_address) {
+        if (pin || area || city || state || property?.street_address || (property?.address || '').trim()) {
+            const parts = String(property?.address || '').split(',').map((s) => s.trim()).filter(Boolean);
+            let inferredPin = pin;
+            let inferredStreet = String(property?.street_address || '').trim();
+            let inferredArea = area;
+            let inferredCity = city;
+            let inferredState = state;
+
+            if (!inferredPin && parts.length > 0 && /^\d{5,6}$/.test(parts[parts.length - 1])) {
+                inferredPin = parts.pop();
+            }
+
+            if (!inferredArea && !inferredCity && !inferredState && parts.length > 0 && !inferredStreet) {
+                if (parts.length === 1) {
+                    inferredStreet = parts[0];
+                } else if (parts.length === 2) {
+                    inferredStreet = parts[0];
+                    inferredCity = parts[1];
+                } else if (parts.length === 3) {
+                    inferredStreet = parts[0];
+                    inferredCity = parts[1];
+                    inferredState = parts[2];
+                } else if (parts.length > 3) {
+                    inferredStreet = parts[0];
+                    inferredArea = parts.slice(1, parts.length - 2).join(', ');
+                    inferredCity = parts[parts.length - 2];
+                    inferredState = parts[parts.length - 1];
+                }
+            }
+            if (!inferredStreet && parts.length > 0) {
+                inferredStreet = parts[0];
+            }
+
             return {
-                pin,
-                area,
-                city,
-                state,
-                street: property?.street_address || ''
+                pin: inferredPin,
+                area: inferredArea,
+                city: inferredCity,
+                state: inferredState,
+                street: inferredStreet
             };
         }
 
-        const segments = String(property?.address || '').split(',').map((s) => s.trim()).filter(Boolean);
-        let guessedStreet = '';
-        let guessedArea = '';
-        let guessedCity = '';
-        let guessedState = '';
+        return { pin: '', area: '', city: '', state: '', street: '' };
+    };
 
-        if (segments.length === 1) {
-            guessedStreet = segments[0];
-        } else if (segments.length === 2) {
-            guessedStreet = segments[0];
-            guessedCity = segments[1];
-        } else if (segments.length === 3) {
-            guessedStreet = segments[0];
-            guessedCity = segments[1];
-            guessedState = segments[2];
-        } else if (segments.length > 3) {
-            guessedStreet = segments[0];
-            guessedArea = segments.slice(1, segments.length - 2).join(', ');
-            guessedCity = segments[segments.length - 2];
-            guessedState = segments[segments.length - 1];
+    const normalizeImageList = (value) => {
+        if (Array.isArray(value)) {
+            return value
+                .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+                .filter(Boolean);
+        }
+        if (typeof value === 'string' && value.trim()) {
+            return [value.trim()];
+        }
+        return [];
+    };
+
+    const buildRateCardTemplate = async () => {
+        try {
+            const payload = await executeTool('get_public_rate_card');
+            const rateCard = payload?.data || {};
+            return {
+                baseRent: String(rateCard.monthly_rent ?? 12000),
+                securityDeposit: String(rateCard.base_security_deposit ?? 2500),
+                rentTiming: rateCard.rent_payment_timing || 'ADVANCE',
+                utilityTiming: rateCard.utility_payment_timing || 'ARREARS',
+                maintenanceFee: String(rateCard.maintenance_fee ?? 0),
+                noticePeriodDays: String(rateCard.notice_period_days ?? 30),
+                minStayMonths: String(rateCard.min_stay_months ?? 6),
+                earlyExitRule: rateCard.early_exit_rule || 'DEPOSIT_FORFEIT',
+                paymentCycleRules: normalizePaymentCycleRule(rateCard.payment_cycle_rules)
+            };
+        } catch (_error) {
+            return {
+                baseRent: '12000',
+                securityDeposit: '2500',
+                rentTiming: 'ADVANCE',
+                utilityTiming: 'ARREARS',
+                maintenanceFee: '0',
+                noticePeriodDays: '30',
+                minStayMonths: '6',
+                earlyExitRule: 'DEPOSIT_FORFEIT',
+                paymentCycleRules: CANONICAL_PAYMENT_CYCLE_RULE
+            };
+        }
+    };
+
+    const normalizePaymentCycleRule = (value) => {
+        if (value === LEGACY_CANONICAL_PAYMENT_CYCLE_RULE) return CANONICAL_PAYMENT_CYCLE_RULE;
+        if (value === LEGACY_DYNAMIC_PAYMENT_CYCLE_RULE) return CANONICAL_PAYMENT_CYCLE_RULE;
+        if (typeof value === 'string' && value.trim()) return value.trim();
+        return CANONICAL_PAYMENT_CYCLE_RULE;
+    };
+
+    const getPaymentCycleRuleOptions = (currentValue) => {
+        const normalizedValue = normalizePaymentCycleRule(currentValue);
+        const options = [...PAYMENT_CYCLE_RULE_OPTIONS];
+        if (normalizedValue && !options.some((option) => option.value === normalizedValue)) {
+            options.unshift({
+                value: normalizedValue,
+                label: 'Custom / Legacy Policy'
+            });
+        }
+        return options;
+    };
+
+    const getImageSources = (property) => {
+        if (!property) return [];
+        const fromPayload = [
+            ...normalizeImageList(property.image_urls),
+            ...normalizeImageList(property.images),
+            ...normalizeImageList(property.image_list),
+            ...normalizeImageList(property.media_urls),
+            ...normalizeImageList(property.media)
+        ];
+        const deduped = [...new Set(fromPayload)];
+        if (deduped.length > 0) return deduped;
+
+        const thumbnail = normalizeImageList(property.thumbnail_url)[0] || normalizeImageList(property.thumbnail)[0];
+        if (thumbnail) return [thumbnail];
+        return [];
+    };
+
+    const hydrateEditForm = (property) => {
+        const parts = parseAddressParts(property);
+        setSelectedProperty(property);
+        setEditName(property?.name || '');
+        setEditPinCode(parts.pin || '');
+        setEditArea(parts.area || '');
+        setEditCity(parts.city || '');
+        setEditState(parts.state || '');
+        setEditAddress(parts.street || property?.street_address || '');
+        setEditDescription(property?.description || '');
+        setEditGbl(property?.google_business_link || '');
+        setEditFloors(property?.floors || '');
+        const normalizedImages = getImageSources(property);
+        setEditImages(normalizedImages);
+        setEditThumbnailUrl(property?.thumbnail_url || normalizedImages[0] || '');
+        setEditAmenities(property?.amenities || []);
+    };
+
+    const isPropertyEnabled = (property) => {
+        return property?.is_enabled !== false;
+    };
+
+    const canDeleteProperty = (property) => property?.can_delete !== false;
+    const canDeleteUnit = (unit) => unit?.can_delete !== false;
+
+    const mergePropertyForEdit = (existingProperty, nextProperty) => {
+        if (!nextProperty) return existingProperty;
+        const hasImagePayload = ['image_urls', 'images', 'image_list', 'media_urls', 'media', 'thumbnail_url', 'thumbnail'].some((key) => Object.prototype.hasOwnProperty.call(nextProperty, key));
+        const nextImages = getImageSources(nextProperty);
+        const fallbackImages = getImageSources(existingProperty);
+        const hasExplicitImageArrayPayload =
+            ['image_urls', 'images', 'image_list', 'media_urls', 'media'].some((key) => Object.prototype.hasOwnProperty.call(nextProperty, key));
+        const hasExplicitThumbnailPayload = Object.prototype.hasOwnProperty.call(nextProperty, 'thumbnail_url') || Object.prototype.hasOwnProperty.call(nextProperty, 'thumbnail');
+        const hasExplicitEmptyImageArrays = ['image_urls', 'images', 'image_list', 'media_urls', 'media'].some((key) => {
+            const value = nextProperty[key];
+            return Array.isArray(value) && value.length === 0;
+        });
+
+        const merged = {
+            ...existingProperty,
+            ...nextProperty,
+            image_urls: hasImagePayload
+                ? (hasExplicitEmptyImageArrays && fallbackImages.length > 0 && !hasExplicitThumbnailPayload
+                    ? fallbackImages
+                    : nextImages)
+                : fallbackImages
+        };
+        const nextThumbnail = normalizeImageList(nextProperty.thumbnail_url)[0] || normalizeImageList(nextProperty.thumbnail)[0];
+        if (merged.image_urls.length === 0 && nextThumbnail) merged.image_urls = [nextThumbnail];
+        if (merged.image_urls.length === 0 && fallbackImages.length > 0) {
+            merged.image_urls = fallbackImages;
+        }
+        return merged;
+    };
+
+    const refreshAndHydrateEditForm = async (propertyId) => {
+        if (!propertyId) return;
+
+        let propertyForEdit = properties.find((p) => p.id === propertyId) || selectedProperty;
+
+        try {
+            const payload = await executeTool('get_properties', { property_id: propertyId });
+            if (payload && payload.data && payload.data.id) {
+                propertyForEdit = mergePropertyForEdit(propertyForEdit, payload.data);
+            }
+        } catch (e) {
+            console.error('Failed to refresh property before edit:', e);
         }
 
-        return { pin: '', area: guessedArea, city: guessedCity, state: guessedState, street: guessedStreet };
+        if (propertyForEdit) {
+            hydrateEditForm(propertyForEdit);
+            setIsEditing(true);
+        }
     };
 
     const composeAddress = ({ street, area, city, state, pin }) => {
@@ -135,14 +428,8 @@ const PropertyManagementView = () => {
 
     const fetchProperties = async (selectId = null) => {
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_properties',
-                    parameters: {}
-                })
-            });
-            const { data } = await res.json();
+            const payload = await executeTool('get_properties', {});
+            const data = payload.data;
             setProperties(data || []);
 
             if (data && data.length > 0) {
@@ -173,14 +460,7 @@ const PropertyManagementView = () => {
     const fetchUnitsAndAmenities = async (propertyId) => {
         try {
             // Fetch Units
-            const resUnits = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_units',
-                    parameters: { property_id: propertyId }
-                })
-            });
-            const unitsData = await resUnits.json();
+            const unitsData = await executeTool('get_units', { property_id: propertyId });
             // Sort by numerical floor first
             const sortedUnits = (unitsData.data || []).sort((a, b) => parseInt(a.floor) - parseInt(b.floor));
             setUnits(sortedUnits);
@@ -194,20 +474,7 @@ const PropertyManagementView = () => {
     };
 
     const handleSelect = (prop) => {
-        const parts = parseAddressParts(prop);
-        setSelectedProperty(prop);
-        setEditName(prop.name || '');
-        setEditPinCode(parts.pin || '');
-        setEditArea(parts.area || '');
-        setEditCity(parts.city || '');
-        setEditState(parts.state || '');
-        setEditAddress(parts.street || prop.street_address || '');
-        setEditDescription(prop.description || '');
-        setEditGbl(prop.google_business_link || '');
-        setEditFloors(prop.floors || '');
-        setEditImages(prop.image_urls || []);
-        setEditThumbnailUrl(prop.thumbnail_url || prop.image_urls?.[0] || '');
-        setEditAmenities(prop.amenities || []);
+        hydrateEditForm(prop);
         setIsEditing(false);
         fetchUnitsAndAmenities(prop.id);
     };
@@ -272,21 +539,10 @@ const PropertyManagementView = () => {
             const tool = selectedProperty ? 'update_property' : 'add_property';
             if (selectedProperty) payload.property_id = selectedProperty.id;
 
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: tool,
-                    parameters: payload
-                })
-            });
-            const { data, success, error } = await res.json();
-
-            if (success) {
-                await fetchProperties(data?.property_id || selectedProperty?.id);
-                setIsEditing(false);
-            } else {
-                alert("Error saving: " + error);
-            }
+            const response = await executeTool(tool, payload);
+            const { data } = response;
+            await fetchProperties(data?.property_id || selectedProperty?.id);
+            setIsEditing(false);
         } catch (e) {
             console.error("Save error:", e);
             alert("Network error while saving.");
@@ -301,52 +557,89 @@ const PropertyManagementView = () => {
 
         setIsDeleting(true);
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'delete_property',
-                    parameters: { property_id: selectedProperty.id }
-                })
-            });
-            if (res.ok) {
-                await fetchProperties();
-            } else {
-                alert("Failed to delete property");
-            }
+            await executeTool('delete_property', { property_id: selectedProperty.id });
+            await fetchProperties();
         } catch (e) {
             console.error("Delete error", e);
+            alert("Failed to delete property");
         } finally {
             setIsDeleting(false);
         }
     };
 
+    const handleTogglePropertyState = async () => {
+        if (!selectedProperty) return;
+        const tool = isPropertyEnabled(selectedProperty) ? 'disable_property' : 'enable_property';
+        try {
+            const response = await executeTool(tool, { property_id: selectedProperty.id });
+            const isNowEnabled = tool === 'enable_property' || (response?.data?.disabled === false);
+            setSelectedProperty((prev) => (prev ? { ...prev, is_enabled: isNowEnabled } : prev));
+            await fetchProperties(selectedProperty.id);
+        } catch (e) {
+            console.error('Error toggling property state', e);
+            alert(`Failed to ${isPropertyEnabled(selectedProperty) ? 'disable' : 'enable'} property`);
+        }
+    };
+
+    const handleToggleUnitState = async (unit) => {
+        const tool = unit?.is_enabled === false ? 'enable_unit' : 'disable_unit';
+        try {
+            await executeTool(tool, { unit_id: unit.id });
+            await fetchUnitsAndAmenities(selectedProperty?.id);
+        } catch (e) {
+            console.error('Error toggling unit state', e);
+            alert(`Failed to ${tool === 'disable_unit' ? 'disable' : 'enable'} unit`);
+        }
+    };
+
     const handleAddUnitClick = () => {
+        if (!selectedProperty) return;
+        if (!isPropertyEnabled(selectedProperty)) {
+            alert('Enable the property first to add units.');
+            return;
+        }
         setEditingUnitId(null);
         setNewUnitId('');
         setNewUnitFloor('');
-        setNewUnitBaseRent('12000');
-        setNewUnitSecurityDeposit('2500');
-        setNewUnitRentPaymentTiming('ADVANCE');
-        setNewUnitUtilityPaymentTiming('ARREARS');
-        setNewUnitMaintenanceFee('0');
         setNewUnitTypes([]);
         setNewUnitTypeInput('');
+
+        buildRateCardTemplate().then((rateTemplate) => {
+            setNewUnitBaseRent(rateTemplate.baseRent);
+            setNewUnitSecurityDeposit(rateTemplate.securityDeposit);
+            setNewUnitRentPaymentTiming(rateTemplate.rentTiming);
+            setNewUnitUtilityPaymentTiming(rateTemplate.utilityTiming);
+            setNewUnitMaintenanceFee(rateTemplate.maintenanceFee);
+            setNewUnitNoticePeriodDays(rateTemplate.noticePeriodDays);
+            setNewUnitMinStayMonths(rateTemplate.minStayMonths);
+            setNewUnitEarlyExitRule(rateTemplate.earlyExitRule);
+            setNewUnitPaymentCycleRules(rateTemplate.paymentCycleRules);
+        });
 
         // Default select all property amenities for a new unit
         setNewUnitAmenities(selectedProperty?.amenities || []);
         setIsUnitModalOpen(true);
     };
 
-    const handleEditUnitClick = (unit) => {
+    const handleEditUnitClick = async (unit) => {
+        if (!isPropertyEnabled(selectedProperty) || unit?.is_enabled === false) {
+            alert('Enable property and unit first to edit this unit.');
+            return;
+        }
         const rate = unit.rate_card || {};
+        const rateTemplate = await buildRateCardTemplate();
         setEditingUnitId(unit.id);
         setNewUnitId(unit.unit_number);
         setNewUnitFloor(unit.floor);
         setNewUnitBaseRent(unit.base_rent || '');
-        setNewUnitSecurityDeposit(String(rate.security_deposit ?? '2500'));
-        setNewUnitRentPaymentTiming(rate.rent_payment_timing || 'ADVANCE');
-        setNewUnitUtilityPaymentTiming(rate.utility_payment_timing || 'ARREARS');
-        setNewUnitMaintenanceFee(String(rate.maintenance_fee ?? '0'));
+        setNewUnitSecurityDeposit(String(rate.security_deposit ?? rateTemplate.securityDeposit));
+        setNewUnitRentPaymentTiming(rate.rent_payment_timing || rateTemplate.rentTiming);
+        setNewUnitUtilityPaymentTiming(rate.utility_payment_timing || rateTemplate.utilityTiming);
+        setNewUnitMaintenanceFee(String(rate.maintenance_fee ?? rateTemplate.maintenanceFee));
+        setNewUnitNoticePeriodDays(String(rate.notice_period_days ?? rateTemplate.noticePeriodDays));
+        setNewUnitMinStayMonths(String(rate.min_stay_months ?? rateTemplate.minStayMonths));
+        setNewUnitEarlyExitRule(rate.early_exit_rule || rateTemplate.earlyExitRule);
+        setNewUnitPaymentCycleRules(rate.payment_cycle_rules || rateTemplate.paymentCycleRules);
         setNewUnitTypes(unit.types || []);
         setNewUnitTypeInput('');
         setNewUnitAmenities(unit.amenities || []);
@@ -373,6 +666,10 @@ const PropertyManagementView = () => {
                     rent_payment_timing: newUnitRentPaymentTiming,
                     utility_payment_timing: newUnitUtilityPaymentTiming,
                     maintenance_fee: newUnitMaintenanceFee ? parseInt(newUnitMaintenanceFee) : 0,
+                    notice_period_days: newUnitNoticePeriodDays ? parseInt(newUnitNoticePeriodDays) : 30,
+                    min_stay_months: newUnitMinStayMonths ? parseInt(newUnitMinStayMonths) : 6,
+                    early_exit_rule: newUnitEarlyExitRule || 'DEPOSIT_FORFEIT',
+                    payment_cycle_rules: newUnitPaymentCycleRules
                 },
                 amenities: newUnitAmenities
             };
@@ -388,23 +685,12 @@ const PropertyManagementView = () => {
                 payload.unit_id = editingUnitId;
             }
 
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: endpoint, // add_unit or update_unit
-                    parameters: payload
-                })
-            });
-            if (res.ok) {
-                setIsUnitModalOpen(false);
-                fetchUnitsAndAmenities(selectedProperty.id);
-            } else {
-                const { error } = await res.json();
-                alert(`Could not ${editingUnitId ? 'update' : 'add'} unit: ` + error);
-            }
+            await executeTool(endpoint, payload);
+            setIsUnitModalOpen(false);
+            fetchUnitsAndAmenities(selectedProperty.id);
         } catch (e) {
             console.error("Error saving unit", e);
+            alert(`Could not ${editingUnitId ? 'update' : 'add'} unit: ` + (e?.message || 'Unknown error'));
         } finally {
             setIsSavingObject(false);
         }
@@ -412,15 +698,8 @@ const PropertyManagementView = () => {
 
     const handleDeleteUnit = async (unitId) => {
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'delete_unit',
-                    parameters: { unit_id: unitId }
-                })
-            });
-            if (res.ok) fetchUnitsAndAmenities(selectedProperty.id);
+            await executeTool('delete_unit', { unit_id: unitId });
+            fetchUnitsAndAmenities(selectedProperty.id);
         } catch (e) {
             console.error("Error deleting unit", e);
         }
@@ -433,22 +712,12 @@ const PropertyManagementView = () => {
         const updatedAmenities = [...new Set([...amenities, newAmenity.trim()])];
 
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'update_property',
-                    parameters: {
-                        property_id: selectedProperty.id,
-                        amenities: updatedAmenities
-                    }
-                })
+            await executeTool('update_property', {
+                property_id: selectedProperty.id,
+                amenities: updatedAmenities
             });
-
-            if (res.ok) {
-                setNewAmenity('');
-                fetchProperties(selectedProperty.id);
-            }
+            setNewAmenity('');
+            fetchProperties(selectedProperty.id);
         } catch (e) {
             console.error("Error adding amenity", e);
         }
@@ -459,25 +728,36 @@ const PropertyManagementView = () => {
         const updatedAmenities = amenities.filter(a => a !== amenityToRemove);
 
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'update_property',
-                    parameters: {
-                        property_id: selectedProperty.id,
-                        amenities: updatedAmenities
-                    }
-                })
+            await executeTool('update_property', {
+                property_id: selectedProperty.id,
+                amenities: updatedAmenities
             });
-            if (res.ok) {
-                fetchProperties(selectedProperty.id);
-            }
+            fetchProperties(selectedProperty.id);
         } catch (e) {
             console.error("Error removing amenity", e);
         }
     };
 
+    const normalizedExistingPin = String(selectedProperty?.pin_code || '').trim();
+    const existingImages = getImageSources(selectedProperty);
+    const hasRequiredName = String(editName || '').trim().length > 0;
+    const hasRequiredPin = selectedProperty
+        ? String(editPinCode || '').trim().length > 0 || normalizedExistingPin.length > 0
+        : String(editPinCode || '').trim().length > 0;
+    const hasRequiredStreetAddress = String(editAddress || '').trim().length > 0;
+    const hasRequiredArea = String(editArea || '').trim().length > 0;
+    const hasRequiredCity = String(editCity || '').trim().length > 0;
+    const hasRequiredState = String(editState || '').trim().length > 0;
+    const hasRequiredDescription = String(editDescription || '').trim().length > 0;
+    const hasRequiredFloors = String(editFloors || '').trim().length > 0;
+    const hasRequiredAmenities = editAmenities.length > 0;
+    const hasRequiredImage = selectedProperty
+        ? editImages.length > 0 || existingImages.length > 0 || !!selectedProperty?.thumbnail_url
+        : editImages.length > 0 || !!editThumbnailUrl;
+
+    const canSaveProperty = hasRequiredName && hasRequiredPin && hasRequiredStreetAddress && hasRequiredArea && hasRequiredCity && hasRequiredState && hasRequiredDescription && hasRequiredFloors && hasRequiredAmenities && hasRequiredImage;
+
+    const requiredDot = <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-red-500 text-red-500" aria-label="required field" />;
 
     return (
         <div className="flex h-full gap-6">
@@ -515,28 +795,34 @@ const PropertyManagementView = () => {
                             onClick={() => { if (!isEditing) handleSelect(prop) }}
                             className={`p-3 rounded-xl cursor-pointer border transition-all flex items-stretch gap-3 ${selectedProperty?.id === prop.id
                                 ? 'border-indigo-500 bg-indigo-50/50 shadow-sm'
-                                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                                 } ${isEditing && !selectedProperty ? 'opacity-50 pointer-events-none' : ''}`}
                         >
                             {/* Thumbnail */}
                             <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                                {(prop.thumbnail_url || (prop.image_urls && prop.image_urls.length > 0)) ? (
-                                    <img src={prop.thumbnail_url || prop.image_urls[0]} alt={prop.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                        <Building className="w-6 h-6" />
-                                    </div>
-                                )}
+                                {(() => {
+                                    const images = getImageSources(prop);
+                                    const preview = prop.thumbnail_url || images[0];
+                                    return preview ? (
+                                        <img src={preview} alt={prop.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                            <Building className="w-6 h-6" />
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             {/* Details */}
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-semibold text-gray-900 truncate pr-2 text-sm">{prop.name}</h3>
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-green-100 text-green-700 rounded shrink-0 uppercase tracking-wide">
-                                        {prop.status}
-                                    </span>
-                                </div>
+                                        <div className="flex justify-between items-start mb-1">
+                                            <h3 className="font-semibold text-gray-900 truncate pr-2 text-sm">{prop.name}</h3>
+                                            <div className="flex items-center gap-1">
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 uppercase tracking-wide ${isPropertyEnabled(prop) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                    {isPropertyEnabled(prop) ? 'Enabled' : 'Disabled'}
+                                                </span>
+                                            </div>
+                                        </div>
                                 <div className="flex items-center text-xs text-gray-500 truncate">
                                     <Building className="w-3 h-3 mr-1 shrink-0 text-gray-400" />
                                     <span className="truncate">{prop.address || 'No address'}</span>
@@ -559,11 +845,11 @@ const PropertyManagementView = () => {
                                 <div className="bg-white p-6 rounded-xl border border-gray-200">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="col-span-2 space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">Property Name</label>
+                                            <label className="text-xs font-semibold text-gray-500">Property Name {requiredDot}</label>
                                             <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="e.g. Emerald Heights" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">PIN Code</label>
+                                            <label className="text-xs font-semibold text-gray-500">PIN Code {requiredDot}</label>
                                             <input
                                                 value={editPinCode}
                                                 onChange={e => setEditPinCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -574,19 +860,19 @@ const PropertyManagementView = () => {
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">Area / Locality</label>
+                                            <label className="text-xs font-semibold text-gray-500">Area / Locality {requiredDot}</label>
                                             <input value={editArea} onChange={e => setEditArea(e.target.value)} placeholder="e.g. Viman Nagar" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">City</label>
+                                            <label className="text-xs font-semibold text-gray-500">City {requiredDot}</label>
                                             <input value={editCity} onChange={e => setEditCity(e.target.value)} placeholder="e.g. Pune" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">State</label>
+                                            <label className="text-xs font-semibold text-gray-500">State {requiredDot}</label>
                                             <input value={editState} onChange={e => setEditState(e.target.value)} placeholder="e.g. Maharashtra" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                         </div>
                                         <div className="col-span-2 space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">Street Address</label>
+                                            <label className="text-xs font-semibold text-gray-500">Street Address {requiredDot}</label>
                                             <div className="flex gap-2">
                                                 <input value={editAddress} onChange={e => setEditAddress(e.target.value)} placeholder="Building, street, landmark..." className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                                 <button
@@ -604,11 +890,11 @@ const PropertyManagementView = () => {
                                             </div>
                                         </div>
                                         <div className="col-span-2 space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">Description</label>
+                                            <label className="text-xs font-semibold text-gray-500">Description {requiredDot}</label>
                                             <textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="Describe the building..." className="w-full h-20 text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none" />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-500">Total Floors</label>
+                                            <label className="text-xs font-semibold text-gray-500">Total Floors {requiredDot}</label>
                                             <input type="number" value={editFloors} onChange={e => setEditFloors(e.target.value)} placeholder="e.g. 3" className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                         </div>
                                         <div className="col-span-2 space-y-1">
@@ -616,7 +902,7 @@ const PropertyManagementView = () => {
                                             <input value={editGbl} onChange={e => setEditGbl(e.target.value)} placeholder="https://maps.app.goo.gl/..." className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                                         </div>
                                         <div className="col-span-2 space-y-2 pt-2 border-t border-gray-100">
-                                            <label className="text-xs font-semibold text-gray-500">Property Images (At least 1 required)</label>
+                                            <label className="text-xs font-semibold text-gray-500">Property Images (At least 1 required) {requiredDot}</label>
                                             <div className="flex items-center gap-4">
                                                 <label className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer border border-indigo-200">
                                                     <Plus className="w-4 h-4" /> Upload Files from Computer
@@ -633,11 +919,13 @@ const PropertyManagementView = () => {
                                                                 const formData = new FormData();
                                                                 files.forEach(f => formData.append('images', f));
 
-                                                                const res = await fetch('/api/upload/images', {
+                                                                const uploadRes = await fetch('/api/upload/images', {
                                                                     method: 'POST',
+                                                                    headers: getApiHeaders(),
                                                                     body: formData
                                                                 });
-                                                                const { success, data, error } = await res.json();
+                                                                const uploadResponse = await uploadRes.json();
+                                                                const { success, data, error } = uploadResponse;
                                                                 if (success && data?.urls) {
                                                                     setEditImages(prev => {
                                                                         const merged = [...prev, ...data.urls];
@@ -688,7 +976,7 @@ const PropertyManagementView = () => {
                                             )}
                                         </div>
                                         <div className="col-span-2 space-y-2 pt-2 border-t border-gray-100">
-                                            <label className="text-xs font-semibold text-gray-500">Amenities</label>
+                                            <label className="text-xs font-semibold text-gray-500">Amenities {requiredDot}</label>
                                             <div className="flex gap-2">
                                                 <input
                                                     value={newEditAmenity}
@@ -718,7 +1006,7 @@ const PropertyManagementView = () => {
                                         </div>
                                         <div className="col-span-2 mt-6 pt-4 border-t border-gray-100 flex justify-end gap-2">
                                             <button onClick={() => selectedProperty ? setIsEditing(false) : fetchProperties()} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors">Cancel</button>
-                                            <button onClick={handleSavePrimary} disabled={isSavingObject || !editName || !editPinCode || editImages.length === 0} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                                            <button onClick={handleSavePrimary} disabled={isSavingObject || !canSaveProperty} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
                                                 {isSavingObject ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Property
                                             </button>
                                         </div>
@@ -732,23 +1020,29 @@ const PropertyManagementView = () => {
                             <div className="p-6 border-b border-gray-200 bg-white flex justify-between items-start shrink-0">
                                 <div className="flex items-start gap-4 flex-1">
                                     <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-indigo-50 text-indigo-600 shrink-0">
-                                        {(selectedProperty.thumbnail_url || selectedProperty.image_urls?.[0]) ? (
-                                            <img src={selectedProperty.thumbnail_url || selectedProperty.image_urls?.[0]} alt={selectedProperty.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Building className="w-7 h-7" />
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const previewImages = getImageSources(selectedProperty);
+                                            const preview = selectedProperty.thumbnail_url || previewImages[0];
+                                            return preview ? (
+                                                <img src={preview} alt={selectedProperty.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <Building className="w-7 h-7" />
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                     <div className="flex-1 mr-4">
                                         <div className="flex items-center gap-3 mb-1">
                                             <h2 className="text-2xl font-bold text-gray-900">{selectedProperty.name}</h2>
-                                            <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{selectedProperty.id}</span>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isPropertyEnabled(selectedProperty) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                {isPropertyEnabled(selectedProperty) ? 'Enabled' : 'Disabled'}
+                                            </span>
                                         </div>
                                         <p className="text-gray-500 text-sm mb-2">{selectedProperty.address}</p>
                                         <div className="flex items-center gap-4 text-xs font-medium text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 inline-flex">
                                             <span>Floors: {selectedProperty.floors || 'N/A'}</span>
-                                            {selectedProperty.image_urls?.length > 0 && <span>Images: {selectedProperty.image_urls.length}</span>}
+                                            {(getImageSources(selectedProperty).length > 0) && <span>Images: {getImageSources(selectedProperty).length}</span>}
                                         </div>
                                         {selectedProperty.google_business_link && (
                                             <div className="mt-2">
@@ -760,13 +1054,58 @@ const PropertyManagementView = () => {
                                         {selectedProperty.description && <p className="text-sm text-gray-600 mt-3 italic">"{selectedProperty.description}"</p>}
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-2 shrink-0">
-                                    <button onClick={() => setIsEditing(true)} className="flex items-center justify-center gap-1 bg-gray-100 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-                                        <Edit2 className="w-4 h-4" /> Edit Details
+                                <div className="relative shrink-0" ref={propertyActionMenuRef}>
+                                    <button
+                                        onClick={() => {
+                                            setOpenUnitMenuId(null);
+                                            setIsPropertyActionMenuOpen((prev) => !prev);
+                                        }}
+                                        aria-label="Open property actions"
+                                        aria-expanded={isPropertyActionMenuOpen}
+                                        className="text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg p-2 transition-colors"
+                                    >
+                                        <MoreVertical className="w-5 h-5" />
                                     </button>
-                                    <button onClick={handleDeleteProperty} disabled={isDeleting} className="flex items-center justify-center gap-1 text-red-600 hover:bg-red-50 hover:border-red-100 border border-transparent px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-                                        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Delete Property
-                                    </button>
+                                    {isPropertyActionMenuOpen && (
+                                        <div role="menu" className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                                            <button
+                                                onClick={() => {
+                                                    setIsPropertyActionMenuOpen(false);
+                                                    handleTogglePropertyState();
+                                                }}
+                                                className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                                            >
+                                                {isPropertyEnabled(selectedProperty) ? 'Disable Property' : 'Enable Property'}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsPropertyActionMenuOpen(false);
+                                                    if (selectedProperty) refreshAndHydrateEditForm(selectedProperty.id);
+                                                    else setIsEditing(true);
+                                                }}
+                                                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                                            >
+                                                <span className="flex items-center gap-2"><Edit2 className="w-4 h-4" /> Edit Details</span>
+                                            </button>
+                                            {canDeleteProperty(selectedProperty) ? (
+                                                <button
+                                                    onClick={() => {
+                                                        setIsPropertyActionMenuOpen(false);
+                                                        handleDeleteProperty();
+                                                    }}
+                                                    disabled={isDeleting}
+                                                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                >
+                                                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                    <span>Delete Property</span>
+                                                </button>
+                                            ) : (
+                                                <div className="w-full text-xs text-gray-500 px-3 py-2 border-t border-gray-100 bg-gray-50">
+                                                    Delete unavailable for active units/transactions.
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -782,7 +1121,8 @@ const PropertyManagementView = () => {
                                             </div>
                                             <button
                                                 onClick={handleAddUnitClick}
-                                                className="flex items-center gap-1 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors"
+                                                disabled={!isPropertyEnabled(selectedProperty)}
+                                                className="flex items-center gap-1 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Plus className="w-4 h-4" /> Add Unit
                                             </button>
@@ -798,6 +1138,9 @@ const PropertyManagementView = () => {
                                                             <span className="text-sm font-bold text-gray-900">Unit {u.unit_number}</span>
                                                             <span className="text-xs text-gray-500">Floor {u.floor}</span>
                                                             {u.base_rent > 0 && <span className="text-xs text-gray-600 bg-gray-200 px-1.5 py-0.5 rounded">₹{u.base_rent}/mo</span>}
+                                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${u.is_enabled === false ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                                {u.is_enabled === false ? 'Disabled' : 'Enabled'}
+                                                            </span>
                                                         </div>
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             {u.types && u.types.map(t => <span key={t} className="text-[10px] text-gray-600 bg-white px-1.5 py-0.5 rounded border border-gray-200">{t}</span>)}
@@ -805,9 +1148,66 @@ const PropertyManagementView = () => {
                                                     </div>
                                                     <div className="flex flex-col items-end gap-2">
                                                         <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${u.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{u.status}</span>
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => handleEditUnitClick(u)} className="text-gray-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 className="w-3.5 h-3.5" /></button>
-                                                            <button onClick={() => handleDeleteUnit(u.id)} className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                        <div className="relative" ref={(el) => { unitActionMenuRefs.current[u.id] = el; }}>
+                                                            <button
+                                                                aria-label={`Open actions for Unit ${u.unit_number}`}
+                                                            onClick={() => setOpenUnitMenuId((prev) => prev === u.id ? null : u.id)}
+                                                                className="text-gray-400 hover:text-indigo-600 hover:bg-gray-50 rounded p-1 transition-colors"
+                                                                aria-expanded={openUnitMenuId === u.id}
+                                                            >
+                                                                <MoreVertical className="w-4 h-4" />
+                                                            </button>
+                                                            {openUnitMenuId === u.id && (
+                                                                <div role="menu" className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                                                                    <label className="w-full flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-100 text-sm text-gray-700">
+                                                                        <span>Unit Active</span>
+                                                                        <span className="relative inline-flex items-center">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                aria-label={u.is_enabled === false ? `Enable Unit ${u.unit_number}` : `Disable Unit ${u.unit_number}`}
+                                                                                checked={u.is_enabled !== false}
+                                                                                onChange={() => {
+                                                                                    setOpenUnitMenuId(null);
+                                                                                    handleToggleUnitState(u);
+                                                                                }}
+                                                                                className="sr-only peer"
+                                                                            />
+                                                                            <span className={`w-9 h-5 bg-gray-300 rounded-full transition-colors peer-checked:bg-indigo-600 ${u.is_enabled === false ? 'bg-gray-300' : ''}`} />
+                                                                            <span className={`absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full border border-gray-300 transition-transform ${u.is_enabled === false ? 'translate-x-0' : 'translate-x-4'}`} />
+                                                                        </span>
+                                                                    </label>
+                                                                    <button
+                                                                        aria-label={`Edit Unit ${u.unit_number}`}
+                                                                        onClick={() => {
+                                                                            setOpenUnitMenuId(null);
+                                                                            handleEditUnitClick(u);
+                                                                        }}
+                                                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 disabled:opacity-50"
+                                                                        disabled={u.is_enabled === false || !isPropertyEnabled(selectedProperty)}
+                                                                    >
+                                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                                        Edit Unit
+                                                                    </button>
+                                                                    {canDeleteUnit(u) ? (
+                                                                        <button
+                                                                            aria-label={`Delete Unit ${u.unit_number}`}
+                                                                            onClick={() => {
+                                                                                setOpenUnitMenuId(null);
+                                                                                handleDeleteUnit(u.id);
+                                                                            }}
+                                                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                                                            disabled={u.is_enabled === false || !isPropertyEnabled(selectedProperty)}
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                            Delete Unit
+                                                                        </button>
+                                                                    ) : (
+                                                                        <div className="w-full text-xs text-gray-500 px-3 py-2 border-t border-gray-100 bg-gray-50">
+                                                                            Delete unavailable due to prior activity.
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -955,6 +1355,42 @@ const PropertyManagementView = () => {
                                                 <select value={newUnitUtilityPaymentTiming} onChange={(e) => setNewUnitUtilityPaymentTiming(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                                                     <option value="ARREARS">Arrears</option>
                                                     <option value="ADVANCE">Advance</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1 col-span-2">
+                                                <label htmlFor="unit-payment-cycle-rules" className="text-xs font-medium text-gray-500">Monthly Payment Cycle</label>
+                                                <select
+                                                    id="unit-payment-cycle-rules"
+                                                    value={newUnitPaymentCycleRules}
+                                                    onChange={(e) => setNewUnitPaymentCycleRules(e.target.value)}
+                                                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                                >
+                                                    {getPaymentCycleRuleOptions(newUnitPaymentCycleRules).map((option) => (
+                                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                                    ))}
+                                                </select>
+                                                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                                                    <p>1st-5th of every month: Standard Deposit</p>
+                                                    <p>6th-10th of every month: Additional Deposit</p>
+                                                </div>
+                                                <p className="text-[11px] text-gray-500">
+                                                    Billing is generated on the last day of every month. Customers can pay in either monthly cycle shown above.
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-500">Notice Period (Days)</label>
+                                                <input type="number" value={newUnitNoticePeriodDays} onChange={(e) => setNewUnitNoticePeriodDays(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-gray-500">Min Stay (Months)</label>
+                                                <input type="number" value={newUnitMinStayMonths} onChange={(e) => setNewUnitMinStayMonths(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                                            </div>
+                                            <div className="space-y-1 col-span-2">
+                                                <label className="text-xs font-medium text-gray-500">Early Exit Rule</label>
+                                                <select value={newUnitEarlyExitRule} onChange={(e) => setNewUnitEarlyExitRule(e.target.value)} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                                    <option value="DEPOSIT_FORFEIT">Deposit Forfeit</option>
+                                                    <option value="DEPOSIT_RETURN">Deposit Return on Exit</option>
+                                                    <option value="NO_PENALTY">No Penalty</option>
                                                 </select>
                                             </div>
                                         </div>

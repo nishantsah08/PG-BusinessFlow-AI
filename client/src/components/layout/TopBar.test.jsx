@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TopBar from './TopBar';
 import { useAuth } from '../../context/AuthContext';
+import { renderWithSettings } from '../../test/renderWithSettings';
 
 // Mock the AuthContext hook
 jest.mock('../../context/AuthContext', () => ({
@@ -14,7 +15,11 @@ jest.mock('lucide-react', () => ({
     Settings: () => <div data-testid="settings-icon" />,
     LogOut: () => <div data-testid="logout-icon" />,
     Code: () => <div data-testid="code-icon" />,
-    User: () => <div data-testid="user-icon" />
+    User: () => <div data-testid="user-icon" />,
+    ChevronDown: () => <div data-testid="chevron-down-icon" />,
+    ChevronRight: () => <div data-testid="chevron-right-icon" />,
+    Clock: () => <div data-testid="clock-icon" />,
+    Monitor: () => <div data-testid="monitor-icon" />
 }));
 
 describe('TopBar Component', () => {
@@ -27,7 +32,7 @@ describe('TopBar Component', () => {
     });
 
     it('renders the branding logo and text', () => {
-        render(<TopBar />);
+        renderWithSettings(<TopBar />);
 
         expect(screen.getByText('PG')).toBeInTheDocument();
         expect(screen.getByText('pgbusinessflow')).toBeInTheDocument();
@@ -35,7 +40,7 @@ describe('TopBar Component', () => {
     });
 
     it('renders the Settings button and opens dropdown to reveal Logout', () => {
-        render(<TopBar />);
+        renderWithSettings(<TopBar />);
 
         expect(screen.getByTestId('settings-icon')).toBeInTheDocument();
         expect(screen.getByText('Settings')).toBeInTheDocument();
@@ -51,7 +56,7 @@ describe('TopBar Component', () => {
     });
 
     it('calls the logout function from AuthContext when Logout is clicked', () => {
-        render(<TopBar />);
+        renderWithSettings(<TopBar />);
 
         // Open dropdown first
         fireEvent.click(screen.getByText('Settings').closest('button'));

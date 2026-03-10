@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
@@ -13,6 +14,7 @@ const TimeAuthorityService = require('./services/TimeAuthorityService');
 const BusinessConfig = require('./config/business');
 const WorkflowStore = require('./storage/WorkflowStore');
 const ImageStore = require('./storage/ImageStore');
+const WhatsAppSimulatorBus = require('./observability/WhatsAppSimulatorBus');
 const {
     ensurePredefinedFinancialWorkflows,
     isProtectedPredefinedWorkflow
@@ -63,8 +65,11 @@ app.use((req, res, next) => {
     res.setHeader('X-Correlation-ID', correlationId);
     next();
 });
+app.use((req, _res, next) => {
+    req.tenantId = normalizeTenantIdFromRequest(req);
+    next();
+});
 
-const path = require('path');
 const fs = require('fs');
 const IMAGE_DIR = path.join(__dirname, '..', '..', 'images');
 if (!fs.existsSync(IMAGE_DIR)) fs.mkdirSync(IMAGE_DIR, { recursive: true });
@@ -233,9 +238,62 @@ function getDevRequesterEmail(req) {
     return ALLOW_DEV_BYPASS_IN_PROD ? email : null;
 }
 
+function normalizeTenantIdFromRequest(req) {
+    const actorEmail = String(req?.headers?.['x-actor-email'] || req?.headers?.['x-admin-email'] || '').trim().toLowerCase();
+    const headerTenant = req?.headers?.['x-tenant-id'] || req?.headers?.['x-business-id'];
+    const queryTenant = req?.query?.tenant_id;
+    const bodyTenant = req?.body?.tenant_id;
+    const actorTenant = actorEmail ? findTenantIdByCeoEmail(actorEmail) || null : null;
+    const normalizedCandidate = String(headerTenant || queryTenant || bodyTenant || '').trim();
+    const rawTenantId = (normalizedCandidate && normalizedCandidate !== 'default')
+        ? normalizedCandidate
+        : (actorTenant || (req?.authUser?.tenant_id));
+
+    const normalized = typeof rawTenantId === 'string' ? rawTenantId.trim() : '';
+    return normalized || (BusinessConfig.DEFAULT_TENANT_ID || 'default');
+}
+
+function findTenantIdByCeoEmail(email) {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail) return null;
+    const tenants = BusinessConfig.getAllTenantConfigs();
+    for (const [tenantId, config] of Object.entries(tenants)) {
+        const ceoEmail = String(config?.persona?.ceo_email || '').trim().toLowerCase();
+        if (ceoEmail && ceoEmail === normalizedEmail) {
+            return tenantId;
+        }
+    }
+    return null;
+}
+
+function deriveTenantIdFromEmail(email) {
+    const raw = String(email || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    return raw || BusinessConfig.DEFAULT_TENANT_ID;
+}
+
+function getUniqueTenantId(baseTenantId) {
+    const all = BusinessConfig.getAllTenantConfigs();
+    if (!all[baseTenantId]) return baseTenantId;
+    let idx = 2;
+    while (all[`${baseTenantId}_${idx}`]) idx += 1;
+    return `${baseTenantId}_${idx}`;
+}
+
+function deriveBusinessName(displayName, email) {
+    if (displayName) return `${displayName}'s Workspace`;
+    const fallback = String(email || '').split('@')[0] || 'Business';
+    return `${fallback}'s Workspace`;
+}
+
 async function resolveAuthContext(req) {
+    const tenantId = normalizeTenantIdFromRequest(req);
     const trustedEmail = (req.authUser?.email || getDevRequesterEmail(req) || '').trim().toLowerCase();
-    const ceoEmail = String(BusinessConfig.persona?.ceo_email || '').trim().toLowerCase();
+    const tenantConfig = BusinessConfig.getBusinessConfig(tenantId);
+    const ceoEmail = String(tenantConfig?.persona?.ceo_email || '').trim().toLowerCase();
     let profileType = 'Customer';
     let crmLead = null;
 
@@ -243,7 +301,7 @@ async function resolveAuthContext(req) {
         profileType = 'CEO';
     } else if (trustedEmail) {
         try {
-            const lookup = await crmAgent.callTool('get_lead_by_email', { email: trustedEmail });
+            const lookup = await crmAgent.callTool('get_lead_by_email', { email: trustedEmail, tenant_id: tenantId });
             if (lookup?.status === 'Found' && lookup.lead) {
                 crmLead = lookup.lead;
                 profileType = lookup.lead.profile_type || 'Customer';
@@ -257,6 +315,7 @@ async function resolveAuthContext(req) {
     const permissions = ADMIN_ROLE_PERMISSIONS[normalizedProfile] || ADMIN_ROLE_PERMISSIONS.Customer;
 
     return {
+        tenant_id: tenantId,
         email: trustedEmail || null,
         profile_type: normalizedProfile,
         crm_lead_id: crmLead?.lead_id || null,
@@ -328,7 +387,71 @@ app.get('/ready', (_req, res) => {
 app.get('/api/auth/context', requireAuth, async (req, res) => {
     try {
         const context = await resolveAuthContext(req);
+        context.tenant_id = req.tenantId || context.tenant_id;
         return res.json({ success: true, data: context });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/auth/bootstrap', requireAuth, async (req, res) => {
+    try {
+        const body = req.body || {};
+        const intent = ['signin', 'signup'].includes(body.intent) ? body.intent : 'signin';
+        const trustedEmail = String(req.authUser?.email || getDevRequesterEmail(req) || body.email || '').trim().toLowerCase();
+        const displayName = String(req.authUser?.name || body.name || '').trim();
+        if (!trustedEmail) {
+            return res.status(400).json({ success: false, error: 'Missing authenticated email for bootstrap.' });
+        }
+
+        const existingTenantId = findTenantIdByCeoEmail(trustedEmail);
+        let targetTenantId = existingTenantId || null;
+        let created = false;
+
+        if (intent === 'signin' && !existingTenantId) {
+            return res.status(404).json({
+                success: false,
+                error: 'Account not found. Please use Sign Up first to create your CEO workspace.',
+            });
+        }
+
+        if (!targetTenantId) {
+            const baseTenantId = deriveTenantIdFromEmail(trustedEmail);
+            targetTenantId = getUniqueTenantId(baseTenantId);
+            created = true;
+        }
+
+        const updatedConfig = BusinessConfig.saveTenantConfig(targetTenantId, {
+            business_name: deriveBusinessName(displayName, trustedEmail),
+            persona: {
+                name: displayName || String(trustedEmail.split('@')[0] || 'CEO'),
+                role: 'CEO',
+                ceo_email: trustedEmail,
+            },
+        });
+
+        const authReq = {
+            ...req,
+            tenantId: targetTenantId,
+            authUser: {
+                ...(req.authUser || {}),
+                email: trustedEmail,
+                name: displayName || req.authUser?.name || trustedEmail,
+            },
+        };
+        const context = await resolveAuthContext(authReq);
+        return res.json({
+            success: true,
+            data: {
+                intent,
+                created,
+                tenant_id: targetTenantId,
+                business_name: updatedConfig?.business_name || null,
+                profile_type: context.profile_type,
+                email: context.email,
+                name: updatedConfig?.persona?.name || displayName || null,
+            },
+        });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
@@ -933,12 +1056,13 @@ const chatHandler = async (req, res) => {
         const normalizedEvent = await commsAI.callTool('handle_portal_message', {
             messages: inputMessages,
             user,
-            correlation_id: req.correlationId
+            correlation_id: req.correlationId,
+            tenant_id: req.tenantId
         });
 
         const response = await masterAI.chat(
             normalizedEvent.payload?.history || inputMessages,
-            normalizedEvent.context?.user || user
+            { ...(normalizedEvent.context?.user || user || {}), tenant_id: req.tenantId }
         );
         res.json({ success: true, data: response, uploaded_image_urls: uploadedImageUrls });
     } catch (error) {
@@ -1028,7 +1152,7 @@ app.post('/api/property/tools/:tool_name', requireAuth, async (req, res) => {
         if (!propertyAI.capabilities.tools.includes(toolName)) {
             return res.status(404).json({ success: false, error: `Tool ${toolName} not found or not allowed` });
         }
-        const result = await propertyAI.callTool(toolName, req.body);
+        const result = await propertyAI.callTool(toolName, { ...(req.body || {}), tenant_id: req.tenantId });
         res.json({ success: true, data: result });
     } catch (error) {
         console.error(`Property Tool Error [${req.params.tool_name}]:`, error);
@@ -1054,6 +1178,7 @@ app.post('/api/master_ai/tools/execute', requireAuth, async (req, res) => {
         console.log(`[API] Dashboard requested MasterAI to execute ${agent_name}.${tool_name}`);
         const enrichedParameters = {
             ...parameters,
+            tenant_id: req.tenantId || parameters?.tenant_id,
             requested_by: authContext.email || req.authUser?.email || null,
             requested_by_role: authContext.profile_type || 'Customer',
         };
@@ -1202,6 +1327,114 @@ app.get('/api/verify-openai', requireAuth, async (req, res) => {
     }
 });
 
+async function processIncomingWhatsAppPayload(payload) {
+    console.log('Incoming Webhook: received payload', {
+        object: payload?.object || null,
+        entries: Array.isArray(payload?.entry) ? payload.entry.length : 0
+    });
+    const inboundEvent = WhatsAppSimulatorBus.recordInbound(payload);
+
+    // Route through Communications AI System Reliability Layer
+    const systemEvent = await commsAI.callTool('handle_incoming_message', { payload });
+
+    if (systemEvent) {
+        console.log('System Event Generated:', JSON.stringify(systemEvent, null, 2));
+
+        if (systemEvent.error) {
+            console.error('Event Rejected by CommsAI:', systemEvent.error);
+            return { inboundEvent };
+        }
+        await masterAI.process_event(systemEvent);
+        return { inboundEvent };
+    }
+
+    // It might be a status update or unhandled type
+    const statusEvent = await commsAI.callTool('handle_delivery_status', { payload });
+    if (!statusEvent) return { inboundEvent };
+    console.log('Status Event Generated:', JSON.stringify(statusEvent, null, 2));
+    await masterAI.process_event(statusEvent);
+    return { inboundEvent };
+}
+
+// 3.1 WhatsApp Simulator (Debug) - send a synthetic inbound message into official webhook flow.
+app.post('/api/simulator/whatsapp/send', requireDebugAccess, async (req, res) => {
+    try {
+        const from = String(req.body?.from || '').trim();
+        const body = String(req.body?.body || '').trim();
+        const imageUrls = Array.isArray(req.body?.image_urls) ? req.body.image_urls.filter(Boolean) : [];
+
+        if (!from) {
+            return res.status(400).json({ success: false, error: 'from is required' });
+        }
+        if (!body && imageUrls.length === 0) {
+            return res.status(400).json({ success: false, error: 'body or image_urls is required' });
+        }
+
+        const imageMarker = imageUrls.length > 0
+            ? `\n\n[Attached ${imageUrls.length} image(s) — use these as image_urls: ${imageUrls.join(', ')}]`
+            : '';
+        const finalBody = `${body}${imageMarker}`.trim();
+        const normalizedFrom = WhatsAppSimulatorBus.normalizePhone(from);
+        const syntheticMessageId = `wamid.sim.${Date.now()}`;
+        const payload = {
+            object: 'whatsapp_business_account',
+            entry: [{
+                id: 'simulator',
+                changes: [{
+                    field: 'messages',
+                    value: {
+                        messaging_product: 'whatsapp',
+                        messages: [{
+                            from: normalizedFrom.replace(/^\+/, ''),
+                            id: syntheticMessageId,
+                            timestamp: String(Math.floor(Date.now() / 1000)),
+                            text: { body: finalBody },
+                            type: 'text'
+                        }]
+                    }
+                }]
+            }]
+        };
+
+        const { inboundEvent } = await processIncomingWhatsAppPayload(payload);
+        return res.json({
+            success: true,
+            data: {
+                from: normalizedFrom,
+                message_id: syntheticMessageId,
+                body: finalBody,
+                images: imageUrls,
+                inbound_event: inboundEvent || null,
+                synthetic_payload: {
+                    object: payload?.object,
+                    entry: payload?.entry
+                }
+            }
+        });
+    } catch (error) {
+        console.error('WhatsApp Simulator Send Error:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/simulator/whatsapp/thread', requireDebugAccess, (req, res) => {
+    const phone = String(req.query?.phone || '').trim();
+    if (!phone) {
+        return res.status(400).json({ success: false, error: 'phone query param is required' });
+    }
+    const items = WhatsAppSimulatorBus.listByPhone(phone);
+    return res.json({ success: true, data: { phone: WhatsAppSimulatorBus.normalizePhone(phone), items } });
+});
+
+app.delete('/api/simulator/whatsapp/thread', requireDebugAccess, (req, res) => {
+    const phone = String(req.query?.phone || '').trim();
+    if (!phone) {
+        return res.status(400).json({ success: false, error: 'phone query param is required' });
+    }
+    WhatsAppSimulatorBus.clearByPhone(phone);
+    return res.json({ success: true, data: { phone: WhatsAppSimulatorBus.normalizePhone(phone), cleared: true } });
+});
+
 // 4. WhatsApp Webhook (Verification)
 app.get('/api/webhooks/whatsapp', (req, res) => {
     const mode = req.query['hub.mode'];
@@ -1221,39 +1454,8 @@ app.get('/api/webhooks/whatsapp', (req, res) => {
 // 5. WhatsApp Webhook (Incoming Events)
 app.post('/api/webhooks/whatsapp', async (req, res) => {
     try {
-        console.log('Incoming Webhook: received payload', {
-            object: req.body?.object || null,
-            entries: Array.isArray(req.body?.entry) ? req.body.entry.length : 0
-        });
-
-        // Route through Communications AI System Reliability Layer
-        const systemEvent = await commsAI.callTool('handle_incoming_message', { payload: req.body });
-
-        if (systemEvent) {
-            console.log('System Event Generated:', JSON.stringify(systemEvent, null, 2));
-
-            // Forward canonical event to MasterAI
-            // Check if it's an error object first
-            if (systemEvent.error) {
-                console.error('Event Rejected by CommsAI:', systemEvent.error);
-                // We still return 200 to Meta to avoid retry loops for bad payloads
-            } else {
-                await masterAI.process_event(systemEvent);
-            }
-            res.sendStatus(200);
-        } else {
-            // It might be a status update or unhandled type
-            // Try status handler
-            const statusEvent = await commsAI.callTool('handle_delivery_status', { payload: req.body });
-            if (statusEvent) {
-                console.log('Status Event Generated:', JSON.stringify(statusEvent, null, 2));
-                await masterAI.process_event(statusEvent);
-                res.sendStatus(200);
-            } else {
-                // Not a recognized message or status, but return 200 to Meta
-                res.sendStatus(200);
-            }
-        }
+        await processIncomingWhatsAppPayload(req.body);
+        res.sendStatus(200);
     } catch (error) {
         console.error('Webhook Error:', error);
         res.sendStatus(500);

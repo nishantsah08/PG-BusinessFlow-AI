@@ -81,7 +81,8 @@
     *   **Meters**: Manage Electricity Meters and Readings (A group of units share a single meter).
     *   **Maintenance**: Track repair requests (`Log Ticket` -> status updates).
     *   **Public Rates**: Maintain standard market prices (MRP).
-    *   **Logical Delete**: If a Unit/Property has *accounts history*, it is Disabled (soft delete), never hard-deleted.
+   *   **Logical Delete**: If a Unit/Property has active history or linked transactions, it is Disabled (not hard-deleted) and marked for audit-safe retention. Hard delete is only allowed when no blockers exist.
+   *   **Operational State**: Disabled entities remain visible where listing is required, but live mutations must be blocked until re-enabled.
     *   **Amenities Management**:
         *   Properties have amenities associated at creation.
         *   Units inherit these amenities (subset possible).

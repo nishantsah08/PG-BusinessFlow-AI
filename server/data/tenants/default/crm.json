@@ -1,0 +1,541 @@
+{
+    "leads": {
+        "+919833334444": {
+            "lead_id": "+919833334444",
+            "name": "Ramesh Kumar",
+            "profile_type": "Staff",
+            "email": "ramesh@pgflow.ai",
+            "phones": {
+                "primary": {
+                    "number": "+919833334444",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Demo",
+                "detail": "System Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-05T17:39:04.171+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919844445555": {
+            "lead_id": "+919844445555",
+            "name": "Meera Joshi",
+            "profile_type": "Staff",
+            "email": "meera@pgflow.ai",
+            "phones": {
+                "primary": {
+                    "number": "+919844445555",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Demo",
+                "detail": "System Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-05T17:39:04.178+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919855556666": {
+            "lead_id": "+919855556666",
+            "name": "Arun Singh",
+            "profile_type": "Staff",
+            "email": "arun@pgflow.ai",
+            "phones": {
+                "primary": {
+                    "number": "+919855556666",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Demo",
+                "detail": "System Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-05T17:39:04.183+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919800098000": {
+            "lead_id": "+919800098000",
+            "name": "Amit Sharma",
+            "profile_type": "Customer",
+            "email": "amit@demo.pgflow.ai",
+            "phones": {
+                "primary": {
+                    "number": "+919800098000",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Demo",
+                "detail": "System Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Onboarded",
+            "created_at": "2026-03-05T17:39:04.185+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919811112222": {
+            "lead_id": "+919811112222",
+            "name": "Neha Gupta",
+            "profile_type": "Customer",
+            "email": "neha@demo.pgflow.ai",
+            "phones": {
+                "primary": {
+                    "number": "+919811112222",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Demo",
+                "detail": "System Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Visited",
+            "created_at": "2026-03-05T17:39:04.191+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919822223333": {
+            "lead_id": "+919822223333",
+            "name": "Rohit Verma",
+            "profile_type": "Customer",
+            "email": "rohit@demo.pgflow.ai",
+            "phones": {
+                "primary": {
+                    "number": "+919822223333",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Demo",
+                "detail": "System Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-05T17:39:04.194+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919800098003": {
+            "lead_id": "+919800098003",
+            "name": "Rohan",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+919800098003",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Auto-created after conversation"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-06T15:36:16.840+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        }
+    },
+    "timelines": {
+        "+919833334444": [
+            {
+                "event_id": "EVT-1772712544172-936",
+                "timestamp": "2026-03-05T17:39:04.172+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-05T17:39:04.171+05:30"
+            }
+        ],
+        "+919844445555": [
+            {
+                "event_id": "EVT-1772712544178-579",
+                "timestamp": "2026-03-05T17:39:04.178+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-05T17:39:04.178+05:30"
+            }
+        ],
+        "+919855556666": [
+            {
+                "event_id": "EVT-1772712544183-461",
+                "timestamp": "2026-03-05T17:39:04.183+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-05T17:39:04.183+05:30"
+            }
+        ],
+        "+919800098000": [
+            {
+                "event_id": "EVT-1772712544186-387",
+                "timestamp": "2026-03-05T17:39:04.186+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-05T17:39:04.185+05:30"
+            },
+            {
+                "event_id": "EVT-1772712544187-542",
+                "timestamp": "2026-03-05T17:39:04.187+05:30",
+                "type": "STATUS_CHANGE",
+                "from": "Enquiry",
+                "to": "Visited",
+                "reason": "Demo seed status setup",
+                "changed_at": "2026-03-05T17:39:04.187+05:30"
+            },
+            {
+                "event_id": "EVT-1772712544188-578",
+                "timestamp": "2026-03-05T17:39:04.188+05:30",
+                "type": "STATUS_CHANGE",
+                "from": "Visited",
+                "to": "Onboarded",
+                "reason": "Demo seed status setup",
+                "changed_at": "2026-03-05T17:39:04.188+05:30"
+            },
+            {
+                "event_id": "EVT-1772712544195-565",
+                "timestamp": "2026-03-05T17:39:04.195+05:30",
+                "type": "SESSION",
+                "lead_id": "+919800098000",
+                "summary": "Customer requested room details and pricing.",
+                "sentiment": "Neutral",
+                "tone": "Professional",
+                "links": {
+                    "artifacts": [
+                        "/images/prop_1772615716113_0f5g9x.jpg",
+                        "/images/prop_1772615716114_h0kul0.jpg",
+                        "/images/prop_1772615716119_5iyspg.jpg"
+                    ]
+                },
+                "tenant_id": "default"
+            },
+            {
+                "event_id": "EVT-1772712544198-739",
+                "timestamp": "2026-03-05T17:39:04.198+05:30",
+                "type": "NOTE",
+                "content": "Customer prefers double sharing close to office.",
+                "author": "demo_seed"
+            },
+            {
+                "event_id": "EVT-1772712544199-556",
+                "timestamp": "2026-03-05T17:39:04.199+05:30",
+                "type": "ARTIFACT_LINKED",
+                "url": "/images/prop_1772615716113_0f5g9x.jpg",
+                "file_type": "Image",
+                "description": "Room preference sample image"
+            },
+            {
+                "event_id": "EVT-1772776806957-676",
+                "timestamp": "2026-03-06T11:30:06.957+05:30",
+                "type": "SESSION",
+                "lead_id": "+919800098000",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+919800098000",
+                    "MasterAI"
+                ],
+                "summary": "Session with 2 messages.",
+                "sentiment": "Neutral",
+                "tone": "Neutral",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "default",
+                "links": {
+                    "artifacts": []
+                }
+            }
+        ],
+        "+919811112222": [
+            {
+                "event_id": "EVT-1772712544191-60",
+                "timestamp": "2026-03-05T17:39:04.191+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-05T17:39:04.191+05:30"
+            },
+            {
+                "event_id": "EVT-1772712544192-750",
+                "timestamp": "2026-03-05T17:39:04.192+05:30",
+                "type": "STATUS_CHANGE",
+                "from": "Enquiry",
+                "to": "Visited",
+                "reason": "Demo seed status setup",
+                "changed_at": "2026-03-05T17:39:04.192+05:30"
+            },
+            {
+                "event_id": "EVT-1772712544196-529",
+                "timestamp": "2026-03-05T17:39:04.196+05:30",
+                "type": "SESSION",
+                "lead_id": "+919811112222",
+                "summary": "Customer requested room details and pricing.",
+                "sentiment": "Neutral",
+                "tone": "Professional",
+                "links": {
+                    "artifacts": [
+                        "/images/prop_1772615716113_0f5g9x.jpg",
+                        "/images/prop_1772615716114_h0kul0.jpg",
+                        "/images/prop_1772615716119_5iyspg.jpg"
+                    ]
+                },
+                "tenant_id": "default"
+            },
+            {
+                "event_id": "EVT-1772712544200-582",
+                "timestamp": "2026-03-05T17:39:04.200+05:30",
+                "type": "ARTIFACT_LINKED",
+                "url": "/images/prop_1772615716114_h0kul0.jpg",
+                "file_type": "Image",
+                "description": "Visit reference image"
+            }
+        ],
+        "+919822223333": [
+            {
+                "event_id": "EVT-1772712544194-745",
+                "timestamp": "2026-03-05T17:39:04.194+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-05T17:39:04.194+05:30"
+            },
+            {
+                "event_id": "EVT-1772712544197-298",
+                "timestamp": "2026-03-05T17:39:04.197+05:30",
+                "type": "SESSION",
+                "lead_id": "+919822223333",
+                "summary": "Customer requested room details and pricing.",
+                "sentiment": "Neutral",
+                "tone": "Professional",
+                "links": {
+                    "artifacts": [
+                        "/images/prop_1772615716113_0f5g9x.jpg",
+                        "/images/prop_1772615716114_h0kul0.jpg",
+                        "/images/prop_1772615716119_5iyspg.jpg"
+                    ]
+                },
+                "tenant_id": "default"
+            }
+        ],
+        "+919800098003": [
+            {
+                "event_id": "EVT-1772791576841-555",
+                "timestamp": "2026-03-06T15:36:16.841+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-06T15:36:16.840+05:30"
+            },
+            {
+                "event_id": "EVT-1772791576842-275",
+                "timestamp": "2026-03-06T15:36:16.842+05:30",
+                "type": "SESSION",
+                "lead_id": "+919800098003",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+919800098003",
+                    "MasterAI"
+                ],
+                "summary": "The user requests to edit the description of an active property by appending 'EDIT2-ROHAN' and asks if more details are needed.",
+                "sentiment": "Neutral",
+                "tone": "Formal",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "default",
+                "links": {
+                    "artifacts": []
+                }
+            },
+            {
+                "event_id": "EVT-1772795860064-736",
+                "timestamp": "2026-03-06T16:47:40.064+05:30",
+                "type": "SESSION",
+                "lead_id": "+919800098003",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+919800098003",
+                    "MasterAI"
+                ],
+                "summary": "Session with 8 messages.",
+                "sentiment": "Neutral",
+                "tone": "Neutral",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "default",
+                "links": {
+                    "artifacts": []
+                }
+            },
+            {
+                "event_id": "EVT-1772800202601-695",
+                "timestamp": "2026-03-06T18:00:02.601+05:30",
+                "type": "SESSION",
+                "lead_id": "+919800098003",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+919800098003",
+                    "MasterAI"
+                ],
+                "summary": "Session with 68 messages.",
+                "sentiment": "Neutral",
+                "tone": "Neutral",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "default",
+                "links": {
+                    "artifacts": []
+                }
+            },
+            {
+                "event_id": "EVT-1772862525005-498",
+                "timestamp": "2026-03-07T11:18:45.005+05:30",
+                "type": "SESSION",
+                "lead_id": "+919800098003",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+919800098003",
+                    "MasterAI"
+                ],
+                "summary": "Session with 20 messages.",
+                "sentiment": "Neutral",
+                "tone": "Neutral",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "default",
+                "links": {
+                    "artifacts": []
+                }
+            },
+            {
+                "event_id": "EVT-1772868776516-340",
+                "timestamp": "2026-03-07T13:02:56.516+05:30",
+                "type": "SESSION",
+                "lead_id": "+919800098003",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+919800098003",
+                    "MasterAI"
+                ],
+                "summary": "Session with 56 messages.",
+                "sentiment": "Neutral",
+                "tone": "Neutral",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "default",
+                "links": {
+                    "artifacts": []
+                }
+            }
+        ]
+    },
+    "lastUpdatedAt": "2026-03-10T16:13:49.021+05:30",
+    "businessConfig": {
+        "tenant_id": "default",
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "nishantsah@outlook.in",
+            "ceo_phone": "+917588498834",
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350
+        }
+    }
+}

@@ -9,4 +9,5 @@ export default {
         '^lucide-react$': '<rootDir>/__mocks__/lucide-react.js'
     },
     testMatch: ['**/?(*.)+(spec|test).[jt]s?(x)'],
+    testPathIgnorePatterns: ['/node_modules/', '<rootDir>/e2e/'],
 };

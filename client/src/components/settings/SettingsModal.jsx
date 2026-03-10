@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { X, ChevronDown, ChevronRight, Globe, Calendar, Clock, Monitor } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
+import { isProductionApp } from '../../lib/runtimeEnv';
 
 const SettingsModal = ({ isOpen, onClose }) => {
     const { settings, updateSettings } = useSettings();
     const { isDeveloperMode, toggleDeveloperMode } = useDeveloperMode();
-    const isProd = (import.meta.env.VITE_APP_ENV || 'development') === 'production';
+    const isProd = isProductionApp();
     const [expandedGroups, setExpandedGroups] = useState(['time']);
 
     if (!isOpen) return null;

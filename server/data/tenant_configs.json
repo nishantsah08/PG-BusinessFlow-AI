@@ -1,0 +1,126 @@
+{
+    "default": {
+        "tenant_id": "default",
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "nishantsah@outlook.in"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350
+        }
+    },
+    "sunrise_stays": {
+        "tenant_id": "sunrise_stays",
+        "business_name": "Sunrise Stays",
+        "persona": {
+            "name": "Priya Nair",
+            "role": "CEO",
+            "ceo_email": "priya.nair@sunrisestays.ai"
+        }
+    },
+    "greennest_living": {
+        "tenant_id": "greennest_living",
+        "business_name": "GreenNest Living",
+        "persona": {
+            "name": "Arjun Mehta",
+            "role": "CEO",
+            "ceo_email": "arjun.mehta@greennest.ai"
+        }
+    },
+    "aditi_rao_skyline_example_com": {
+        "business_name": "Aditi Rao's Workspace",
+        "persona": {
+            "name": "Aditi Rao",
+            "role": "CEO",
+            "ceo_email": "aditi.rao.skyline@example.com"
+        },
+        "tenant_id": "aditi_rao_skyline_example_com"
+    },
+    "rohan_mehta_orbit_example_com": {
+        "business_name": "Rohan Mehta's Workspace",
+        "persona": {
+            "name": "Rohan Mehta",
+            "role": "CEO",
+            "ceo_email": "rohan.mehta.orbit@example.com"
+        },
+        "tenant_id": "rohan_mehta_orbit_example_com"
+    },
+    "ceo_aarav_sharma_example_com": {
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.aarav.sharma@example.com"
+        },
+        "tenant_id": "ceo_aarav_sharma_example_com"
+    },
+    "ceo_neha_kapoor_example_com": {
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.neha.kapoor@example.com"
+        },
+        "tenant_id": "ceo_neha_kapoor_example_com"
+    },
+    "ceo_rohan_iyer_example_com": {
+        "business_name": "Rohan Iyer's Workspace",
+        "persona": {
+            "name": "Rohan Iyer",
+            "role": "CEO",
+            "ceo_email": "ceo.rohan.iyer@example.com"
+        },
+        "tenant_id": "ceo_rohan_iyer_example_com"
+    },
+    "ceo_maya_verma_example_com": {
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.maya.verma@example.com"
+        },
+        "tenant_id": "ceo_maya_verma_example_com"
+    }
+}

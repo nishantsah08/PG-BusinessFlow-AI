@@ -1,3 +1,5 @@
+import { getViteEnv } from '../lib/runtimeEnv';
+
 /**
  * Centralized API Client for PG-BusinessFlow.ai
  *
@@ -42,9 +44,10 @@ const executeRequest = async (url, options = {}) => {
 
     const startTime = performance.now();
     const requestId = generateRequestId();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    const baseUrl = getViteEnv('VITE_API_BASE_URL', '');
     let authHeader = {};
     let actorHeader = {};
+    let tenantHeader = {};
     try {
         const rawUser = localStorage.getItem('master_ai_user');
         if (rawUser) {
@@ -54,6 +57,9 @@ const executeRequest = async (url, options = {}) => {
             }
             if (parsed?.email) {
                 actorHeader = { 'X-Actor-Email': String(parsed.email).toLowerCase() };
+            }
+            if (parsed?.tenant_id || parsed?.tenantId) {
+                tenantHeader = { 'X-Tenant-ID': String(parsed.tenant_id || parsed.tenantId) };
             }
         }
     } catch (_e) {
@@ -66,6 +72,7 @@ const executeRequest = async (url, options = {}) => {
         'X-Request-ID': requestId,
         ...authHeader,
         ...actorHeader,
+        ...tenantHeader,
         ...options.headers,
     };
 
