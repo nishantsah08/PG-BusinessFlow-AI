@@ -14,3 +14,8 @@
 - Date: 2026-03-04
 - Change: Added resilient lead hydration fallback (`get_lead_by_phone` + `get_timeline`) when `get_lead` is unavailable.
 - Reason: Keep CRM Lead 360 operational under mixed backend capability states.
+
+**Version 1.3.0**
+- Date: 2026-03-11
+- Change: Reworked CRM route to `overview + leads workspace + drawer` model, added pending follow-up KPI, backend merge-candidate queue read contract, and CEO-only GUI merge approval path.
+- Reason: Align the CRM surface with CommunicationsAI-first operations while keeping GUI limited to readable review, safe edits, and CEO decision support.

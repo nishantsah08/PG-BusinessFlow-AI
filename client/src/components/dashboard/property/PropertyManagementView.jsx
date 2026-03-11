@@ -654,6 +654,8 @@ const PropertyManagementView = () => {
         try {
             const endpoint = editingUnitId ? 'update_unit' : 'add_unit';
             const normalizedTypes = newUnitTypes.length > 0 ? newUnitTypes : ['Standard'];
+            const propertyAmenitySet = new Set((selectedProperty?.amenities || []).map((amenity) => String(amenity || '').trim()).filter(Boolean));
+            const sanitizedUnitAmenities = newUnitAmenities.filter((amenity) => propertyAmenitySet.has(String(amenity || '').trim()));
             const payload = {
                 property_id: selectedProperty.id,
                 unit_number: newUnitId.trim(),
@@ -671,7 +673,7 @@ const PropertyManagementView = () => {
                     early_exit_rule: newUnitEarlyExitRule || 'DEPOSIT_FORFEIT',
                     payment_cycle_rules: newUnitPaymentCycleRules
                 },
-                amenities: newUnitAmenities
+                amenities: sanitizedUnitAmenities
             };
 
             const customFromSelection = normalizedTypes

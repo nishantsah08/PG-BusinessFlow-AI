@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Wrench, AlertCircle, Clock, CheckCircle, Loader2, Plus, X } from 'lucide-react';
+import { executeDashboardTool } from './toolClient';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendColor = "text-green-600" }) => (
     <div className="bg-white p-5 rounded-xl border border-gray-100 flex flex-col justify-between shadow-sm">
@@ -50,6 +51,7 @@ const getNextStatus = (currentStatus) => {
 
 const MaintenanceView = () => {
     const [isLoading, setIsLoading] = useState(true);
+    const [properties, setProperties] = useState([]);
     const [tickets, setTickets] = useState([]);
     const [maintenanceData, setMaintenanceData] = useState([]);
     const [summary, setSummary] = useState({});
@@ -80,79 +82,38 @@ const MaintenanceView = () => {
         setIsLoading(true);
         try {
             // Fetch Global Analytics
-            const statsRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_analytics_stats',
-                    parameters: {}
-                })
-            });
-            const statsBody = await statsRes.json();
+            const statsBody = await executeDashboardTool('PropertyAI', 'get_analytics_stats', {});
             if (statsBody.success && statsBody.data) {
                 setMaintenanceData(statsBody.data.maintenance_data || []);
                 setSummary(statsBody.data.summary || {});
             }
 
             // Fetch Properties for Map
-            const propsRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_properties',
-                    parameters: {}
-                })
-            });
-            const propsBody = await propsRes.json();
+            const propsBody = await executeDashboardTool('PropertyAI', 'get_properties', {});
             const pMap = {};
             if (propsBody.data) {
+                setProperties(propsBody.data);
                 propsBody.data.forEach(p => { pMap[p.id] = p.name; });
             }
             setPropertiesMap(pMap);
 
-            const unitsRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_units',
-                    parameters: {}
-                })
-            });
-            const unitsBody = await unitsRes.json();
+            const unitsBody = await executeDashboardTool('PropertyAI', 'get_units', {});
             const unitMap = {};
             (unitsBody.data || []).forEach((unit) => { unitMap[unit.id] = unit; });
             setUnitsMap(unitMap);
 
-            const leadsRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'CRMAgent',
-                    tool_name: 'get_recent_leads',
-                    parameters: { limit: 200 }
-                })
-            });
-            const leadsBody = await leadsRes.json();
+            const leadsBody = await executeDashboardTool('CRMAgent', 'get_recent_leads', { limit: 200 });
             const leadMap = {};
             (leadsBody.data?.leads || []).forEach((lead) => { leadMap[lead.lead_id] = lead.name; });
             setLeadsMap(leadMap);
 
-            const staffRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'HRAgent',
-                    tool_name: 'get_all_staff',
-                    parameters: {}
-                })
-            });
-            const staffBody = await staffRes.json();
+            const staffBody = await executeDashboardTool('HRAgent', 'get_all_staff', {});
             const sMap = {};
             (staffBody.data || []).forEach((staff) => { sMap[staff.id] = staff.name; });
             setStaffMap(sMap);
 
             // Fetch Tickets
-            const tktsRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_maintenance_reqs',
-                    parameters: {}
-                })
-            });
-            const tktsBody = await tktsRes.json();
+            const tktsBody = await executeDashboardTool('PropertyAI', 'get_maintenance_reqs', {});
             setTickets(tktsBody.data || []);
 
         } catch (e) {
@@ -168,12 +129,24 @@ const MaintenanceView = () => {
 
     const handleLogSubmit = async (e) => {
         e.preventDefault();
-        // Since properties map is object, we just grab first key if single prop system
-        const propertyId = logPropId || Object.keys(propertiesMap)[0] || 'PROP-1';
         const unitInput = String(logUnitId || '').trim();
-        const resolvedUnit = Object.values(unitsMap).find(
-            (unit) => unit.id === unitInput || String(unit.unit_number) === unitInput
-        );
+        const resolvedUnit = Object.values(unitsMap).find((unit) => {
+            if (logPropId && unit.property_id !== logPropId) return false;
+            return unit.id === unitInput || String(unit.unit_number) === unitInput;
+        });
+        const propertyId = logPropId || resolvedUnit?.property_id || '';
+
+        if (!propertyId) {
+            openError('Select the property before logging an issue.', 'Property Required');
+            setIsSaving(false);
+            return;
+        }
+
+        if (resolvedUnit && logPropId && resolvedUnit.property_id !== logPropId) {
+            openError('Selected property does not match the entered unit.', 'Property Mismatch');
+            setIsSaving(false);
+            return;
+        }
 
         setIsSaving(true);
         try {
@@ -187,24 +160,13 @@ const MaintenanceView = () => {
                 reported_by_name: logReportedBy.trim() || 'Operations Staff',
                 image_urls: logImages
             };
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'log_maintenance_req',
-                    parameters: payload
-                })
-            });
-            const body = await res.json();
-            if (res.ok && body?.success) {
-                setShowLogForm(false);
-                setLogIssue('');
-                setLogUnitId('');
-                setLogReportedBy('Operations Staff');
-                setLogImages([]);
-                await fetchData();
-            } else {
-                openError(body?.error || 'Failed to create ticket. Please verify property/unit details and try again.', 'Unable to Create Ticket');
-            }
+            await executeDashboardTool('PropertyAI', 'log_maintenance_req', payload);
+            setShowLogForm(false);
+            setLogIssue('');
+            setLogUnitId('');
+            setLogReportedBy('Operations Staff');
+            setLogImages([]);
+            await fetchData();
         } catch (e) {
             console.error("Error creating ticket:", e);
             openError(e?.message || 'Network error while creating ticket.', 'Unable to Create Ticket');
@@ -223,18 +185,11 @@ const MaintenanceView = () => {
         }
 
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'update_maintenance_req',
-                    parameters: { ticket_id: ticket.id, status: nextStatus, remarks: remark }
-                })
+            await executeDashboardTool('PropertyAI', 'update_maintenance_req', {
+                ticket_id: ticket.id,
+                status: nextStatus,
+                remarks: remark
             });
-            const body = await res.json();
-            if (!res.ok || !body?.success) {
-                throw new Error(body?.error || 'Failed to update ticket status.');
-            }
             setStatusRemarksByTicket((prev) => ({ ...prev, [ticket.id]: '' }));
             await fetchData();
         } catch (e) {
@@ -280,6 +235,17 @@ const MaintenanceView = () => {
                         <div className="bg-indigo-50 border-b border-indigo-100 p-4 z-10 transition-all">
                             <form onSubmit={handleLogSubmit} className="space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
+                                    <select
+                                        required
+                                        value={logPropId}
+                                        onChange={e => setLogPropId(e.target.value)}
+                                        className="w-full px-3 py-2 rounded border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    >
+                                        <option value="">Select Property</option>
+                                        {properties.map((property) => (
+                                            <option key={property.id} value={property.id}>{property.name}</option>
+                                        ))}
+                                    </select>
                                     <div className="flex gap-2">
                                         <input
                                             required value={logUnitId} onChange={e => setLogUnitId(e.target.value)}

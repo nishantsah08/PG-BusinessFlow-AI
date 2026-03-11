@@ -39,6 +39,7 @@ class FinanceAI extends BaseAgent {
         this._activeTenantId = null;
         this._tenantStates = new Map();
         this._tenantStores = new Map();
+        this._namespaceStores = new Map();
         this._businessConfigProvider = (tenantId) => {
             if (typeof BusinessConfig.getBusinessConfig === 'function') {
                 return BusinessConfig.getBusinessConfig(tenantId);
@@ -72,6 +73,21 @@ class FinanceAI extends BaseAgent {
             );
         }
         return this._tenantStores.get(tenantId);
+    }
+
+    _getNamespaceStore(tenantId, namespace) {
+        const key = `${tenantId || this.defaultTenantId}::${namespace}`;
+        if (!this._namespaceStores.has(key)) {
+            this._namespaceStores.set(
+                key,
+                new TenantDataStore({
+                    tenantId: tenantId || this.defaultTenantId,
+                    namespace,
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._namespaceStores.get(key);
     }
 
     _hydrateState(rawState) {
@@ -268,6 +284,231 @@ class FinanceAI extends BaseAgent {
         if (!this.carryForwardCredits[payer_id]) this.carryForwardCredits[payer_id] = [];
         this.carryForwardCredits[payer_id].push(credit);
         return credit;
+    }
+
+    _loadHrState(tenantId = this._activeTenantId) {
+        return this._getNamespaceStore(tenantId, 'hr').load({
+            staff: [],
+            salary_cards: [],
+            leaves: [],
+            caretaker_activity: []
+        });
+    }
+
+    _loadPropertyState(tenantId = this._activeTenantId) {
+        return this._getNamespaceStore(tenantId, 'property').load({
+            properties: [],
+            units: [],
+            meters: [],
+            maintenance_requests: []
+        });
+    }
+
+    _getSalaryCard(staffId, tenantId = this._activeTenantId) {
+        const hrState = this._loadHrState(tenantId);
+        const hrCard = Array.isArray(hrState.salary_cards)
+            ? hrState.salary_cards.find((card) => card.staff_id === staffId)
+            : null;
+        if (hrCard) return hrCard;
+        return this.salaryCards[staffId] || null;
+    }
+
+    _getStaffMember(staffId, tenantId = this._activeTenantId) {
+        const hrState = this._loadHrState(tenantId);
+        return Array.isArray(hrState.staff)
+            ? hrState.staff.find((staff) => staff.id === staffId) || null
+            : null;
+    }
+
+    _normalizeMonthIndex(month) {
+        if (typeof month === 'number' && Number.isFinite(month)) {
+            if (month >= 1 && month <= 12) return month - 1;
+            if (month >= 0 && month <= 11) return month;
+        }
+
+        if (typeof month === 'string') {
+            const cleaned = month.trim().toLowerCase();
+            if (/^\d+$/.test(cleaned)) {
+                const numeric = Number(cleaned);
+                if (numeric >= 1 && numeric <= 12) return numeric - 1;
+            }
+            const monthMap = {
+                jan: 0, january: 0,
+                feb: 1, february: 1,
+                mar: 2, march: 2,
+                apr: 3, april: 3,
+                may: 4,
+                jun: 5, june: 5,
+                jul: 6, july: 6,
+                aug: 7, august: 7,
+                sep: 8, sept: 8, september: 8,
+                oct: 9, october: 9,
+                nov: 10, november: 10,
+                dec: 11, december: 11
+            };
+            if (monthMap[cleaned] !== undefined) return monthMap[cleaned];
+        }
+
+        return new Date().getMonth();
+    }
+
+    _getLastSaturday(year, monthIndex) {
+        const cursor = new Date(year, monthIndex + 1, 0);
+        while (cursor.getDay() !== 6) {
+            cursor.setDate(cursor.getDate() - 1);
+        }
+        cursor.setHours(23, 59, 59, 999);
+        return cursor;
+    }
+
+    _resolvePayrollWindow(month, year) {
+        const resolvedYear = Number(year) || new Date().getFullYear();
+        const resolvedMonthIndex = this._normalizeMonthIndex(month);
+        const windowEnd = this._getLastSaturday(resolvedYear, resolvedMonthIndex);
+        const previousMonthIndex = resolvedMonthIndex === 0 ? 11 : resolvedMonthIndex - 1;
+        const previousMonthYear = resolvedMonthIndex === 0 ? resolvedYear - 1 : resolvedYear;
+        const previousLastSaturday = this._getLastSaturday(previousMonthYear, previousMonthIndex);
+        const windowStart = new Date(previousLastSaturday);
+        windowStart.setHours(0, 0, 0, 0);
+        windowStart.setDate(windowStart.getDate() + 1);
+
+        return {
+            windowStart,
+            windowEnd,
+            salaryMonthLabel: this._toShortMonthYear(new Date(resolvedYear, resolvedMonthIndex, 1))
+        };
+    }
+
+    _isDateWithinRange(value, startDate, endDate) {
+        const ts = new Date(value).getTime();
+        return Number.isFinite(ts) && ts >= startDate.getTime() && ts <= endDate.getTime();
+    }
+
+    _toDateKey(value) {
+        const dt = new Date(value);
+        if (Number.isNaN(dt.getTime())) return null;
+        return dt.toISOString().slice(0, 10);
+    }
+
+    _getRollingWeekKey(value, windowStart) {
+        const ts = new Date(value).getTime();
+        if (!Number.isFinite(ts)) return null;
+        const diff = Math.max(0, ts - windowStart.getTime());
+        return Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+    }
+
+    _getUnitOccupantAtWindowEnd(unit, windowEnd) {
+        const history = Array.isArray(unit.history) ? [...unit.history] : [];
+        history.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        let currentState = 'AVAILABLE';
+        let currentTenant = null;
+        history.forEach((entry) => {
+            const entryTs = new Date(entry.date).getTime();
+            if (!Number.isFinite(entryTs) || entryTs > windowEnd.getTime()) return;
+            if (entry.state === 'BOOKED') {
+                currentState = 'BOOKED';
+                currentTenant = entry.tenant || currentTenant;
+                return;
+            }
+            if (entry.state === 'NOTICE') {
+                currentState = 'NOTICE';
+                currentTenant = entry.tenant || currentTenant;
+                return;
+            }
+            if (entry.state === 'AVAILABLE') {
+                currentState = 'AVAILABLE';
+                currentTenant = null;
+            }
+        });
+
+        if ((currentState === 'BOOKED' || currentState === 'NOTICE') && currentTenant) {
+            return currentTenant;
+        }
+        if ((unit.status === 'BOOKED' || unit.status === 'NOTICE') && unit.tenant_id) {
+            return unit.tenant_id;
+        }
+        return null;
+    }
+
+    _hasFullRentPaymentForMonth(payerId, monthLabel) {
+        const rentEntries = this.ledgerEntries.filter((entry) => (
+            entry.payer_id === payerId
+            && entry.category === 'Rent'
+            && entry.month_year === monthLabel
+        ));
+
+        if (rentEntries.length === 0) return false;
+        return rentEntries.every((entry) => Number(entry.balance || 0) <= 0 || entry.status === 'PAID');
+    }
+
+    _calculateCaretakerCompensation(staffId, month, year, tenantId = this._activeTenantId) {
+        const config = this._getActiveBusinessConfig(tenantId);
+        const compensationCfg = config.finance?.caretaker_compensation || {};
+        const hrState = this._loadHrState(tenantId);
+        const propertyState = this._loadPropertyState(tenantId);
+        const salaryCard = this._getSalaryCard(staffId, tenantId) || {};
+        const payrollWindow = this._resolvePayrollWindow(month, year);
+
+        const baseSalary = Number(salaryCard.base_salary)
+            || Number(compensationCfg.fixed_basic_salary)
+            || Number(config.finance?.default_base_salary)
+            || 4000;
+
+        const assignedUnits = (Array.isArray(propertyState.units) ? propertyState.units : [])
+            .filter((unit) => unit.status !== 'DELETED' && unit.caretaker_staff_id === staffId);
+
+        const fullyPaidOccupiedUnits = assignedUnits.filter((unit) => {
+            const occupant = this._getUnitOccupantAtWindowEnd(unit, payrollWindow.windowEnd);
+            if (!occupant) return false;
+            return this._hasFullRentPaymentForMonth(occupant, payrollWindow.salaryMonthLabel);
+        }).length;
+
+        const activityLogs = (Array.isArray(hrState.caretaker_activity) ? hrState.caretaker_activity : [])
+            .filter((entry) => entry.staff_id === staffId && this._isDateWithinRange(entry.occurred_at, payrollWindow.windowStart, payrollWindow.windowEnd));
+
+        const dailyCleaningDays = new Set(
+            activityLogs
+                .filter((entry) => entry.activity_type === 'DAILY_CLEANING')
+                .map((entry) => this._toDateKey(entry.occurred_at))
+                .filter(Boolean)
+        ).size;
+
+        const parkingCleaningWeeks = new Set(
+            activityLogs
+                .filter((entry) => entry.activity_type === 'PARKING_CLEANING')
+                .map((entry) => this._getRollingWeekKey(entry.occurred_at, payrollWindow.windowStart))
+                .filter((value) => value !== null)
+        ).size;
+
+        const maintenanceComplaints = (Array.isArray(propertyState.maintenance_requests) ? propertyState.maintenance_requests : [])
+            .filter((ticket) => (
+                ticket.assigned_caretaker_staff_id === staffId
+                && this._isDateWithinRange(ticket.created_at, payrollWindow.windowStart, payrollWindow.windowEnd)
+            ))
+            .length;
+
+        const unitsPaidAmount = fullyPaidOccupiedUnits * (Number(compensationCfg.per_fully_paid_occupied_unit) || 250);
+        const dailyCleaningAmount = dailyCleaningDays * (Number(compensationCfg.daily_cleaning_proof_amount) || 100);
+        const parkingCleaningAmount = parkingCleaningWeeks * (Number(compensationCfg.weekly_parking_cleaning_amount) || 100);
+        const complaintDeductionAmount = maintenanceComplaints * (Number(compensationCfg.maintenance_complaint_deduction) || 100);
+
+        return {
+            payroll_window: {
+                from: payrollWindow.windowStart.toISOString(),
+                to: payrollWindow.windowEnd.toISOString()
+            },
+            base_salary: baseSalary,
+            fully_paid_occupied_units: fullyPaidOccupiedUnits,
+            unit_incentive_amount: unitsPaidAmount,
+            daily_cleaning_days: dailyCleaningDays,
+            daily_cleaning_amount: dailyCleaningAmount,
+            parking_cleaning_weeks: parkingCleaningWeeks,
+            parking_cleaning_amount: parkingCleaningAmount,
+            maintenance_complaints: maintenanceComplaints,
+            complaint_deduction_amount: complaintDeductionAmount,
+            total_salary: baseSalary + unitsPaidAmount + dailyCleaningAmount + parkingCleaningAmount - complaintDeductionAmount
+        };
     }
 
     _consumeCarryForwardCredits(payer_id, billMonthKey, neededAmount) {
@@ -558,23 +799,59 @@ class FinanceAI extends BaseAgent {
             properties: { staff_id: { type: 'string' }, month: { type: 'string' }, year: { type: 'string' } },
             required: ['staff_id']
         }, async (args) => {
-            // Fetch salary config from BusinessConfig defaults (or HR card if available)
-            const config = this._getActiveBusinessConfig(this._activeTenantId);
-            const base_salary = (this.salaryCards[args.staff_id]?.base_salary) || (config.finance?.default_base_salary || BusinessConfig.finance.default_base_salary);
-            const incentives = (this.salaryCards[args.staff_id]?.components?.incentives?.amount_per_unit)
-                || (config.finance?.default_incentive_per_unit || BusinessConfig.finance.default_incentive_per_unit);
-            const advances = 0;
-            const total = base_salary + incentives - advances;
+            const staffMember = this._getStaffMember(args.staff_id, this._activeTenantId);
+            const salaryCard = this._getSalaryCard(args.staff_id, this._activeTenantId) || {};
+            const isCaretaker = String(staffMember?.designation || '').toLowerCase().includes('caretaker')
+                || salaryCard?.components?.compensation_model === 'CARETAKER_UNIT_BASED';
+
+            let payoutBreakdown;
+            let total;
+
+            if (isCaretaker) {
+                payoutBreakdown = this._calculateCaretakerCompensation(args.staff_id, args.month, args.year, this._activeTenantId);
+                total = payoutBreakdown.total_salary;
+            } else {
+                const config = this._getActiveBusinessConfig(this._activeTenantId);
+                const baseSalary = Number(salaryCard.base_salary)
+                    || Number(config.finance?.default_base_salary)
+                    || 4000;
+                const incentives = Number(salaryCard?.components?.incentives?.amount_per_unit)
+                    || Number(config.finance?.default_incentive_per_unit)
+                    || 0;
+                const advances = 0;
+                total = baseSalary + incentives - advances;
+                payoutBreakdown = {
+                    base_salary: baseSalary,
+                    fixed_incentive_amount: incentives,
+                    advances,
+                    total_salary: total
+                };
+            }
 
             const txn = {
                 txn_id: `PAY-${args.staff_id}-${Date.now()}`,
                 type: 'SALARY_PAYOUT',
                 staff_id: args.staff_id,
                 amount: total,
+                month: args.month || null,
+                year: args.year || null,
+                breakdown: payoutBreakdown,
                 timestamp: new Date().toISOString()
             };
             this.transactions.push(txn);
-            return { status: 'SUCCESS', amount_paid: total, txn_id: txn.txn_id };
+            return {
+                status: 'SUCCESS',
+                amount_paid: total,
+                txn_id: txn.txn_id,
+                salary_slip: {
+                    staff_id: args.staff_id,
+                    staff_name: staffMember?.name || null,
+                    designation: staffMember?.designation || null,
+                    month: args.month || null,
+                    year: args.year || null,
+                    breakdown: payoutBreakdown
+                }
+            };
         });
 
         // --- 5. Analytics ---

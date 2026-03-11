@@ -10,6 +10,7 @@ Provide an operations console for the `Property & Booking` domain so teams can m
   - Electric Meters
   - Maintenance
 - Allow operators to switch sections without leaving `/property`.
+- Keep `Booking Overview` as an analytics surface in the current GUI; booking CRUD, onboarding, billing, and caretaker salary execution are not yet first-class operator flows on this route.
 - Drive all reads and mutations through Admin Adapter path via MasterAI execution endpoint.
 - Require PIN-first address capture for property create/update and persist structured address fields.
 - Support property thumbnail selection and deterministic thumbnail rendering in list/header views.
@@ -49,8 +50,11 @@ None via props. Component state is internal and section-specific.
 - Empty datasets must render an explicit empty state per section.
 - Stale or partial `get_properties` payloads for a property should not disable required validation in edit mode when previously-loaded field context still exists.
 - Disabled properties/units should continue to be displayed but cannot be mutating targets for live operations.
+- Unit-scoped maintenance logging must be property-aware; the operator must select the target property before the issue is submitted.
+- Electric Meter property changes must not allow stale unit-fetch responses to overwrite the currently selected property's unit list.
 
 ## Limitations
 - Section state is in-memory and is not persisted across hard refresh.
 - Cross-section workflows are eventual-consistency based on API refresh calls, not real-time subscriptions.
 - Image upload in Property Management uses `/api/upload/images` before submitting tool payload via MasterAI.
+- Full booking onboarding, monthly billing dispatch, and caretaker payroll disbursal are currently workflow/chat-driven system capabilities, not complete GUI-first execution flows inside `/property`.

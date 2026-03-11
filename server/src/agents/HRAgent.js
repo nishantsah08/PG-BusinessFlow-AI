@@ -25,6 +25,8 @@ class HRAgent extends BaseAgent {
                     'record_leave',
                     'get_staff_leaves',
                     'approve_leave_request',
+                    'record_caretaker_activity',
+                    'get_caretaker_activity',
                     'calculate_incentive',
                     'get_performance_metrics'
                 ]
@@ -80,7 +82,8 @@ class HRAgent extends BaseAgent {
             const rawState = store.load({
                 staff: [],
                 salary_cards: [],
-                leaves: []
+                leaves: [],
+                caretaker_activity: []
             });
             this._tenantStates.set(resolvedTenantId, rawState);
         }
@@ -93,6 +96,7 @@ class HRAgent extends BaseAgent {
             staff: state.staff,
             salary_cards: state.salary_cards,
             leaves: state.leaves,
+            caretaker_activity: state.caretaker_activity,
             lastUpdatedAt: new Date().toISOString(),
             businessConfig: this._businessConfigProvider(tenantId)
         });
@@ -116,6 +120,10 @@ class HRAgent extends BaseAgent {
 
     get leaves() {
         return this._getState(this._activeTenantId || this.defaultTenantId).leaves;
+    }
+
+    get caretaker_activity() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).caretaker_activity;
     }
 
     registerTools() {
@@ -428,6 +436,63 @@ class HRAgent extends BaseAgent {
             leave.updated_at = new Date().toISOString();
 
             return { status: "Leave Updated", leave_id: leave.id, current_status: leave.status };
+        });
+
+        this.registerTool('record_caretaker_activity', 'Record caretaker proof-based work activity', {
+            type: 'object',
+            properties: {
+                staff_id: { type: 'string' },
+                activity_type: { type: 'string', enum: ['DAILY_CLEANING', 'PARKING_CLEANING'] },
+                occurred_at: { type: 'string' },
+                proof_url: { type: 'string' },
+                property_id: { type: 'string' },
+                unit_id: { type: 'string' },
+                notes: { type: 'string' }
+            },
+            required: ['staff_id', 'activity_type', 'occurred_at', 'proof_url']
+        }, async (args) => {
+            const staffMember = this.staff.find(s => s.id === args.staff_id);
+            if (!staffMember) throw new Error("Staff not found.");
+
+            const activity = {
+                id: `CT-ACT-${this.caretaker_activity.length + 1}`,
+                staff_id: args.staff_id,
+                activity_type: args.activity_type,
+                occurred_at: args.occurred_at,
+                proof_url: args.proof_url,
+                property_id: args.property_id || null,
+                unit_id: args.unit_id || null,
+                notes: args.notes || '',
+                created_at: new Date().toISOString()
+            };
+
+            this.caretaker_activity.push(activity);
+            return { status: "Caretaker Activity Recorded", activity_id: activity.id };
+        });
+
+        this.registerTool('get_caretaker_activity', 'Get caretaker proof logs', {
+            type: 'object',
+            properties: {
+                staff_id: { type: 'string' },
+                activity_type: { type: 'string', enum: ['DAILY_CLEANING', 'PARKING_CLEANING'] },
+                from_date: { type: 'string' },
+                to_date: { type: 'string' }
+            },
+            required: ['staff_id']
+        }, async (args) => {
+            let result = this.caretaker_activity.filter((entry) => entry.staff_id === args.staff_id);
+            if (args.activity_type) {
+                result = result.filter((entry) => entry.activity_type === args.activity_type);
+            }
+            if (args.from_date) {
+                const fromTs = new Date(args.from_date).getTime();
+                result = result.filter((entry) => new Date(entry.occurred_at).getTime() >= fromTs);
+            }
+            if (args.to_date) {
+                const toTs = new Date(args.to_date).getTime();
+                result = result.filter((entry) => new Date(entry.occurred_at).getTime() <= toTs);
+            }
+            return result;
         });
 
         // --- PERFORMANCE & INCENTIVES ---

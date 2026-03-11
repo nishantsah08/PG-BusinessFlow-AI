@@ -389,6 +389,7 @@ Each Session captures:
 2.  **Generate Metadata**: Run models over the transcript → extract Summary, Sentiment, Tone, Financial Impact, Compliance Impact.
 3.  **Enrich User Profile Snapshot**: If the conversation reveals new profile information (e.g., college name, email, preference, source of discovery) or new AI insights (e.g., budget sensitivity, urgency), update the User Profile Snapshot including `ai_notes`. This is the **only** place where the snapshot is modified — always as a side-effect of processing a conversation, never manually.
 4.  **Identity Checks**: Trigger merge/verification logic if needed (see Identity Resolution below).
+    *   If the snapshot process detects a likely duplicate/existing lead, it creates or refreshes a pending **Merge Review** record for CEO review and appends a `MERGE_REVIEW` timeline event linked back to the causing `SESSION`.
 5.  **Append**: Store as a new `SESSION` event with all metadata and artifact links in the lead's timeline.
 
 ---
@@ -441,6 +442,7 @@ The Lead Lifecycle is a strict State Machine. Transitions must follow this path:
 |---|---|---|
 | `leads` | `lead_id` (= primary phone, e.g., `9800098000`) | Lead Snapshot (profile, demographics, preferences). |
 | `leads/{lead_id}/timeline` | `event_id` (auto-generated) | Append-only sub-collection. Sessions, Status Changes, Merges, Corrections. Never deleted. |
+| `merge_reviews` | `review_id` | Pending CEO review items created by the Snapshot Process when a new session suggests the lead may already exist in CRM. |
 
 ### 4.5 CRM Agent API Skills (Exhaustive)
 The CRM Agent exposes a comprehensive set of tools to support both **Chat (MasterAI)** and **GUI (Admin Dashboard)** operations.
@@ -468,6 +470,7 @@ The CRM Agent exposes a comprehensive set of tools to support both **Chat (Maste
 *   **`get_leads_by_status`**: `status`, `limit`, `offset`.
 *   **`get_recent_leads`**: `limit` (Sorted by last interaction).
 *   **`get_dashboard_stats`**: Returns counts per status, leads created today, pending follow-ups.
+*   **`get_merge_candidates`**: Returns pending Merge Review items previously created by the Snapshot Process for CEO review surfaces in GUI/WhatsApp. It is a read tool over stored review records, not a read-time heuristic scan.
 
 #### Artifacts
 *   **`link_artifact`**: `lead_id`, `file_url`, `file_type`, `description` (Manually attach file).

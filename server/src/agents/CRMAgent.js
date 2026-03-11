@@ -18,7 +18,7 @@ class CRMAgent extends BaseAgent {
                     'add_lead', 'change_status', 'merge_leads', 'archive_lead',
                     'update_lead_snapshot', 'add_secondary_phone', 'set_primary_phone',
                     'log_session', 'add_manual_note', 'get_timeline',
-                    'get_lead', 'get_lead_by_phone', 'get_lead_by_email', 'search_leads', 'get_leads_by_status', 'get_recent_leads', 'get_dashboard_stats',
+                    'get_lead', 'get_lead_by_phone', 'get_lead_by_email', 'search_leads', 'get_leads_by_status', 'get_recent_leads', 'get_dashboard_stats', 'get_merge_candidates',
                     'link_artifact', 'get_lead_artifacts'
                 ]
             },
@@ -94,6 +94,7 @@ class CRMAgent extends BaseAgent {
         return {
             leads: leadsMap,
             timelines: timelineMap,
+            mergeReviews: new Map(Object.entries(rawState?.mergeReviews || {})),
             businessConfig: rawState?.businessConfig || null,
             lastUpdatedAt: rawState?.lastUpdatedAt || TimeAuthorityService.nowIST()
         };
@@ -124,6 +125,7 @@ class CRMAgent extends BaseAgent {
                     Array.isArray(events) ? events : []
                 ])
             ),
+            mergeReviews: Object.fromEntries(state.mergeReviews.entries()),
             lastUpdatedAt: TimeAuthorityService.nowIST(),
             businessConfig: this._businessConfigProvider(tenantId)
         };
@@ -138,7 +140,8 @@ class CRMAgent extends BaseAgent {
         const state = this._getState(tenantId);
         return {
             leads: state.leads.size,
-            timelines: state.timelines.size
+            timelines: state.timelines.size,
+            mergeReviews: state.mergeReviews.size
         };
     }
 
@@ -156,6 +159,10 @@ class CRMAgent extends BaseAgent {
 
     get timelines() {
         return this._getState(this._activeTenantId || this.defaultTenantId).timelines;
+    }
+
+    get mergeReviews() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).mergeReviews;
     }
 
     registerTools() {
@@ -340,8 +347,75 @@ class CRMAgent extends BaseAgent {
             // 4. Delete Source
             this.leads.delete(args.source_lead_id);
             this.timelines.delete(args.source_lead_id);
+            for (const [reviewId, review] of this.mergeReviews.entries()) {
+                if (
+                    review.source_lead_id === args.source_lead_id ||
+                    review.target_lead_id === args.source_lead_id ||
+                    review.source_lead_id === args.target_lead_id ||
+                    review.target_lead_id === args.target_lead_id
+                ) {
+                    this.mergeReviews.delete(reviewId);
+                }
+            }
 
             return { status: "Merge Complete", surviving_lead_id: args.target_lead_id };
+        });
+
+        this.registerTool('upsert_merge_review', 'Create or refresh a pending merge review request', {
+            type: 'object',
+            properties: {
+                source_lead_id: { type: 'string' },
+                target_lead_id: { type: 'string' },
+                relationship: { type: 'string' },
+                reasoning: { type: 'string' },
+                triggered_by_event_id: { type: 'string' },
+                confidence: { type: 'number' }
+            },
+            required: ['source_lead_id', 'target_lead_id', 'reasoning']
+        }, async (args) => {
+            const source = this.leads.get(args.source_lead_id);
+            const target = this.leads.get(args.target_lead_id);
+            if (!source || !target) return { status: "Error", message: "One or both leads not found" };
+            if (args.source_lead_id === args.target_lead_id) {
+                return { status: "Error", message: "Source and target lead cannot be same" };
+            }
+
+            const existingForLead = Array.from(this.mergeReviews.entries()).find(([, review]) =>
+                review.source_lead_id === args.source_lead_id ||
+                review.target_lead_id === args.source_lead_id ||
+                review.source_lead_id === args.target_lead_id ||
+                review.target_lead_id === args.target_lead_id
+            );
+
+            const reviewId = existingForLead?.[0] || `MRG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const current = existingForLead?.[1] || {};
+            const nextReview = {
+                review_id: reviewId,
+                source_lead_id: args.source_lead_id,
+                target_lead_id: args.target_lead_id,
+                relationship: args.relationship || 'Duplicate',
+                reasoning: args.reasoning,
+                triggered_by_event_id: args.triggered_by_event_id || null,
+                confidence: typeof args.confidence === 'number' ? args.confidence : null,
+                status: 'PENDING',
+                created_at: current.created_at || TimeAuthorityService.nowIST(),
+                updated_at: TimeAuthorityService.nowIST()
+            };
+
+            this.mergeReviews.set(reviewId, nextReview);
+            const reviewEvent = this._logEvent(args.source_lead_id, 'MERGE_REVIEW', {
+                review_id: reviewId,
+                target_lead_id: args.target_lead_id,
+                relationship: nextReview.relationship,
+                reasoning: nextReview.reasoning,
+                triggered_by_event_id: nextReview.triggered_by_event_id
+            });
+
+            return {
+                status: existingForLead ? "Merge Review Updated" : "Merge Review Created",
+                review_id: reviewId,
+                event_id: reviewEvent.event_id
+            };
         });
 
         // =========================================================================
@@ -374,6 +448,7 @@ class CRMAgent extends BaseAgent {
             if (args.profile_type) lead.profile_type = args.profile_type;
             if (args.timezone) lead.timezone = args.timezone;
             if (args.date_format) lead.date_format = args.date_format;
+            if (args.demographics?.unit_type_required) lead.unit_type_required = args.demographics.unit_type_required;
 
             return { status: "Snapshot Updated", lead_id: args.lead_id };
         });
@@ -629,14 +704,51 @@ class CRMAgent extends BaseAgent {
                 enquiry: 0,
                 visited: 0,
                 onboarded: 0,
-                left: 0
+                left: 0,
+                pending_follow_up: 0
             };
             for (const lead of this.leads.values()) {
                 if (stats[lead.status.toLowerCase()] !== undefined) {
                     stats[lead.status.toLowerCase()]++;
                 }
+                if (lead.status === 'Enquiry' || lead.status === 'Visited') {
+                    stats.pending_follow_up++;
+                }
             }
             return stats;
+        });
+
+        this.registerTool('get_merge_candidates', 'Get system-flagged merge candidates for CEO review', {
+            type: 'object',
+            properties: {
+                limit: { type: 'integer' }
+            }
+        }, async (args) => {
+            const summarizeLead = (lead) => ({
+                lead_id: lead.lead_id,
+                name: lead.name || 'Unknown',
+                status: lead.status || 'Unknown',
+                email: lead.email || '',
+                profile_type: lead.profile_type || 'Customer',
+                source: lead.source || {},
+                unit_type_required: lead.unit_type_required || lead.demographics?.unit_type_required || '',
+                created_at: lead.created_at || ''
+            });
+
+            const candidates = Array.from(this.mergeReviews.values())
+                .filter((review) => review.status === 'PENDING')
+                .map((review) => ({
+                    candidate_id: review.review_id,
+                    confidence: review.confidence,
+                    relationship: review.relationship,
+                    reasons: [review.reasoning].filter(Boolean),
+                    triggered_by_event_id: review.triggered_by_event_id,
+                    source: summarizeLead(this.leads.get(review.source_lead_id) || { lead_id: review.source_lead_id }),
+                    target: summarizeLead(this.leads.get(review.target_lead_id) || { lead_id: review.target_lead_id })
+                }))
+                .filter((candidate) => candidate.source.lead_id && candidate.target.lead_id);
+
+            return { count: candidates.length, candidates: candidates.slice(0, args.limit || 10) };
         });
 
         // =========================================================================

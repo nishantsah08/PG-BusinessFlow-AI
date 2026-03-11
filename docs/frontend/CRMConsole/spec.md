@@ -1,14 +1,16 @@
 # CRMConsole Specification
 
 ## Purpose
-Provide a Lead 360 operations console for CRM on route `/crm`, combining current snapshot edits with append-only timeline review.
+Provide an overview-first CRM operations console on route `/crm`, separating business overview from lead search and opening lead detail in a right-side drawer.
 
 ## Scope
-- Render lead KPI strip (total + lifecycle buckets).
-- Render searchable lead list and single-lead detail panel.
+- Render overview KPIs (`Leads`, `Enquiry`, `Visited`, `Onboarded`, `Left`, `Pending Follow-up`).
+- Render overview analytics and full-width merge review queue.
+- Render `Overview` and `Leads` workspace tabs.
+- Render searchable lead list and right-side lead drawer.
 - Render timeline with type filters (`ALL`, `SESSION`, `STATUS_CHANGE`, `NOTE`, `MERGE`, `ARTIFACT_LINKED`).
-- Support allowed Admin Adapter mutations: `update_lead_snapshot` (email), `change_status` (reason-required), `add_manual_note`, `add_secondary_phone`.
-- Soft-lock high-risk actions (merge/archive) based on backend-provided permissions.
+- Support inline safe edits only for approved snapshot/requirement fields.
+- Allow merge approval from GUI only for roles with `merge_leads` permission.
 
 ## Inputs
 None via props. Uses authenticated context and internal component state.
@@ -27,5 +29,5 @@ None via props. Uses authenticated context and internal component state.
 - Empty search/timeline states render explicit empty text without route failure.
 
 ## Limitations
-- Current mutation UI is intentionally scoped to low-risk one-off CRM changes.
-- High-risk actions remain permission-gated and non-executable from this surface by default.
+- Current mutation UI is intentionally scoped to low-risk snapshot/status edits plus CEO-approved merge execution.
+- Merge queue depends on backend system-flagged candidates from `get_merge_candidates`.

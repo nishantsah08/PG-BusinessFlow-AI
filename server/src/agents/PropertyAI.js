@@ -144,7 +144,7 @@ class PropertyAI extends BaseAgent {
             monthly_rent: rates.monthly_rent,
             base_security_deposit: rates.base_security_deposit,
             deposit_rules: rates.deposit_rules,
-            payment_cycle_rules: `1st-${rates.deposit_rules.dynamic_range_start - 1}th: Standard; ${rates.deposit_rules.dynamic_range_start}th-${rates.deposit_rules.dynamic_range_end}th: Standard + ${rates.deposit_rules.dynamic_multiplier_days} Days Rent`,
+            payment_cycle_rules: `1st-${rates.deposit_rules.dynamic_range_start - 1}th of every month: Standard Deposit; ${rates.deposit_rules.dynamic_range_start}th-${rates.deposit_rules.dynamic_range_end}th of every month: Additional Deposit`,
             notice_period_days: rates.notice_period_days,
             min_stay_months: rates.min_stay_months,
             early_exit_rule: rates.early_exit_rule,
@@ -379,7 +379,9 @@ class PropertyAI extends BaseAgent {
                 types: { type: 'array', items: { type: 'string' } }, // e.g. ["Double Sharing", "Bunk Bed"]
                 amenities: { type: 'array', items: { type: 'string' } },
                 base_rent: { type: 'number' },
-                rate_card: { type: 'object' }
+                rate_card: { type: 'object' },
+                caretaker_staff_id: { type: 'string' },
+                caretaker_name: { type: 'string' }
             },
             required: ['property_id', 'unit_number']
         }, async (args) => {
@@ -409,6 +411,8 @@ class PropertyAI extends BaseAgent {
                 amenities: unitAmenities,
                 base_rent: args.base_rent || 0,
                 rate_card: args.rate_card || null,
+                caretaker_staff_id: args.caretaker_staff_id || null,
+                caretaker_name: args.caretaker_name || null,
                 status: 'AVAILABLE',
                 is_enabled: true,
                 history: [],
@@ -429,6 +433,8 @@ class PropertyAI extends BaseAgent {
                 amenities: { type: 'array', items: { type: 'string' } },
                 base_rent: { type: 'number' },
                 rate_card: { type: 'object' },
+                caretaker_staff_id: { type: 'string' },
+                caretaker_name: { type: 'string' },
                 status: { type: 'string', enum: ['AVAILABLE', 'BOOKED', 'NOTICE'] }, // Transitions
                 tenant_id: { type: 'string' } // Required if status -> BOOKED
             },
@@ -508,6 +514,8 @@ class PropertyAI extends BaseAgent {
             }
             if (args.base_rent !== undefined) unit.base_rent = args.base_rent;
             if (args.rate_card !== undefined) unit.rate_card = args.rate_card;
+            if (args.caretaker_staff_id !== undefined) unit.caretaker_staff_id = args.caretaker_staff_id || null;
+            if (args.caretaker_name !== undefined) unit.caretaker_name = args.caretaker_name || null;
 
             unit.updated_at = new Date().toISOString();
             return { status: "Unit Updated", unit_id: unit.id, current_status: unit.status };
@@ -655,7 +663,9 @@ class PropertyAI extends BaseAgent {
                 lead_id: { type: 'string' },
                 start_date: { type: 'string' },
                 monthly_rent: { type: 'number' },
-                security_deposit: { type: 'number' }
+                security_deposit: { type: 'number' },
+                caretaker_staff_id: { type: 'string' },
+                caretaker_name: { type: 'string' }
             },
             required: ['unit_id', 'lead_id', 'start_date']
         }, async (args) => {
@@ -712,11 +722,19 @@ class PropertyAI extends BaseAgent {
 
             unit.status = 'BOOKED';
             unit.tenant_id = args.lead_id;
+            if (args.caretaker_staff_id !== undefined) unit.caretaker_staff_id = args.caretaker_staff_id || null;
+            if (args.caretaker_name !== undefined) unit.caretaker_name = args.caretaker_name || null;
             unit.history.push({
                 state: 'BOOKED',
                 date: new Date().toISOString(),
                 tenant: args.lead_id,
-                metadata: { start: args.start_date, rent: args.monthly_rent, deposit: args.security_deposit }
+                metadata: {
+                    start: args.start_date,
+                    rent: args.monthly_rent,
+                    deposit: args.security_deposit,
+                    caretaker_staff_id: unit.caretaker_staff_id,
+                    caretaker_name: unit.caretaker_name
+                }
             });
             unit.updated_at = new Date().toISOString();
 
@@ -959,9 +977,15 @@ class PropertyAI extends BaseAgent {
                 if (!unit) throw new Error("Unit not found in this property");
             }
 
+            const unit = args.unit_id
+                ? this.units.find(u => u.id === args.unit_id && u.property_id === args.property_id && u.status !== 'DELETED')
+                : null;
+
             const ticket = {
                 id: `TICKET-${this.maintenance_requests.length + 1}`,
                 ...args,
+                assigned_caretaker_staff_id: unit?.caretaker_staff_id || null,
+                assigned_caretaker_name: unit?.caretaker_name || null,
                 status: 'OPEN',
                 remarks: [],
                 cost: 0,

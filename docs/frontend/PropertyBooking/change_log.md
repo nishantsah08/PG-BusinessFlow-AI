@@ -79,3 +79,8 @@
 - Date: 2026-03-10
 - Change: Reframed unit `payment_cycle_rules` as a monthly payment-cycle selector with explicit 1st-5th and 6th-10th customer-facing summary lines, and normalized older stored rule strings to the monthly wording.
 - Reason: Aligns the public unit rate card with the actual billing-cycle business rule while keeping payload compatibility for existing units.
+
+**Version 1.5.11**
+- Date: 2026-03-11
+- Change: Documented the current `/property` route boundary as analytics-first for bookings, clarified that onboarding/billing/payroll remain workflow/chat-driven beyond this GUI, hardened Electric Meter property-filter unit loading against stale responses, and made Maintenance ticket logging explicitly property-scoped.
+- Reason: Aligns docs with the live operator surface discovered during CEO-channel GUI validation and captures the two production fixes applied in Property Booking.

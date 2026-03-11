@@ -84,6 +84,7 @@ app.use('/images', express.static(IMAGE_DIR));
 const ADMIN_ADAPTER_POLICY = {
     CRMAgent: new Set([
         'get_dashboard_stats',
+        'get_merge_candidates',
         'get_recent_leads',
         'search_leads',
         'get_lead',
@@ -155,6 +156,7 @@ const ADMIN_ROLE_PERMISSIONS = {
     Staff: {
         CRMAgent: new Set([
             'get_dashboard_stats',
+            'get_merge_candidates',
             'get_recent_leads',
             'search_leads',
             'get_lead',

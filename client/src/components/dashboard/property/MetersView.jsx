@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Plus, Loader2, Zap, Trash2, Search, LineChart, FileText, X } from 'lucide-react';
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { executeDashboardTool } from './toolClient';
 
 const MetersView = () => {
     const [properties, setProperties] = useState([]);
@@ -18,19 +19,13 @@ const MetersView = () => {
     const [selectedMeterId, setSelectedMeterId] = useState(null);
     const [newReadingVal, setNewReadingVal] = useState('');
     const [errorModal, setErrorModal] = useState({ open: false, message: '' });
+    const latestUnitsRequestIdRef = useRef(0);
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
             // Fetch properties
-            const propRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_properties',
-                    parameters: {}
-                })
-            });
-            const { data: propData } = await propRes.json();
+            const { data: propData } = await executeDashboardTool('PropertyAI', 'get_properties', {});
             setProperties(propData || []);
             const firstPropId = propData?.[0]?.id;
 
@@ -39,20 +34,10 @@ const MetersView = () => {
             }
 
             // Fetch meters
-            const meterRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_meters',
-                    parameters: {}
-                })
-            });
-            const { data: meterData } = await meterRes.json();
+            const { data: meterData } = await executeDashboardTool('PropertyAI', 'get_meters', {});
             setMeters(meterData || []);
-
-            // Wait until a property is selected to fetch its units
-            if (selectedPropertyId || firstPropId) {
-                fetchUnitsForProperty(selectedPropertyId || firstPropId);
-            } else {
+            if (!selectedPropertyId && !firstPropId) {
+                setUnits([]);
                 setIsLoading(false);
             }
 
@@ -63,20 +48,19 @@ const MetersView = () => {
     };
 
     const fetchUnitsForProperty = async (propId) => {
+        const requestId = latestUnitsRequestIdRef.current + 1;
+        latestUnitsRequestIdRef.current = requestId;
         try {
-            const unitRes = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'get_units',
-                    parameters: { property_id: propId }
-                })
-            });
-            const { data: unitData } = await unitRes.json();
+            const { data: unitData } = await executeDashboardTool('PropertyAI', 'get_units', { property_id: propId });
+            if (latestUnitsRequestIdRef.current !== requestId) return;
             setUnits(unitData || []);
         } catch (e) {
+            if (latestUnitsRequestIdRef.current !== requestId) return;
             console.error(e);
         } finally {
-            setIsLoading(false);
+            if (latestUnitsRequestIdRef.current === requestId) {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -86,6 +70,9 @@ const MetersView = () => {
 
     useEffect(() => {
         if (selectedPropertyId) {
+            setUnits([]);
+            setSelectedMeterId(null);
+            setIsLoading(true);
             fetchUnitsForProperty(selectedPropertyId);
         }
     }, [selectedPropertyId]);
@@ -93,45 +80,27 @@ const MetersView = () => {
     const handleAddMeter = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'add_meter',
-                    parameters: {
-                        consumer_number: newConsumerNumber,
-                        type: newType,
-                        linked_units: newLinkedUnits,
-                        initial_reading: newInitialReading ? parseFloat(newInitialReading) : undefined
-                    }
-                })
+            await executeDashboardTool('PropertyAI', 'add_meter', {
+                consumer_number: newConsumerNumber,
+                type: newType,
+                linked_units: newLinkedUnits,
+                initial_reading: newInitialReading ? parseFloat(newInitialReading) : undefined
             });
-            if (res.ok) {
                 setNewConsumerNumber('');
                 setNewLinkedUnits([]);
                 setNewInitialReading('');
                 setIsAddingMeter(false);
                 fetchData();
-            } else {
-                const { error } = await res.json();
-                setErrorModal({ open: true, message: `Failed to add meter: ${error}` });
-            }
         } catch (e) {
             console.error(e);
-            setErrorModal({ open: true, message: 'Network error while adding meter.' });
+            setErrorModal({ open: true, message: e?.message || 'Network error while adding meter.' });
         }
     };
 
     const handleDeleteMeter = async (meterId) => {
         if (!window.confirm("Delete this meter?")) return;
         try {
-            await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'delete_meter',
-                    parameters: { meter_id: meterId }
-                })
-            });
+            await executeDashboardTool('PropertyAI', 'delete_meter', { meter_id: meterId });
             fetchData();
         } catch (e) { console.error(e); }
     };
@@ -140,24 +109,16 @@ const MetersView = () => {
         e.preventDefault();
         if (!selectedMeterId || !newReadingVal) return;
         try {
-            const res = await fetch('/api/master_ai/tools/execute', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    agent_name: 'PropertyAI',
-                    tool_name: 'update_meter_reading',
-                    parameters: { meter_id: selectedMeterId, reading: parseFloat(newReadingVal), date: new Date().toISOString() }
-                })
+            await executeDashboardTool('PropertyAI', 'update_meter_reading', {
+                meter_id: selectedMeterId,
+                reading: parseFloat(newReadingVal),
+                date: new Date().toISOString()
             });
-            if (res.ok) {
                 setNewReadingVal('');
                 fetchData();
-            } else {
-                const { error } = await res.json();
-                setErrorModal({ open: true, message: error || 'Failed to add meter reading.' });
-            }
         } catch (e) {
             console.error(e);
-            setErrorModal({ open: true, message: 'Network error while adding meter reading.' });
+            setErrorModal({ open: true, message: e?.message || 'Network error while adding meter reading.' });
         }
     };
 

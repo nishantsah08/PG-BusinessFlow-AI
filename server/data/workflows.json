@@ -135,7 +135,7 @@
             }
         ],
         "created_at": "2026-03-03T16:44:37.176+05:30",
-        "updated_at": "2026-03-10T13:49:17.509+05:30"
+        "updated_at": "2026-03-11T15:25:24.841+05:30"
     },
     {
         "workflow_id": "finance_generate_monthly_bills_v1",
@@ -167,7 +167,7 @@
             }
         ],
         "created_at": "2026-03-03T16:44:37.179+05:30",
-        "updated_at": "2026-03-10T13:49:17.510+05:30"
+        "updated_at": "2026-03-11T15:25:24.841+05:30"
     },
     {
         "workflow_id": "finance_add_ledger_entry_v1",
@@ -201,7 +201,7 @@
             }
         ],
         "created_at": "2026-03-03T16:44:37.179+05:30",
-        "updated_at": "2026-03-10T13:49:17.510+05:30"
+        "updated_at": "2026-03-11T15:25:24.841+05:30"
     },
     {
         "workflow_id": "finance_record_incoming_txn_v1",
@@ -236,7 +236,7 @@
             }
         ],
         "created_at": "2026-03-03T16:44:37.180+05:30",
-        "updated_at": "2026-03-10T13:49:17.510+05:30"
+        "updated_at": "2026-03-11T15:25:24.841+05:30"
     },
     {
         "workflow_id": "finance_record_outgoing_txn_v1",
@@ -274,7 +274,7 @@
             }
         ],
         "created_at": "2026-03-03T16:44:37.180+05:30",
-        "updated_at": "2026-03-10T13:49:17.510+05:30"
+        "updated_at": "2026-03-11T15:25:24.841+05:30"
     },
     {
         "workflow_id": "finance_process_salary_payout_v1",
@@ -306,6 +306,261 @@
             }
         ],
         "created_at": "2026-03-03T16:44:37.180+05:30",
-        "updated_at": "2026-03-10T13:49:17.510+05:30"
+        "updated_at": "2026-03-11T15:25:24.841+05:30"
+    },
+    {
+        "workflow_id": "operations_send_month_end_itemized_bill_v1",
+        "name": "Send Month-End Itemized Bill",
+        "description": "Generate the monthly itemized bill on the last day of the month and notify the customer on WhatsApp.",
+        "user_view_title": "Send Itemized Bill (Plain English)",
+        "user_view_steps": [
+            "Generate the itemized monthly bill for the customer.",
+            "Send the bill notification to the customer on WhatsApp.",
+            "Keep the bill link and customer reminder in the workflow trail."
+        ],
+        "trigger_event": "billing.month_end.itemized_bill_due",
+        "trigger_description": "On the last day of each month when the customer itemized bill must be generated and shared.",
+        "domain": "operations",
+        "steps": [
+            {
+                "step_id": "generate_itemized_bill",
+                "description": "Generate the customer bill in FinanceAI for the target month.",
+                "agent": "FinanceAI",
+                "tool": "generate_monthly_bills",
+                "params": {
+                    "payer_id": "{{context.payer_id}}",
+                    "month_year": "{{context.month_year}}",
+                    "property_id": "{{context.property_id}}"
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "notify_customer_bill_ready",
+                "description": "Send a WhatsApp message to the customer that the itemized bill is ready.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.customer_phone}}",
+                    "content": "Your itemized bill for {{context.month_year}} is ready. Please review and pay within your selected cycle. Bill link: {{context.bill_link}}"
+                },
+                "on_failure": "retry"
+            }
+        ],
+        "created_at": "2026-03-10T12:00:04.613Z",
+        "updated_at": "2026-03-10T12:00:04.613Z"
+    },
+    {
+        "workflow_id": "operations_process_caretaker_salary_last_saturday_v1",
+        "name": "Process Caretaker Salary On Last Saturday",
+        "description": "Calculate caretaker salary on the last Saturday of the month, notify the CEO for disbursal, and send the salary slip to the caretaker.",
+        "user_view_title": "Process Caretaker Salary (Plain English)",
+        "user_view_steps": [
+            "Calculate caretaker salary using the business salary rules.",
+            "Send the salary summary to the CEO for disbursal approval.",
+            "Send the salary slip summary to the caretaker."
+        ],
+        "trigger_event": "payroll.caretaker.last_saturday_due",
+        "trigger_description": "On the last Saturday of the month when caretaker salary must be calculated and routed to CEO and caretaker.",
+        "domain": "operations",
+        "steps": [
+            {
+                "step_id": "calculate_caretaker_salary",
+                "description": "Calculate the caretaker salary in FinanceAI using unit, payment, proof, and complaint data.",
+                "agent": "FinanceAI",
+                "tool": "process_salary_payout",
+                "params": {
+                    "staff_id": "{{context.staff_id}}",
+                    "month": "{{context.month}}",
+                    "year": "{{context.year}}"
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "notify_ceo_salary_ready",
+                "description": "Notify the CEO that the caretaker salary is ready for disbursal.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.ceo_phone}}",
+                    "content": "Caretaker salary for {{context.staff_name}} is calculated for {{context.month}} {{context.year}} and is ready for disbursal."
+                },
+                "on_failure": "retry"
+            },
+            {
+                "step_id": "send_caretaker_salary_slip",
+                "description": "Send the salary slip summary to the caretaker on WhatsApp.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.caretaker_phone}}",
+                    "content": "Your salary slip for {{context.month}} {{context.year}} has been prepared and shared with the CEO for disbursal."
+                },
+                "on_failure": "retry"
+            }
+        ],
+        "created_at": "2026-03-10T12:00:04.613Z",
+        "updated_at": "2026-03-10T12:00:04.613Z"
+    },
+    {
+        "workflow_id": "operations_confirm_customer_payment_and_post_v1",
+        "name": "Confirm Customer Payment And Post To Finance",
+        "description": "Once payment is received and the CEO confirms it, post it into FinanceAI and acknowledge the customer.",
+        "user_view_title": "Confirm Customer Payment (Plain English)",
+        "user_view_steps": [
+            "Wait for CEO confirmation that the payment is actually received.",
+            "Post the payment into FinanceAI through the governed payment workflow.",
+            "Acknowledge the customer on WhatsApp."
+        ],
+        "trigger_event": "customer.payment.received.and_confirmed",
+        "trigger_description": "When customer payment has been received and CEO has confirmed it.",
+        "domain": "operations",
+        "steps": [
+            {
+                "step_id": "post_payment_to_finance",
+                "description": "Post the incoming payment into FinanceAI after CEO confirmation.",
+                "agent": "FinanceAI",
+                "tool": "record_incoming_txn",
+                "params": {
+                    "payer_id": "{{context.payer_id}}",
+                    "amount": "{{context.amount}}",
+                    "payment_mode": "{{context.payment_mode}}",
+                    "date": "{{context.date}}",
+                    "attachment_url": "{{context.attachment_url}}",
+                    "txn_id": "{{context.txn_id}}"
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "acknowledge_customer_payment",
+                "description": "Send payment acknowledgement to the customer.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.customer_phone}}",
+                    "content": "We have confirmed your payment of ₹{{context.amount}}. Thank you."
+                },
+                "on_failure": "retry"
+            }
+        ],
+        "created_at": "2026-03-10T12:00:04.613Z",
+        "updated_at": "2026-03-10T12:00:04.613Z"
+    },
+    {
+        "workflow_id": "operations_onboard_customer_after_payment_v1",
+        "name": "Onboard Customer After Payment",
+        "description": "After a negotiated enquiry has paid, assign the unit caretaker, send police verification, onboard the customer, send house rules and Wi-Fi access, and update the system records.",
+        "user_view_title": "Onboard Customer After Payment (Plain English)",
+        "user_view_steps": [
+            "Capture the negotiated payment terms and payment method in the customer record.",
+            "Assign the customer to the unit and lock the caretaker ownership for that unit.",
+            "Notify the caretaker and send the police verification request to the customer.",
+            "After verification is received, mark the customer onboarded and send house rules and Wi-Fi details."
+        ],
+        "trigger_event": "customer.onboarding.payment_completed",
+        "trigger_description": "When a negotiated customer has completed payment and is ready to be onboarded into a unit.",
+        "domain": "operations",
+        "steps": [
+            {
+                "step_id": "update_customer_payment_terms",
+                "description": "Update customer CRM snapshot with negotiated payment terms and preferred payment method.",
+                "agent": "CRMAgent",
+                "tool": "update_lead_snapshot",
+                "params": {
+                    "lead_id": "{{context.lead_id}}",
+                    "ai_notes": {
+                        "payment_terms": "{{context.payment_terms}}",
+                        "payment_method": "{{context.payment_method}}",
+                        "onboarding_status": "payment_received"
+                    }
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "assign_unit_and_caretaker",
+                "description": "Assign the customer to the booked unit and set the caretaker owner for that unit.",
+                "agent": "PropertyAI",
+                "tool": "assign_tenant",
+                "params": {
+                    "unit_id": "{{context.unit_id}}",
+                    "lead_id": "{{context.lead_id}}",
+                    "start_date": "{{context.start_date}}",
+                    "monthly_rent": "{{context.monthly_rent}}",
+                    "security_deposit": "{{context.security_deposit}}",
+                    "caretaker_staff_id": "{{context.caretaker_staff_id}}",
+                    "caretaker_name": "{{context.caretaker_name}}"
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "notify_caretaker",
+                "description": "Notify the assigned caretaker that the new customer is now mapped to the unit.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.caretaker_phone}}",
+                    "content": "A new customer has been onboarded to your assigned unit {{context.unit_label}}. Please coordinate move-in readiness."
+                },
+                "on_failure": "retry"
+            },
+            {
+                "step_id": "send_police_verification",
+                "description": "Send the police verification form request to the customer.",
+                "agent": "CommunicationsAI",
+                "tool": "send_template_message",
+                "params": {
+                    "recipient_phone": "{{context.customer_phone}}",
+                    "template_name": "v1_police_verification_en"
+                },
+                "on_failure": "retry"
+            },
+            {
+                "step_id": "mark_customer_onboarded",
+                "description": "Move the customer lifecycle from visited to onboarded after verification is received.",
+                "agent": "CRMAgent",
+                "tool": "change_status",
+                "params": {
+                    "lead_id": "{{context.lead_id}}",
+                    "to_status": "Onboarded",
+                    "reason": "Payment received, verification completed, unit assigned"
+                },
+                "on_failure": "abort"
+            },
+            {
+                "step_id": "send_house_rules",
+                "description": "Send the house rules to the customer.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.customer_phone}}",
+                    "content": "{{context.house_rules_message}}"
+                },
+                "on_failure": "retry"
+            },
+            {
+                "step_id": "send_wifi_password",
+                "description": "Send the generated Wi-Fi credentials to the customer.",
+                "agent": "CommunicationsAI",
+                "tool": "send_text_message",
+                "params": {
+                    "recipient_phone": "{{context.customer_phone}}",
+                    "content": "Wi-Fi access for your stay: {{context.wifi_password}}"
+                },
+                "on_failure": "retry"
+            },
+            {
+                "step_id": "record_onboarding_summary",
+                "description": "Store final onboarding notes in CRM for operational traceability.",
+                "agent": "CRMAgent",
+                "tool": "add_manual_note",
+                "params": {
+                    "lead_id": "{{context.lead_id}}",
+                    "content": "Customer onboarded with assigned caretaker, payment terms captured, police verification requested, house rules shared, and Wi-Fi credentials delivered.",
+                    "author": "system"
+                },
+                "on_failure": "retry"
+            }
+        ],
+        "created_at": "2026-03-10T12:00:04.613Z",
+        "updated_at": "2026-03-10T12:00:49.843Z"
     }
 ]

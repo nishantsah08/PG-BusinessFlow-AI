@@ -58,4 +58,53 @@ describe('CRM Agent: Snapshot Process (Session)', () => {
         // Basic IST Valid check
         expect(TimeAuthorityService.validateIST(session.timestamp)).toBe(true);
     });
+
+    test('INV-15: Merge reviews are stored separately and surfaced through get_merge_candidates', async () => {
+        await agent.callTool('add_lead', { name: 'Existing Lead', primary_phone: '+919444444444', email: 'existing@example.com' });
+
+        const created = await agent.callTool('upsert_merge_review', {
+            source_lead_id: ID,
+            target_lead_id: '+919444444444',
+            relationship: 'Duplicate',
+            reasoning: 'Snapshot process found matching identity details in the new session.',
+            confidence: 0.92,
+            triggered_by_event_id: 'EVT-session-1'
+        });
+
+        expect(created.status).toBe('Merge Review Created');
+
+        const candidates = await agent.callTool('get_merge_candidates', { limit: 10 });
+        expect(candidates.count).toBe(1);
+        expect(candidates.candidates[0].source.lead_id).toBe('+913333333333');
+        expect(candidates.candidates[0].target.lead_id).toBe('+919444444444');
+        expect(candidates.candidates[0].reasons).toContain('Snapshot process found matching identity details in the new session.');
+
+        const timeline = await agent.callTool('get_timeline', { lead_id: ID });
+        expect(timeline.events.some((event) => event.type === 'MERGE_REVIEW' && event.review_id === created.review_id)).toBe(true);
+    });
+
+    test('INV-16: Merge review upsert keeps one pending review per involved lead', async () => {
+        await agent.callTool('add_lead', { name: 'Existing Lead', primary_phone: '+919444444444', email: 'existing@example.com' });
+
+        const first = await agent.callTool('upsert_merge_review', {
+            source_lead_id: ID,
+            target_lead_id: '+919444444444',
+            reasoning: 'Initial snapshot flag.',
+            confidence: 0.61
+        });
+
+        const second = await agent.callTool('upsert_merge_review', {
+            source_lead_id: ID,
+            target_lead_id: '+919444444444',
+            reasoning: 'Refreshed after a later session.',
+            confidence: 0.88
+        });
+
+        expect(second.status).toBe('Merge Review Updated');
+        expect(second.review_id).toBe(first.review_id);
+
+        const candidates = await agent.callTool('get_merge_candidates', { limit: 10 });
+        expect(candidates.count).toBe(1);
+        expect(candidates.candidates[0].reasons).toContain('Refreshed after a later session.');
+    });
 });

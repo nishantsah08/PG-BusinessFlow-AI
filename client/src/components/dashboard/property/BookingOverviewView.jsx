@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Loader2, Zap, UserX, AlertTriangle, Layers, Home, Info, Building } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { executeDashboardTool } from './toolClient';
 
 const BookingOverviewView = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -21,14 +22,7 @@ const BookingOverviewView = () => {
         const loadData = async () => {
             try {
                 // Fetch Properties
-                const propRes = await fetch('/api/master_ai/tools/execute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                        agent_name: 'PropertyAI',
-                        tool_name: 'get_properties',
-                        parameters: {}
-                    })
-                });
-                const propBody = await propRes.json();
+                const propBody = await executeDashboardTool('PropertyAI', 'get_properties', {});
                 const loadedProps = propBody.data || [];
                 setProperties(loadedProps);
 
@@ -55,25 +49,11 @@ const BookingOverviewView = () => {
             setIsLoading(true);
             try {
                 // Fetch Units for explicit floor mapping
-                const unitsRes = await fetch('/api/master_ai/tools/execute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                        agent_name: 'PropertyAI',
-                        tool_name: 'get_units',
-                        parameters: { property_id: selectedPropertyId }
-                    })
-                });
-                const unitsBody = await unitsRes.json();
+                const unitsBody = await executeDashboardTool('PropertyAI', 'get_units', { property_id: selectedPropertyId });
                 setUnits(unitsBody.data || []);
 
                 // Fetch Analytics for charts
-                const statsRes = await fetch('/api/master_ai/tools/execute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                        agent_name: 'PropertyAI',
-                        tool_name: 'get_analytics_stats',
-                        parameters: { property_id: selectedPropertyId }
-                    })
-                });
-                const statsBody = await statsRes.json();
+                const statsBody = await executeDashboardTool('PropertyAI', 'get_analytics_stats', { property_id: selectedPropertyId });
                 if (statsBody.success && statsBody.data) {
                     setOccupancyData(statsBody.data.occupancy_data || []);
                     setChurnData(statsBody.data.churn_data || []);

@@ -1,6 +1,88 @@
 {
-    "staff": [],
-    "salary_cards": [],
+    "staff": [
+        {
+            "id": "STF-CT-01",
+            "name": "Maya Caretaker 1",
+            "designation": "Caretaker",
+            "job_description": "Unit readiness, daily cleaning proof, parking cleaning proof, maintenance coordination",
+            "contact": {
+                "primary": "+91981210011",
+                "email": "caretaker.1.ceo_maya_verma_example_com@example.com",
+                "alternate": []
+            },
+            "status": "ACTIVE",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "updated_at": "2026-03-10T12:00:04.613Z"
+        },
+        {
+            "id": "STF-CT-02",
+            "name": "Maya Caretaker 2",
+            "designation": "Caretaker",
+            "job_description": "Unit readiness, daily cleaning proof, parking cleaning proof, maintenance coordination",
+            "contact": {
+                "primary": "+91981220021",
+                "email": "caretaker.2.ceo_maya_verma_example_com@example.com",
+                "alternate": []
+            },
+            "status": "ACTIVE",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "updated_at": "2026-03-10T12:00:04.613Z"
+        }
+    ],
+    "salary_cards": [
+        {
+            "staff_id": "STF-CT-01",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Maya Caretaker 1",
+                "account_number": "CT2100012345",
+                "ifsc": "HDFC0001234",
+                "bank_name": "HDFC Bank",
+                "upi_id": "caretaker1.ceo_maya_verma_example_com@upi"
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 2000,
+                "reimbursements_allowed": false,
+                "caretaker_rules": {
+                    "fixed_basic_salary": 4000,
+                    "per_fully_paid_occupied_unit": 250,
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-01",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "history": []
+        },
+        {
+            "staff_id": "STF-CT-02",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Maya Caretaker 2",
+                "account_number": "CT2200012345",
+                "ifsc": "HDFC0001234",
+                "bank_name": "HDFC Bank",
+                "upi_id": "caretaker2.ceo_maya_verma_example_com@upi"
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 2000,
+                "reimbursements_allowed": false,
+                "caretaker_rules": {
+                    "fixed_basic_salary": 4000,
+                    "per_fully_paid_occupied_unit": 250,
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-01",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "history": []
+        }
+    ],
     "leaves": [],
-    "lastUpdatedAt": "2026-03-06T04:41:18.168Z"
+    "lastUpdatedAt": "2026-03-10T12:00:04.613Z"
 }

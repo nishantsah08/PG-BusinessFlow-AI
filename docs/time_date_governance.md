@@ -83,6 +83,7 @@ Store timestamps as ISO-8601 string with `+05:30`.
 
 All logs must include `created_at_ist` and `processed_at_ist`.
 Single timeline = IST.
+This includes debug observability streams such as the WhatsApp simulator inbound/outbound thread records.
 
 ## 🔟 MANDATORY SERVICES
 

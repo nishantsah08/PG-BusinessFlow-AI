@@ -66,6 +66,13 @@ const DEFAULT_BUSINESS_CONFIG = {
         // Default salary values (used when HR card is not available)
         default_base_salary: 4000,
         default_incentive_per_unit: 350,
+        caretaker_compensation: {
+            fixed_basic_salary: 4000,
+            per_fully_paid_occupied_unit: 250,
+            daily_cleaning_proof_amount: 100,
+            weekly_parking_cleaning_amount: 100,
+            maintenance_complaint_deduction: 100
+        }
     },
 };
 

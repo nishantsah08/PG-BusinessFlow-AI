@@ -571,103 +571,97 @@ class MasterAI extends BaseAgent {
 
         console.log(`[MasterAI] Session Timeout for ${key}. Processing flush...`);
 
-        if (session.leadContext?.isTemporary) {
-            // --- DEFERRED LEAD: AI-Judged Flush ---
-            if (session.messages.length > 0) {
-                try {
-                    // Step 1: Ask LLM to classify the conversation
-                    const classificationPrompt = `Analyze this conversation and respond with ONLY a JSON object:
-{
-  "is_business_relevant": true/false,
-  "reason": "one line explanation",
-  "extracted_name": "name if mentioned, else null",
-  "summary": "2-3 line conversation summary",
-  "sentiment": "Positive/Neutral/Negative",
-  "tone": "Formal/Casual/Urgent"
-}
-
-Rules:
-- Business-relevant = about our PG/hostel, rooms, rent, visits, complaints, payments, maintenance
-- NOT relevant = wrong number, spam, random chat, greetings with no follow-up, unrelated questions`;
-
-                    const classification = await this.openai.chat.completions.create({
-                        model: "gpt-4o-mini",
-                        messages: [
-                            { role: "system", content: classificationPrompt },
-                            ...session.messages.map(m => ({ role: m.role, content: m.content }))
-                        ]
-                    });
-
-                    const verdict = JSON.parse(classification.choices[0].message.content);
-
-                    // Step 2: If relevant → CRM snapshot process
-                    if (verdict.is_business_relevant) {
-                        try {
-                            const crm = this.subAgents.find(a => a.name === 'CRMAgent');
-                            const phone = session.leadContext.phone;
-
-                            const newLead = await crm.callTool('add_lead', {
-                                name: verdict.extracted_name || 'WhatsApp User',
-                                primary_phone: phone,
-                                source: { category: 'WhatsApp', detail: 'Auto-created after conversation' },
-                                ...this._buildTenantContextArgs({}, tenantId)
-                            });
-
-                            if (newLead.status === 'Lead Created' || newLead.status === 'Conflict') {
-                                const leadId = newLead.lead_id || phone;
-                                await crm.callTool('log_session', {
-                                    lead_id: leadId,
-                                    interaction_type: 'WhatsApp Conversation',
-                                    participants: [phone, 'MasterAI'],
-                                    summary: verdict.summary,
-                                    sentiment: verdict.sentiment,
-                                    tone: verdict.tone,
-                                    financial_impact: 'None',
-                                    compliance_impact: 'None',
-                                    ...this._buildTenantContextArgs({}, tenantId),
-                                    links: { artifacts: [] }
-                                });
-                                console.log(`[MasterAI] Deferred lead created and session logged for ${phone} (Reason: ${verdict.reason})`);
-                            }
-                        } catch (crmErr) {
-                            // DATA PLANE: Don't lose classified data (Failure Policy §2.2)
-                            console.error("[MasterAI] Flush CRM Write Failed:", crmErr.message);
-                            this._emitSystemEvent('flush.failed', key, {
-                                phone: session.leadContext.phone,
-                                verdict: verdict,
-                                messages: session.messages,
-                                error: crmErr.message
-                            });
-                        }
-                    } else {
-                        console.log(`[MasterAI] Session dropped (not business-relevant): ${verdict.reason}`);
-                    }
-                } catch (llmErr) {
-                    // LLM classification failed — can't determine relevance, drop session
-                    console.error("[MasterAI] Flush Classification Failed:", llmErr.message);
-                }
-            } else {
-                console.log(`[MasterAI] Empty temp session dropped.`);
-            }
-        } else if (session.leadId && session.messages.length > 0) {
-            // --- KNOWN USER: Standard flush (existing behavior) ---
+        if (session.messages.length > 0) {
+            let analysis = null;
             try {
                 const crm = this.subAgents.find(a => a.name === 'CRMAgent');
-                await crm.callTool('log_session', {
-                    lead_id: session.leadId,
-                    interaction_type: 'WhatsApp Conversation',
-                    participants: [key, 'MasterAI'],
-                    summary: `Session with ${session.messages.length} messages.`,
-                    sentiment: 'Neutral',
-                    tone: 'Neutral',
-                    financial_impact: 'None',
-                    compliance_impact: 'None',
-                    ...this._buildTenantContextArgs({}, tenantId),
-                    links: { artifacts: [] }
-                });
-                console.log(`[MasterAI] Session flushed successfully.`);
+                analysis = await this._analyzeSnapshotSession(session);
+
+                if (session.leadContext?.isTemporary && !analysis.is_business_relevant) {
+                    console.log(`[MasterAI] Session dropped (not business-relevant): ${analysis.reason || 'LLM classified non-business conversation'}`);
+                } else {
+                    let leadId = session.leadId;
+                    const phone = session.leadContext?.phone || key;
+
+                    if (session.leadContext?.isTemporary) {
+                        const created = await crm.callTool('add_lead', {
+                            name: analysis.extracted_name || 'WhatsApp User',
+                            primary_phone: phone,
+                            source: analysis.source?.category
+                                ? analysis.source
+                                : { category: 'WhatsApp', detail: 'Auto-created after conversation' },
+                            ...this._buildTenantContextArgs({}, tenantId)
+                        });
+                        leadId = created.lead_id || phone;
+                    }
+
+                    const snapshotPayload = {
+                        lead_id: leadId,
+                        ...this._buildTenantContextArgs({}, tenantId)
+                    };
+                    if (analysis.email) snapshotPayload.email = analysis.email;
+                    if (analysis.source?.category || analysis.source?.detail) snapshotPayload.source = analysis.source;
+                    if (Array.isArray(analysis.preferences) && analysis.preferences.length > 0) snapshotPayload.preferences = analysis.preferences;
+                    if (analysis.ai_notes && Object.keys(analysis.ai_notes).length > 0) snapshotPayload.ai_notes = analysis.ai_notes;
+                    if (analysis.profile_type) snapshotPayload.profile_type = analysis.profile_type;
+
+                    const demographics = {};
+                    if (analysis.unit_type_required) demographics.unit_type_required = analysis.unit_type_required;
+                    if (analysis.budget) demographics.budget = analysis.budget;
+                    if (analysis.move_in) demographics.move_in = analysis.move_in;
+                    if (Object.keys(demographics).length > 0) snapshotPayload.demographics = demographics;
+
+                    if (Object.keys(snapshotPayload).length > 2) {
+                        await crm.callTool('update_lead_snapshot', snapshotPayload);
+                    }
+
+                    const relatedEventIds = [];
+                    const sessionRecord = await crm.callTool('log_session', {
+                        lead_id: leadId,
+                        interaction_type: 'WhatsApp Conversation',
+                        participants: [phone, 'MasterAI'],
+                        summary: analysis.summary || `Session with ${session.messages.length} messages.`,
+                        sentiment: analysis.sentiment || 'Neutral',
+                        tone: analysis.tone || 'Neutral',
+                        financial_impact: analysis.financial_impact || 'None',
+                        compliance_impact: analysis.compliance_impact || 'None',
+                        ...this._buildTenantContextArgs({}, tenantId),
+                        links: { artifacts: [], related_event_ids: [] }
+                    });
+
+                    const mergeReview = await this._maybeCreateMergeReview({
+                        crm,
+                        leadId,
+                        tenantId,
+                        analysis,
+                        sessionEventId: sessionRecord?.event_id || null
+                    });
+                    if (mergeReview?.event_id) {
+                        relatedEventIds.push(mergeReview.event_id);
+                    }
+
+                    if (sessionRecord?.event_id && relatedEventIds.length > 0) {
+                        const timelinePayload = await crm.callTool('get_timeline', this._buildTenantContextArgs({ lead_id: leadId, limit: 200 }, tenantId));
+                        const timeline = Array.isArray(timelinePayload?.events) ? timelinePayload.events : [];
+                        const sessionEvent = timeline.find((event) => event.event_id === sessionRecord.event_id);
+                        if (sessionEvent) {
+                            sessionEvent.links = {
+                                ...(sessionEvent.links || {}),
+                                related_event_ids: relatedEventIds
+                            };
+                        }
+                    }
+
+                    console.log(`[MasterAI] Snapshot process completed for ${leadId}.`);
+                }
             } catch (err) {
                 console.error(`[MasterAI] Failed to flush session:`, err.message);
+                this._emitSystemEvent('flush.failed', key, {
+                    phone: session.leadContext?.phone || key,
+                    messages: session.messages,
+                    error: err.message,
+                    verdict: analysis
+                });
             }
         } else {
             console.log(`[MasterAI] Empty or unlinked session. Dropped.`);
@@ -676,6 +670,144 @@ Rules:
         const flushSessionMapKey = session.sessionMapKey || this._buildSessionMapKey(tenantId, key);
         this.sessions.delete(flushSessionMapKey);
         this.sessions.delete(key);
+    }
+
+    async _analyzeSnapshotSession(session) {
+        const snapshotPrompt = `Analyze this conversation and respond with ONLY valid JSON:
+{
+  "is_business_relevant": true,
+  "reason": "one line explanation",
+  "extracted_name": null,
+  "summary": "2-3 line session summary",
+  "sentiment": "Positive/Neutral/Negative",
+  "tone": "Formal/Casual/Urgent/Practical",
+  "financial_impact": "one line money implication or None",
+  "compliance_impact": "one line compliance implication or None",
+  "email": null,
+  "source": { "category": null, "detail": null },
+  "unit_type_required": null,
+  "budget": null,
+  "move_in": null,
+  "preferences": [],
+  "ai_notes": {},
+  "merge_review": {
+    "should_flag": false,
+    "target_name": null,
+    "target_email": null,
+    "reasoning": null,
+    "confidence": null,
+    "relationship": "Duplicate"
+  }
+}
+
+Rules:
+- Business-relevant means PG/hostel/tenant/business operations context.
+- Snapshot enrichment must extract only what is actually revealed by the session.
+- Flag merge_review only if the conversation strongly suggests this person already exists in CRM under another identity or number.`;
+
+        const completion = await this.openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: snapshotPrompt },
+                ...session.messages.map((message) => ({ role: message.role, content: message.content }))
+            ]
+        });
+
+        let parsed = {};
+        try {
+            parsed = JSON.parse(completion.choices[0].message.content);
+        } catch (_err) {
+            parsed = {};
+        }
+
+        return {
+            is_business_relevant: parsed.is_business_relevant !== false,
+            reason: parsed.reason || '',
+            extracted_name: parsed.extracted_name || null,
+            summary: parsed.summary || '',
+            sentiment: parsed.sentiment || 'Neutral',
+            tone: parsed.tone || 'Neutral',
+            financial_impact: parsed.financial_impact || 'None',
+            compliance_impact: parsed.compliance_impact || 'None',
+            email: parsed.email || null,
+            source: parsed.source || null,
+            unit_type_required: parsed.unit_type_required || null,
+            budget: parsed.budget || null,
+            move_in: parsed.move_in || null,
+            preferences: Array.isArray(parsed.preferences) ? parsed.preferences : [],
+            ai_notes: parsed.ai_notes && typeof parsed.ai_notes === 'object' ? parsed.ai_notes : {},
+            profile_type: parsed.profile_type || null,
+            merge_review: parsed.merge_review && typeof parsed.merge_review === 'object' ? parsed.merge_review : { should_flag: false }
+        };
+    }
+
+    async _maybeCreateMergeReview({ crm, leadId, tenantId, analysis, sessionEventId }) {
+        if (!analysis?.merge_review?.should_flag) return null;
+
+        const targetHints = [analysis.merge_review.target_email, analysis.merge_review.target_name, analysis.extracted_name]
+            .filter(Boolean);
+
+        let targetLead = null;
+
+        if (analysis.merge_review.target_email) {
+            const byEmail = await crm.callTool('get_lead_by_email', this._buildTenantContextArgs({ email: analysis.merge_review.target_email }, tenantId));
+            if (byEmail?.status === 'Found' && byEmail.lead?.lead_id !== leadId) {
+                targetLead = byEmail.lead;
+            }
+        }
+
+        if (!targetLead) {
+            for (const hint of targetHints) {
+                const matches = await crm.callTool('search_leads', this._buildTenantContextArgs({ query: hint, limit: 5, offset: 0 }, tenantId));
+                const leads = Array.isArray(matches?.leads) ? matches.leads : [];
+                targetLead = leads.find((lead) => lead.lead_id !== leadId) || null;
+                if (targetLead) break;
+            }
+        }
+
+        if (!targetLead) {
+            const directLeads = crm?.leads && typeof crm.leads.values === 'function'
+                ? Array.from(crm.leads.values())
+                : [];
+            const normalizedTargetEmail = String(analysis.merge_review.target_email || '').trim().toLowerCase();
+            const normalizedTargetName = String(analysis.merge_review.target_name || '').trim().toLowerCase();
+
+            targetLead = directLeads.find((lead) => {
+                if (!lead || lead.lead_id === leadId) return false;
+                const leadEmail = String(lead.email || '').trim().toLowerCase();
+                const leadName = String(lead.name || '').trim().toLowerCase();
+                if (normalizedTargetEmail && leadEmail === normalizedTargetEmail) return true;
+                if (normalizedTargetName && leadName === normalizedTargetName) return true;
+                return false;
+            }) || null;
+        }
+
+        if (!targetLead) {
+            const recent = await crm.callTool('get_recent_leads', this._buildTenantContextArgs({ limit: 100 }, tenantId));
+            const leads = Array.isArray(recent?.leads) ? recent.leads : [];
+            const normalizedTargetEmail = String(analysis.merge_review.target_email || '').trim().toLowerCase();
+            const normalizedTargetName = String(analysis.merge_review.target_name || '').trim().toLowerCase();
+
+            targetLead = leads.find((lead) => {
+                if (!lead || lead.lead_id === leadId) return false;
+                const leadEmail = String(lead.email || '').trim().toLowerCase();
+                const leadName = String(lead.name || '').trim().toLowerCase();
+                if (normalizedTargetEmail && leadEmail === normalizedTargetEmail) return true;
+                if (normalizedTargetName && leadName === normalizedTargetName) return true;
+                return false;
+            }) || null;
+        }
+
+        if (!targetLead) return null;
+
+        return crm.callTool('upsert_merge_review', this._buildTenantContextArgs({
+            source_lead_id: leadId,
+            target_lead_id: targetLead.lead_id,
+            relationship: analysis.merge_review.relationship || 'Duplicate',
+            reasoning: analysis.merge_review.reasoning || 'Snapshot process detected possible existing customer match.',
+            confidence: analysis.merge_review.confidence || null,
+            triggered_by_event_id: sessionEventId || null
+        }, tenantId));
     }
 
     _extractRecentAttachedImageUrls(history = []) {

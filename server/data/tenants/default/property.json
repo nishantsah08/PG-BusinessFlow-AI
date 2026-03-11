@@ -70,16 +70,34 @@
             "is_enabled": true,
             "created_at": "2026-03-10T06:51:28.559Z",
             "updated_at": "2026-03-10T06:51:28.559Z"
+        },
+        {
+            "id": "PROP-4",
+            "name": "Rohan-WhatsApp-1773201584394",
+            "address": "MG Road, Pune",
+            "floors": 5,
+            "amenities": [
+                "Gym",
+                "WiFi"
+            ],
+            "description": "Live WhatsApp GUI test",
+            "tenant_id": "default",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-11T03:59:56.136Z",
+            "updated_at": "2026-03-11T03:59:56.136Z"
         }
     ],
     "units": [
         {
             "id": "UNIT-1",
             "property_id": "PROP-2",
-            "unit_number": "101A",
-            "floor": 1,
+            "unit_number": "201",
+            "floor": 2,
             "types": [
-                "Double Sharing"
+                "Single Sharing"
             ],
             "base_rent": 12000,
             "rate_card": {
@@ -146,22 +164,31 @@
         {
             "id": "UNIT-4",
             "property_id": "PROP-1",
-            "unit_number": "ROHAN-U3",
-            "floor": 3,
+            "unit_number": "201",
+            "floor": 2,
             "types": [
-                "Triple Sharing"
+                "Single Sharing"
             ],
-            "base_rent": 16600,
+            "base_rent": 12900,
             "tenant_id": "default",
             "amenities": [
-                "WiFi",
-                "CCTV"
+                "WiFi"
             ],
-            "rate_card": null,
+            "rate_card": {
+                "base_rent": 12900,
+                "security_deposit": 2500,
+                "rent_payment_timing": "ADVANCE",
+                "utility_payment_timing": "ARREARS",
+                "maintenance_fee": 0,
+                "notice_period_days": 30,
+                "min_stay_months": 6,
+                "early_exit_rule": "DEPOSIT_FORFEIT",
+                "payment_cycle_rules": "1st-5th of every month: Standard Deposit; 6th-10th of every month: Additional Deposit"
+            },
             "status": "AVAILABLE",
             "history": [],
             "created_at": "2026-03-07T07:16:34.467Z",
-            "updated_at": "2026-03-07T07:16:34.467Z"
+            "updated_at": "2026-03-11T03:24:46.366Z"
         },
         {
             "id": "UNIT-5",
@@ -206,48 +233,67 @@
         {
             "id": "UNIT-7",
             "property_id": "PROP-4",
-            "unit_number": "101",
-            "floor": 1,
+            "unit_number": "301",
+            "floor": 3,
             "types": [
                 "Single Sharing"
             ],
             "amenities": [
-                "Gym",
                 "WiFi"
             ],
-            "base_rent": 12000,
+            "base_rent": 15100,
             "tenant_id": "default",
-            "rate_card": null,
+            "rate_card": {
+                "base_rent": 15100,
+                "security_deposit": 2500,
+                "rent_payment_timing": "ADVANCE",
+                "utility_payment_timing": "ARREARS",
+                "maintenance_fee": 0,
+                "notice_period_days": 30,
+                "min_stay_months": 6,
+                "early_exit_rule": "DEPOSIT_FORFEIT",
+                "payment_cycle_rules": "1st-5th of every month: Standard Deposit; 6th-10th of every month: Additional Deposit"
+            },
             "status": "AVAILABLE",
             "is_enabled": true,
             "history": [],
             "created_at": "2026-03-10T06:51:34.703Z",
-            "updated_at": "2026-03-10T06:51:34.703Z"
+            "updated_at": "2026-03-11T03:33:43.491Z"
         },
         {
             "id": "UNIT-8",
             "property_id": "PROP-4",
-            "unit_number": "102",
+            "unit_number": "201",
             "floor": 2,
-            "base_rent": 12500,
+            "base_rent": 12900,
             "types": [
-                "Double Sharing"
+                "Single Sharing"
             ],
             "amenities": [
-                "Gym"
+                "WiFi"
             ],
             "tenant_id": "default",
-            "rate_card": null,
+            "rate_card": {
+                "base_rent": 12900,
+                "security_deposit": 2500,
+                "rent_payment_timing": "ADVANCE",
+                "utility_payment_timing": "ARREARS",
+                "maintenance_fee": 0,
+                "notice_period_days": 30,
+                "min_stay_months": 6,
+                "early_exit_rule": "DEPOSIT_FORFEIT",
+                "payment_cycle_rules": "1st-5th of every month: Standard Deposit; 6th-10th of every month: Additional Deposit"
+            },
             "status": "AVAILABLE",
             "is_enabled": true,
             "history": [],
             "created_at": "2026-03-10T06:51:40.157Z",
-            "updated_at": "2026-03-10T06:51:40.157Z"
+            "updated_at": "2026-03-11T03:35:39.205Z"
         }
     ],
     "meters": [],
     "maintenance_requests": [],
-    "lastUpdatedAt": "2026-03-10T10:43:24.413Z",
+    "lastUpdatedAt": "2026-03-11T07:28:29.893Z",
     "businessConfig": {
         "tenant_id": "default",
         "business_name": "Dev Bypass User's Workspace",
@@ -299,7 +345,14 @@
             ],
             "late_fee_daily": 50,
             "default_base_salary": 4000,
-            "default_incentive_per_unit": 350
+            "default_incentive_per_unit": 350,
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
         }
     }
 }

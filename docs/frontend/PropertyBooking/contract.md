@@ -28,10 +28,13 @@ The page must render 4 tab controls and corresponding view surfaces:
 - Booking Overview
   - `/api/master_ai/tools/execute` with `agent_name=PropertyAI`
   - Tools: `get_properties`, `get_units`, `get_analytics_stats`
+  - Current GUI contract: analytics-only; booking creation/edit/onboarding is not exposed as a first-class CRUD flow on this route.
 - Electric Meters
   - `/api/master_ai/tools/execute` with `agent_name=PropertyAI`
   - Tools: `get_properties`, `get_units`, `get_meters`, `add_meter`, `update_meter_reading`, `delete_meter`
   - Meter linking guard: disabled and deleted units cannot be linked.
+  - UI state contract: selected-property unit options must come only from the latest `get_units(property_id)` response for the active property filter.
 - Maintenance
   - `/api/master_ai/tools/execute` with `agent_name=PropertyAI`
   - Tools: `get_analytics_stats`, `get_properties`, `get_maintenance_reqs`, `log_maintenance_req`, `update_maintenance_req`
+  - UI state contract: ticket logging requires explicit property context; unit lookup and submission must resolve within the selected property only.

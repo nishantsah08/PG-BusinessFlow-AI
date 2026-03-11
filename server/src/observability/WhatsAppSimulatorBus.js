@@ -1,10 +1,11 @@
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
+const TimeAuthorityService = require('../services/TimeAuthorityService');
 
 const MAX_EVENTS = 500;
 const events = [];
 
 function nowIso() {
-    return new Date().toISOString();
+    return TimeAuthorityService.nowIST();
 }
 
 function normalizePhone(phone) {
