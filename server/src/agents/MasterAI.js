@@ -12,6 +12,77 @@ const {
 } = require('../workflows/financialWorkflowPolicy');
 
 const workflowStore = new WorkflowStore({ backend: process.env.STORAGE_BACKEND || 'local' });
+const STAFF_SELF_HR_TOOL_NAMES = new Set([
+    'get_staff_details',
+    'get_salary_card',
+    'get_staff_leaves',
+    'calculate_incentive',
+    'get_performance_metrics',
+    'get_caretaker_activity',
+]);
+const STAFF_CRM_TOOL_NAMES = new Set([
+    'add_lead',
+    'change_status',
+    'update_lead_snapshot',
+    'add_secondary_phone',
+    'log_session',
+    'add_manual_note',
+    'get_timeline',
+    'get_lead',
+    'get_lead_by_phone',
+    'get_lead_by_email',
+    'search_leads',
+    'get_leads_by_status',
+    'get_recent_leads',
+    'get_dashboard_stats',
+    'get_merge_candidates',
+    'link_artifact',
+    'get_lead_artifacts',
+]);
+const CUSTOMER_SELF_CRM_TOOL_NAMES = new Set([
+    'get_lead',
+    'get_lead_by_phone',
+    'get_lead_by_email',
+    'get_timeline',
+    'get_lead_artifacts',
+]);
+const STAFF_PROPERTY_READ_TOOL_NAMES = new Set([
+    'get_properties',
+    'get_units',
+    'get_meters',
+    'calculate_deposit',
+    'get_public_rate_card',
+    'get_amenities',
+    'get_analytics_stats',
+    'get_maintenance_reqs',
+]);
+const CUSTOMER_PROPERTY_READ_TOOL_NAMES = new Set([
+    'get_properties',
+    'get_units',
+    'calculate_deposit',
+    'get_public_rate_card',
+    'get_amenities',
+]);
+const CHAT_ACCESS_POLICY = {
+    CEO: {
+        HRAgent: { mode: 'full' },
+        CRMAgent: { mode: 'full' },
+        PropertyAI: { mode: 'full' },
+        FinanceAI: { mode: 'reserved_for_v2' },
+    },
+    Staff: {
+        HRAgent: { mode: 'self_only', toolNames: STAFF_SELF_HR_TOOL_NAMES },
+        CRMAgent: { mode: 'operational_full', toolNames: STAFF_CRM_TOOL_NAMES },
+        PropertyAI: { mode: 'read_only', toolNames: STAFF_PROPERTY_READ_TOOL_NAMES },
+        FinanceAI: { mode: 'reserved_for_v2' },
+    },
+    Customer: {
+        HRAgent: { mode: 'none', toolNames: new Set() },
+        CRMAgent: { mode: 'self_only', toolNames: CUSTOMER_SELF_CRM_TOOL_NAMES },
+        PropertyAI: { mode: 'public_and_own', toolNames: CUSTOMER_PROPERTY_READ_TOOL_NAMES },
+        FinanceAI: { mode: 'reserved_for_v2' },
+    },
+};
 
 class MasterAI extends BaseAgent {
     constructor(otherAgents = []) {
@@ -51,6 +122,8 @@ class MasterAI extends BaseAgent {
         ensurePredefinedFinancialWorkflows(workflowStore);
 
         this._setupSelfTools();
+        this._attachedAgentNames = new Set();
+        this.attachAgentListeners(otherAgents);
     }
 
     _normalizeTenantId(tenantId) {
@@ -115,6 +188,299 @@ class MasterAI extends BaseAgent {
             : BusinessConfig;
     }
 
+    _getConversationRole(userContext = {}, runtimePersona = {}) {
+        const ceoEmail = String(runtimePersona?.ceo_email || '').trim().toLowerCase();
+        const contextEmail = String(userContext?.email || '').trim().toLowerCase();
+        if ((contextEmail && contextEmail === ceoEmail) || userContext?.profile_type === 'CEO') {
+            return 'CEO';
+        }
+        if (userContext?.profile_type === 'Staff') {
+            return 'Staff';
+        }
+        return 'Customer';
+    }
+
+    _extractUserPhoneCandidates(userContext = {}) {
+        const rawCandidates = [
+            userContext?.lead_id,
+            userContext?.phone,
+            userContext?.phones?.primary?.number,
+            ...((userContext?.phones?.others || []).map((entry) => entry?.number)),
+        ].filter(Boolean);
+
+        const normalized = [];
+        rawCandidates.forEach((value) => {
+            try {
+                normalized.push(PhoneNormalizationService.normalizeToE164(value));
+            } catch (_err) {
+                // Ignore non-phone identifiers such as lead ids that are not valid phone numbers.
+            }
+        });
+        return Array.from(new Set(normalized));
+    }
+
+    async _resolveOwnStaffMember(userContext = {}, tenantId = this.defaultTenantId) {
+        const hrAgent = this.subAgents.find((agent) => agent.name === 'HRAgent');
+        if (!hrAgent) return null;
+
+        const staffRows = await hrAgent.callTool('get_all_staff', this._buildTenantContextArgs({}, tenantId));
+        if (!Array.isArray(staffRows)) return null;
+
+        const candidatePhones = this._extractUserPhoneCandidates(userContext);
+        const candidateEmail = String(userContext?.email || '').trim().toLowerCase();
+
+        return staffRows.find((staffMember) => {
+            const staffPhone = String(staffMember?.contact?.primary || '').trim();
+            const staffEmail = String(staffMember?.contact?.email || '').trim().toLowerCase();
+            if (staffPhone && candidatePhones.includes(staffPhone)) return true;
+            if (candidateEmail && staffEmail && candidateEmail === staffEmail) return true;
+            return false;
+        }) || null;
+    }
+
+    async _resolveOwnCrmLead(userContext = {}, tenantId = this.defaultTenantId) {
+        const crmAgent = this.subAgents.find((agent) => agent.name === 'CRMAgent');
+        if (!crmAgent) return null;
+
+        const candidatePhones = this._extractUserPhoneCandidates(userContext);
+        const candidateEmail = String(userContext?.email || '').trim().toLowerCase();
+
+        for (const phone of candidatePhones) {
+            const lookup = await crmAgent.callTool('get_lead_by_phone', this._buildTenantContextArgs({ phone }, tenantId));
+            if (lookup?.status === 'Found' && lookup.lead) {
+                return lookup.lead;
+            }
+        }
+
+        if (candidateEmail) {
+            const lookup = await crmAgent.callTool('get_lead_by_email', this._buildTenantContextArgs({ email: candidateEmail }, tenantId));
+            if (lookup?.status === 'Found' && lookup.lead) {
+                return lookup.lead;
+            }
+        }
+
+        return null;
+    }
+
+    _getChatAccessRule(agent, identityContext = {}) {
+        if (!agent?.name) {
+            return { mode: 'full', toolNames: null };
+        }
+
+        const rolePolicy = CHAT_ACCESS_POLICY[identityContext.role] || {};
+        const rule = rolePolicy[agent.name];
+        if (!rule) {
+            return { mode: 'full', toolNames: null };
+        }
+
+        if (rule.mode === 'self_only' && agent.name === 'HRAgent' && !identityContext.ownStaffMember?.id) {
+            return { mode: 'none', toolNames: new Set() };
+        }
+
+        if (rule.mode === 'self_only' && agent.name === 'CRMAgent' && !identityContext.ownCrmLead?.lead_id) {
+            return { mode: 'none', toolNames: new Set() };
+        }
+
+        return rule;
+    }
+
+    _getChatVisibleTools(agent, identityContext = {}) {
+        const rule = this._getChatAccessRule(agent, identityContext);
+        if (rule.mode === 'full' || !rule.toolNames) {
+            return agent.getTools();
+        }
+
+        return agent.getTools().filter((tool) => rule.toolNames.has(tool.name));
+    }
+
+    _scopeCustomerCrmArgs(toolName, args, ownCrmLead = null) {
+        if (!ownCrmLead?.lead_id) {
+            throw new Error('Customer CRM scope could not be resolved.');
+        }
+
+        switch (toolName) {
+            case 'get_lead':
+            case 'get_lead_by_phone':
+                return {
+                    ...args,
+                    phone: ownCrmLead.lead_id,
+                };
+            case 'get_lead_by_email':
+                if (!ownCrmLead.email) {
+                    throw new Error('Customer CRM email is not available for lookup.');
+                }
+                return {
+                    ...args,
+                    email: ownCrmLead.email,
+                };
+            case 'get_timeline':
+            case 'get_lead_artifacts':
+                return {
+                    ...args,
+                    lead_id: ownCrmLead.lead_id,
+                };
+            default:
+                throw new Error('Customer can only access their own CRM record over chat.');
+        }
+    }
+
+    _scopeChatToolArgs(agent, toolName, args, identityContext = {}) {
+        const rule = this._getChatAccessRule(agent, identityContext);
+        if (rule.mode === 'full' || !CHAT_ACCESS_POLICY[identityContext.role]?.[agent?.name]) {
+            return args;
+        }
+
+        if (rule.mode === 'reserved_for_v2') {
+            throw new Error(`${agent.name} access policy is reserved for a future phase.`);
+        }
+
+        if (rule.mode === 'none') {
+            throw new Error(`${identityContext.role} cannot access ${agent.name} over chat.`);
+        }
+
+        if (rule.toolNames && !rule.toolNames.has(toolName)) {
+            throw new Error(`${identityContext.role} cannot access ${agent.name}.${toolName} over chat.`);
+        }
+
+        if (agent?.name === 'HRAgent') {
+            if (!identityContext.ownStaffMember?.id) {
+                throw new Error('Staff profile could not be resolved for HR access.');
+            }
+
+            return {
+                ...args,
+                staff_id: identityContext.ownStaffMember.id,
+            };
+        }
+
+        if (agent?.name === 'CRMAgent' && identityContext.role === 'Customer') {
+            return this._scopeCustomerCrmArgs(toolName, args, identityContext.ownCrmLead);
+        }
+
+        return args;
+    }
+
+    _sanitizeCustomerPropertyRecord(record = {}, ownLeadId = null) {
+        if (!record || typeof record !== 'object') return record;
+
+        return {
+            id: record.id,
+            property_id: record.property_id,
+            unit_number: record.unit_number,
+            floor: record.floor,
+            types: Array.isArray(record.types) ? record.types : [],
+            amenities: Array.isArray(record.amenities) ? record.amenities : [],
+            base_rent: record.base_rent,
+            rate_card: record.rate_card || null,
+            status: record.status,
+            own_booking: Boolean(ownLeadId && record.tenant_id === ownLeadId),
+        };
+    }
+
+    _sanitizeCustomerPropertySummary(record = {}) {
+        if (!record || typeof record !== 'object') return record;
+
+        return {
+            id: record.id,
+            name: record.name,
+            address: record.address,
+            pin_code: record.pin_code,
+            area: record.area,
+            city: record.city,
+            state: record.state,
+            description: record.description,
+            amenities: Array.isArray(record.amenities) ? record.amenities : [],
+            floors: record.floors,
+            image_urls: Array.isArray(record.image_urls) ? record.image_urls : [],
+            thumbnail_url: record.thumbnail_url || '',
+            status: record.status,
+        };
+    }
+
+    _sanitizeCustomerPropertyResult(toolName, result, identityContext = {}) {
+        const ownLeadId = identityContext.ownCrmLead?.lead_id || null;
+        if (!result || typeof result !== 'object') return result;
+        if (result.error || result.status === 'Failed') return result;
+
+        if (toolName === 'get_properties') {
+            if (Array.isArray(result)) {
+                return result.map((record) => this._sanitizeCustomerPropertySummary(record));
+            }
+            return this._sanitizeCustomerPropertySummary(result);
+        }
+
+        if (toolName === 'get_units') {
+            const includeRecord = (record) => record?.status === 'AVAILABLE' || (ownLeadId && record?.tenant_id === ownLeadId);
+
+            if (Array.isArray(result)) {
+                return result
+                    .filter((record) => includeRecord(record))
+                    .map((record) => this._sanitizeCustomerPropertyRecord(record, ownLeadId));
+            }
+
+            if (!includeRecord(result)) {
+                return { error: 'Not found' };
+            }
+
+            return this._sanitizeCustomerPropertyRecord(result, ownLeadId);
+        }
+
+        return result;
+    }
+
+    _sanitizeChatToolResult(agent, toolName, result, identityContext = {}) {
+        if (agent?.name === 'PropertyAI' && identityContext.role === 'Customer') {
+            return this._sanitizeCustomerPropertyResult(toolName, result, identityContext);
+        }
+
+        return result;
+    }
+
+    attachAgentListeners(agents = []) {
+        const safeAgents = Array.isArray(agents) ? agents : [agents];
+        safeAgents.forEach((agent) => {
+            if (!agent || !agent.name || this._attachedAgentNames.has(agent.name)) return;
+            if (agent.name === 'HRAgent') {
+                agent.on('staff.hired', (payload) => {
+                    this.process_event({
+                        event_type: 'staff.hired',
+                        payload,
+                        context: {
+                            tenant_id: payload?.tenant_id,
+                            source_agent: agent.name,
+                        },
+                    }).catch((error) => {
+                        console.error(`[MasterAI] staff.hired handling failed: ${error.message}`);
+                        this._emitSystemEvent('staff.crm_sync.failed', null, {
+                            staff_id: payload?.staff_id || null,
+                            tenant_id: payload?.tenant_id || this.defaultTenantId,
+                            error: error.message,
+                        });
+                    });
+                });
+                agent.on('staff.profile_updated', (payload) => {
+                    this.process_event({
+                        event_type: 'staff.profile_updated',
+                        payload,
+                        context: {
+                            tenant_id: payload?.tenant_id,
+                            source_agent: agent.name,
+                        },
+                    }).catch((error) => {
+                        console.error(`[MasterAI] staff.profile_updated handling failed: ${error.message}`);
+                        this._emitSystemEvent('staff.crm_sync.failed', null, {
+                            staff_id: payload?.staff_id || null,
+                            tenant_id: payload?.tenant_id || this.defaultTenantId,
+                            error: error.message,
+                            event_type: 'staff.profile_updated',
+                        });
+                    });
+                });
+            }
+            this._attachedAgentNames.add(agent.name);
+        });
+    }
+
     _isFinanceMutationTool(agentName, toolName) {
         return agentName === 'FinanceAI' && !!FINANCIAL_MUTATION_TOOL_TO_WORKFLOW[toolName];
     }
@@ -166,6 +532,85 @@ class MasterAI extends BaseAgent {
         };
         this._setAuthRequest(authorization_id, normalizedTenantId, request);
         return request;
+    }
+
+    async _syncStaffProfileToCrm(payload = {}, tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId || payload?.tenant_id);
+        const crm = this.subAgents.find(a => a.name === 'CRMAgent');
+        if (!crm) {
+            throw new Error('CRMAgent not connected to MasterAI');
+        }
+
+        const primaryPhone = payload?.contact?.primary;
+        const email = String(payload?.contact?.email || '').trim().toLowerCase() || null;
+        if (!primaryPhone) {
+            throw new Error('staff event missing contact.primary');
+        }
+
+        let lookup = null;
+
+        const candidatePhones = [
+            payload?.contact?.primary,
+            payload?.previous_contact?.primary,
+        ].filter(Boolean);
+
+        for (const phone of candidatePhones) {
+            const byPhone = await crm.callTool('get_lead_by_phone', this._buildTenantContextArgs({ phone }, normalizedTenantId));
+            if (byPhone?.status === 'Found' && byPhone.lead) {
+                lookup = byPhone.lead;
+                break;
+            }
+        }
+
+        const candidateEmails = [
+            email,
+            String(payload?.previous_contact?.email || '').trim().toLowerCase() || null,
+        ].filter(Boolean);
+
+        if (!lookup) {
+            for (const candidateEmail of candidateEmails) {
+                const byEmail = await crm.callTool('get_lead_by_email', this._buildTenantContextArgs({ email: candidateEmail }, normalizedTenantId));
+                if (byEmail?.status === 'Found' && byEmail.lead) {
+                    lookup = byEmail.lead;
+                    break;
+                }
+            }
+        }
+
+        if (lookup) {
+            await crm.callTool('update_lead_snapshot', this._buildTenantContextArgs({
+                lead_id: lookup.lead_id,
+                name: payload?.name || undefined,
+                email: email || undefined,
+                profile_type: 'Staff',
+            }, normalizedTenantId));
+
+            const knownPhones = new Set([
+                lookup.lead_id,
+                lookup.phones?.primary?.number,
+                ...((lookup.phones?.others || []).map((entry) => entry?.number)),
+            ].filter(Boolean));
+
+            if (primaryPhone && !knownPhones.has(primaryPhone)) {
+                await crm.callTool('add_secondary_phone', this._buildTenantContextArgs({
+                    lead_id: lookup.lead_id,
+                    phone_number: primaryPhone,
+                    label: 'HR Staff Contact',
+                }, normalizedTenantId));
+            }
+
+            return { mode: 'updated', lead_id: lookup.lead_id };
+        }
+
+        const created = await crm.callTool('add_lead', this._buildTenantContextArgs({
+            name: payload?.name || 'Staff Member',
+            primary_phone: primaryPhone,
+            email: email || undefined,
+            profile_type: 'Staff',
+            source: { category: 'HR', detail: 'staff.hired' },
+        }, normalizedTenantId));
+
+        return { mode: 'created', lead_id: created?.lead_id || primaryPhone };
     }
 
     async _executeDeterministicFinanceWorkflow(toolName, args, source = 'chat', tenantId = this.defaultTenantId) {
@@ -850,12 +1295,17 @@ Rules:
             const tenantId = this._getTenantIdFromContext(userContext);
             const runtimeConfig = this._getRuntimeConfig(tenantId);
             const runtimePersona = runtimeConfig?.persona || BusinessConfig.persona;
-
-            // Check identity (Email via Dashboard, or profile_type via WhatsApp CRM Context)
-            const ceoEmail = runtimePersona?.ceo_email;
-            const isCEO = userContext?.email === ceoEmail || userContext?.profile_type === 'CEO';
-            const isStaff = !isCEO && (userContext?.profile_type === 'Staff'
-                || (userContext?.email && userContext?.email !== ceoEmail));
+            const role = this._getConversationRole(userContext, runtimePersona);
+            const isCEO = role === 'CEO';
+            const isStaff = role === 'Staff';
+            const isCustomer = role === 'Customer';
+            const ownStaffMember = isStaff
+                ? await this._resolveOwnStaffMember(userContext || {}, tenantId)
+                : null;
+            const ownCrmLead = !isCEO
+                ? await this._resolveOwnCrmLead(userContext || {}, tenantId)
+                : null;
+            const identityContext = { role, ownStaffMember, ownCrmLead, tenantId };
 
             // Collect tools from all other agents
             const allTools = [];
@@ -864,8 +1314,9 @@ Rules:
             let agentIndex = 1;
             this.subAgents.forEach(agent => {
                 const agentPrefix = isCEO ? agent.name : `SubAgent_${agentIndex}`;
+                const visibleTools = this._getChatVisibleTools(agent, identityContext);
 
-                agent.getTools().forEach(tool => {
+                visibleTools.forEach(tool => {
                     const namespacedName = `${agentPrefix}_${tool.name}`;
 
                     // Conditionally format the tool description based on identity
@@ -947,20 +1398,38 @@ Rules:
                 ${this.subAgents.map(a => `- ${a.identity.role} (${a.name})`).join('\n')}`;
             } else if (isStaff) {
                 systemPrompt += `\n\n**STAFF MODE**: You are speaking to an internal team member.
-                - You MAY share operational details: occupancy rates, pending maintenance, tenant status, collection summaries, and task lists.
+                - You MAY share operational details: occupancy rates, pending maintenance, tenant status, collection summaries, task lists, CRM lead context, and read-only property visibility.
                 - You MAY share schedules, pending approvals, and workflow statuses.
+                - For HR, you may only access and reveal this staff member's own HR details. You must refuse requests for employee roster, other staff salaries, or any other employee's profile.
+                - If the staff member asks for their own HR profile, salary, leaves, compensation, or incentives, you MUST use the available HR self tools and answer only from the retrieved record. Do not guess or infer HR details from persona text.
+                - For CRM, you may use the operational CRM toolset across the tenant, including lead lookup and status/note updates, but you must avoid identity-destructive actions.
+                - For Property, you may use read-only operational property tools only. You must refuse any property mutation request.
                 - You must NOT reveal AI architecture, sub-agent names, tool prefixes, or system internals.
                 - You must NOT share individual tenant financial details (specific amounts, payment history) unless the staff member's role requires it.
                 - You must NOT reveal that you are an AI "Orchestrator" routing tasks to other AI models.
                 - Act as ${publicPersona.name}, the ${publicPersona.role}. Treat this as a professional internal conversation.`;
-            } else {
+                if (ownStaffMember?.id) {
+                    systemPrompt += `\n- The matched HR identity for this user is staff_id=${ownStaffMember.id}, name=${ownStaffMember.name}, designation=${ownStaffMember.designation}, primary_phone=${ownStaffMember.contact?.primary || 'unknown'}.`;
+                } else {
+                    systemPrompt += `\n- No matched HR identity was found for this user. Refuse HR profile requests instead of guessing.`;
+                }
+            } else if (isCustomer) {
                 systemPrompt += `\n\n**STRICT IDENTITY GUARDRAIL**: You are speaking to an external customer or prospective tenant.
                 - Act as a unified, singular human representative named ${publicPersona.name}.
-                - You MAY share: available room types, pricing (public rate card), amenities, location details, visit scheduling, their own booking status, their own payment dues.
+                - You MAY share: available room types, pricing (public rate card), amenities, location details, visit scheduling, their own booking status, their own payment dues, their own CRM status, and their own booking-linked property context.
+                - For CRM, you may only access this user's own CRM profile and timeline.
+                - For Property, you may only access public inventory/rate information and this user's own booking-linked property context.
+                - If the user asks about their own CRM record, booking-linked property context, available units, property amenities, or public pricing, you MUST use the allowed CRM/Property tools and answer only from the retrieved data. Do not guess or claim absence without checking the tools first.
+                - You must NOT share any HR information, employee roster data, salary information, or internal staff contact details.
                 - You must NOT share: other tenants' information, internal staff details, occupancy numbers, business revenue, operational costs, or any internal metrics.
                 - You must NOT mention internal tools, AI agents, tool prefixes (e.g., PropertyAI_, CRMAgent_), or system architecture.
                 - You must NOT reveal that you are an AI "Orchestrator" routing tasks to other AI models.
                 - Keep responses warm, helpful, and sales-oriented.`;
+                if (ownCrmLead?.lead_id) {
+                    systemPrompt += `\n- The matched CRM identity for this user is lead_id=${ownCrmLead.lead_id}, name=${ownCrmLead.name || 'unknown'}, profile_type=${ownCrmLead.profile_type || 'Customer'}.`;
+                } else {
+                    systemPrompt += `\n- No CRM identity was resolved. Refuse self-data requests that require internal lookup instead of guessing.`;
+                }
             }
 
             // Inject recent conversation history for known users
@@ -1032,10 +1501,16 @@ Rules:
 
                     if (agentMap[fnName]) {
                         const { agent, toolName } = agentMap[fnName];
-                        const args = this._injectImageUrlsIntoPropertyArgs(
+                        const scopedArgs = this._scopeChatToolArgs(
                             agent,
                             toolName,
                             this._buildTenantContextArgs(parsedArgs, executionTenantId),
+                            identityContext
+                        );
+                        const args = this._injectImageUrlsIntoPropertyArgs(
+                            agent,
+                            toolName,
+                            scopedArgs,
                             history
                         );
                         console.log(`[MasterAI] Iteration ${iteration}: Calling ${toolName} on ${agent.name}`);
@@ -1048,6 +1523,7 @@ Rules:
                             } else {
                                 result = await agent.callTool(toolName, args);
                             }
+                            result = this._sanitizeChatToolResult(agent, toolName, result, identityContext);
                             this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result });
                         } catch (err) {
                             console.error(`[MasterAI] Tool Error (${toolName}):`, err.message);
@@ -1099,6 +1575,19 @@ Rules:
 
     async process_event(event) {
         // Generic Message Handler for ANY source (WhatsApp, Email, Portal, etc.)
+        if (event.event_type === 'staff.hired' || event.event_type === 'staff.profile_updated') {
+            const tenantId = this._getTenantIdFromContext(event.context || event.payload || {});
+            const result = await this._syncStaffProfileToCrm(event.payload || {}, tenantId);
+            this._emitSystemEvent('staff.crm_sync.completed', null, {
+                tenant_id: tenantId,
+                staff_id: event?.payload?.staff_id || null,
+                lead_id: result?.lead_id || null,
+                mode: result?.mode || 'unknown',
+                event_type: event.event_type,
+            });
+            return result;
+        }
+
         if (event.event_type === 'message.received') {
             const from = event.payload?.from;
             const tenantId = this._getTenantIdFromContext(event.context || {});

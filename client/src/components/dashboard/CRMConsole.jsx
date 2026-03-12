@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 
 const TIMELINE_FILTERS = ['ALL', 'SESSION', 'STATUS_CHANGE', 'NOTE', 'MERGE', 'ARTIFACT_LINKED'];
 const STATUS_OPTIONS = ['Enquiry', 'Visited', 'Onboarded', 'Left'];
+const LEAD_STATUS_FILTER_OPTIONS = ['ALL', ...STATUS_OPTIONS];
+const PROFILE_FILTER_OPTIONS = ['ALL', 'Customer', 'Staff', 'CEO'];
 const TAB_OPTIONS = ['overview', 'leads'];
 
 const emptyStats = {
@@ -135,6 +137,8 @@ const CRMConsole = () => {
     const [error, setError] = useState('');
     const [stats, setStats] = useState(emptyStats);
     const [query, setQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [profileFilter, setProfileFilter] = useState('ALL');
     const [leads, setLeads] = useState([]);
     const [mergeCandidates, setMergeCandidates] = useState([]);
     const [selectedLeadId, setSelectedLeadId] = useState('');
@@ -236,9 +240,14 @@ const CRMConsole = () => {
         setLoading(true);
         setError('');
         try {
+            const activeLeadFilters = {
+                limit: 100,
+                ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
+                ...(profileFilter !== 'ALL' ? { profile_type: profileFilter } : {}),
+            };
             const [statsPayload, recentPayload, mergePayload] = await Promise.all([
                 executeCRMTool('get_dashboard_stats', {}),
-                executeCRMTool('get_recent_leads', { limit: 100 }),
+                executeCRMTool('get_recent_leads', activeLeadFilters),
                 executeCRMTool('get_merge_candidates', { limit: 6 }).catch(() => ({ candidates: [] })),
             ]);
 
@@ -293,16 +302,30 @@ const CRMConsole = () => {
         event.preventDefault();
         setError('');
         try {
-            if (!query.trim()) {
-                const recentPayload = await executeCRMTool('get_recent_leads', { limit: 100 });
+            const formData = new FormData(event.currentTarget);
+            const submittedQuery = String(formData.get('crm_query') || '').trim();
+            const submittedStatus = String(formData.get('crm_status') || statusFilter || 'ALL');
+            const submittedProfile = String(formData.get('crm_profile') || profileFilter || 'ALL');
+            setQuery(submittedQuery);
+            setStatusFilter(submittedStatus);
+            setProfileFilter(submittedProfile);
+
+            const activeFilters = {
+                limit: 100,
+                ...(submittedStatus !== 'ALL' ? { status: submittedStatus } : {}),
+                ...(submittedProfile !== 'ALL' ? { profile_type: submittedProfile } : {}),
+            };
+            if (!submittedQuery) {
+                const recentPayload = await executeCRMTool('get_recent_leads', activeFilters);
                 setLeads(Array.isArray(recentPayload?.leads) ? recentPayload.leads : []);
+                setActiveTab('leads');
                 return;
             }
 
             const result = await executeCRMTool('search_leads', {
-                query: query.trim(),
-                limit: 100,
+                query: submittedQuery,
                 offset: 0,
+                ...activeFilters,
             });
             setLeads(Array.isArray(result?.leads) ? result.leads : []);
             setActiveTab('leads');
@@ -599,17 +622,41 @@ const CRMConsole = () => {
                                 </div>
                             </div>
 
-                            <form onSubmit={handleSearch} className="grid gap-3 lg:grid-cols-[2fr_1fr_1fr_1fr_180px]" data-testid="crm-leads-search-row">
+                            <form onSubmit={handleSearch} className="grid gap-3 lg:grid-cols-[2fr_1fr_1fr_180px]" data-testid="crm-leads-search-row">
                                 <input
+                                    name="crm_query"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="Search by phone / name / email / source"
+                                    placeholder="Search by phone / name / email"
                                     className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-500"
                                     data-testid="crm-search-input"
                                 />
-                                <div className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-slate-500">Status: All</div>
-                                <div className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-slate-500">Profile: Customer</div>
-                                <div className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-slate-500">Source: All</div>
+                                <select
+                                    name="crm_status"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-500"
+                                    data-testid="crm-status-filter"
+                                >
+                                    {LEAD_STATUS_FILTER_OPTIONS.map((status) => (
+                                        <option key={status} value={status}>
+                                            {status === 'ALL' ? 'Status: All' : status}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    name="crm_profile"
+                                    value={profileFilter}
+                                    onChange={(e) => setProfileFilter(e.target.value)}
+                                    className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-500"
+                                    data-testid="crm-profile-filter"
+                                >
+                                    {PROFILE_FILTER_OPTIONS.map((profile) => (
+                                        <option key={profile} value={profile}>
+                                            {profile === 'ALL' ? 'Profile: All' : profile}
+                                        </option>
+                                    ))}
+                                </select>
                                 <button type="submit" className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-stone-100" data-testid="crm-search-btn">
                                     Search
                                 </button>

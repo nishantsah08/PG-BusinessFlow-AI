@@ -19,3 +19,8 @@
 - Date: 2026-03-11
 - Change: Reworked CRM route to `overview + leads workspace + drawer` model, added pending follow-up KPI, backend merge-candidate queue read contract, and CEO-only GUI merge approval path.
 - Reason: Align the CRM surface with CommunicationsAI-first operations while keeping GUI limited to readable review, safe edits, and CEO decision support.
+
+**Version 1.3.1**
+- Date: 2026-03-12
+- Change: Corrected the leads search row to use backend `phone / name / email` search with real `Status` and `Profile` dropdown filters, and removed the unused `Source` filter promise from the GUI.
+- Reason: Bring the CRM search surface in line with the actual backend contract and make live lead filtering reliable in the portal.

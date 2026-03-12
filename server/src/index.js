@@ -291,6 +291,43 @@ function deriveBusinessName(displayName, email) {
     return `${fallback}'s Workspace`;
 }
 
+function buildHrCompensationCatalog(tenantConfig = {}) {
+    const finance = tenantConfig?.finance || {};
+    const templates = finance.staff_compensation_templates || {};
+    const caretakerTemplate = templates.caretaker || {
+        base_salary: Number(finance.caretaker_compensation?.fixed_basic_salary) || Number(finance.default_base_salary) || 4000,
+        components: {
+            incentives: {
+                logic: 'Fully paid occupied units * amount per unit',
+                amount_per_unit: Number(finance.caretaker_compensation?.per_fully_paid_occupied_unit) || 0,
+            },
+            allowances: {
+                travel: 0,
+                phone: 0,
+            },
+            caretaker_rules: {
+                daily_cleaning_proof_amount: Number(finance.caretaker_compensation?.daily_cleaning_proof_amount) || 0,
+                weekly_parking_cleaning_amount: Number(finance.caretaker_compensation?.weekly_parking_cleaning_amount) || 0,
+                maintenance_complaint_deduction: Number(finance.caretaker_compensation?.maintenance_complaint_deduction) || 0,
+            },
+        },
+    };
+
+    return {
+        designation_options: [
+            { value: 'Caretaker', label: 'Caretaker', default_profile_key: 'caretaker' },
+        ],
+        profile_options: [
+            {
+                key: 'caretaker',
+                label: 'Caretaker Standard',
+                summary: 'Fixed salary plus unit and proof-based caretaker rules.',
+                template: caretakerTemplate,
+            },
+        ],
+    };
+}
+
 async function resolveAuthContext(req) {
     const tenantId = normalizeTenantIdFromRequest(req);
     const trustedEmail = (req.authUser?.email || getDevRequesterEmail(req) || '').trim().toLowerCase();
@@ -321,6 +358,14 @@ async function resolveAuthContext(req) {
         email: trustedEmail || null,
         profile_type: normalizedProfile,
         crm_lead_id: crmLead?.lead_id || null,
+        business_name: tenantConfig?.business_name || null,
+        owner: {
+            name: tenantConfig?.persona?.name || 'Workspace Owner',
+            email: ceoEmail || null,
+            phone: tenantConfig?.persona?.ceo_phone || null,
+            role: tenantConfig?.persona?.role || 'CEO',
+        },
+        hr_compensation_catalog: buildHrCompensationCatalog(tenantConfig),
         permissions: {
             admin_adapter: Object.fromEntries(
                 Object.entries(permissions).map(([agent, tools]) => [agent, Array.from(tools)])
@@ -579,6 +624,7 @@ const commsAI = new CommunicationsAI();
 
 // Master AI knows about everyone else
 const masterAI = new MasterAI([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
+masterAI.attachAgentListeners([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
 
 const allAgents = [masterAI, propertyAI, crmAgent, hrAgent, financeAI, commsAI];
 

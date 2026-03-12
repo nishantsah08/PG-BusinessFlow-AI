@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Preview Mock</title>
+    <style>
+        :root {
+            --bg: #f1f5f9;
+            --card: #fff;
+            --border: #dbe4ee;
+            --text: #0f172a;
+            --muted: #475569;
+            --amber-bg: #fffbeb;
+            --amber-border: #fcd34d;
+            --amber-text: #92400e;
+            --green-bg: #ecfdf5;
+            --green-border: #86efac;
+            --green-text: #065f46;
+            --orange-bg: #fff7ed;
+            --orange-border: #fdba74;
+            --orange-text: #c2410c;
+            --red-bg: #fff1f2;
+            --red-border: #fda4af;
+            --red-text: #be123c;
+            --blue-bg: #eff6ff;
+            --blue-border: #93c5fd;
+            --blue-text: #1d4ed8;
+            --indigo-bg: #eef2ff;
+            --indigo-border: #a5b4fc;
+            --indigo-text: #4338ca;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+        .shell {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 32px 28px 40px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+        }
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        h1, h2, h3, p { margin: 0; }
+        h1 { margin-top: 10px; font-size: 38px; line-height: 1.05; }
+        .button-row { display: flex; gap: 12px; }
+        .btn {
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            background: #fff;
+            color: #334155;
+        }
+        .btn-primary { background: #059669; border-color: #059669; color: #fff; }
+        .summary {
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .summary-grid {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .metric {
+            border-radius: 20px;
+            padding: 18px;
+            border: 1px solid;
+        }
+        .metric strong { display: block; margin-top: 12px; font-size: 34px; }
+        .metric-green { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+        .metric-red { background: var(--red-bg); border-color: var(--red-border); color: var(--red-text); }
+        .metric-orange { background: var(--orange-bg); border-color: var(--orange-border); color: var(--orange-text); }
+        .layout {
+            display: grid;
+            grid-template-columns: 520px 1fr;
+            gap: 24px;
+        }
+        .main-card { padding: 24px; }
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: end;
+        }
+        .controls { display: flex; gap: 12px; }
+        .control {
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 14px;
+            padding: 11px 14px;
+            min-width: 190px;
+            color: #64748b;
+            font-size: 14px;
+        }
+        .stack { display: grid; gap: 24px; }
+        .roster { margin-top: 20px; display: grid; gap: 12px; }
+        .person {
+            border-radius: 22px;
+            padding: 18px;
+            border: 1px solid;
+        }
+        .person-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .person-meta {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .person-owner { background: var(--amber-bg); border-color: var(--amber-border); }
+        .person-active { background: var(--green-bg); border-color: var(--green-border); }
+        .person-terminated { background: var(--red-bg); border-color: var(--red-border); }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+        .pill-amber { background: #fef3c7; color: #92400e; }
+        .pill-green { background: #d1fae5; color: #065f46; }
+        .pill-orange { background: #ffedd5; color: #c2410c; }
+        .pill-red { background: #ffe4e6; color: #be123c; }
+        .detail-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .mini-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .mini-btn {
+            border-radius: 14px;
+            border: 1px solid;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .mini-btn-blue { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+        .mini-btn-indigo { background: var(--indigo-bg); border-color: var(--indigo-border); color: var(--indigo-text); }
+        .mini-btn-amber { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber-text); }
+        .mini-btn-slate { background: #fff; border-color: var(--border); color: #334155; }
+        .mini-btn-red { background: var(--red-bg); border-color: var(--red-border); color: var(--red-text); }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-top: 22px;
+        }
+        .subcard {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 18px;
+        }
+        .substack {
+            margin-top: 14px;
+            display: grid;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .mini {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #64748b;
+            font-weight: 700;
+        }
+        .value { margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--text); }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .action-card {
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid;
+        }
+        .action-green { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+        .action-blue { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+        .action-indigo { background: var(--indigo-bg); border-color: var(--indigo-border); color: var(--indigo-text); }
+        .action-red { background: var(--red-bg); border-color: var(--red-border); color: var(--red-text); }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <section class="card header">
+            <div>
+                <p class="eyebrow">HR Operations</p>
+                <h1>People and compensation</h1>
+            </div>
+
+            <div class="button-row">
+                <button class="btn">Export</button>
+                <button class="btn btn-primary">Add Employee</button>
+            </div>
+        </section>
+
+        <section class="card summary">
+            <p class="eyebrow">Workforce Summary</p>
+            <div class="summary-grid">
+                <div class="metric metric-green">
+                    <div class="mini" style="color:inherit;">Active Employees</div>
+                    <strong>2</strong>
+                </div>
+                <div class="metric metric-red">
+                    <div class="mini" style="color:inherit;">Terminated</div>
+                    <strong>1</strong>
+                </div>
+                <div class="metric metric-orange">
+                    <div class="mini" style="color:inherit;">Missing Salary</div>
+                    <strong>1</strong>
+                </div>
+            </div>
+        </section>
+
+        <div class="layout">
+            <section class="card main-card">
+                <div class="toolbar">
+                    <div>
+                        <p class="eyebrow">People</p>
+                        <h2 style="margin-top:10px; font-size:30px;">Account owner and employees</h2>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control">Search people</div>
+                        <div class="control">All</div>
+                    </div>
+                </div>
+
+                <div class="roster">
+                    <article class="person person-owner">
+                        <div class="person-head">
+                            <div>
+                                <h3 style="font-size:22px;">Nishant Sah</h3>
+                                <p style="margin-top:6px; color:#64748b;">CEO / Workspace Owner</p>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <span class="pill pill-amber">Owner</span>
+                                <span class="pill pill-amber">Email Locked</span>
+                            </div>
+                        </div>
+                        <div class="person-meta">
+                            <span>OWNER-01</span>
+                            <span>+91 75884 98834</span>
+                            <span>nishant@company.com</span>
+                        </div>
+                    </article>
+
+                    <article class="person person-active">
+                        <div class="person-head">
+                            <div>
+                                <h3 style="font-size:22px;">Ramesh Kumar</h3>
+                                <p style="margin-top:6px; color:#64748b;">Property Manager</p>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <span class="pill pill-green">Active</span>
+                                <span class="pill pill-green">Salary Ready</span>
+                            </div>
+                        </div>
+                        <div class="person-meta">
+                            <span>STF-01</span>
+                            <span>+91 98333 34444</span>
+                            <span>ramesh@company.com</span>
+                        </div>
+                    </article>
+
+                    <article class="person person-active" style="background:var(--orange-bg); border-color:var(--orange-border);">
+                        <div class="person-head">
+                            <div>
+                                <h3 style="font-size:22px;">Meera Joshi</h3>
+                                <p style="margin-top:6px; color:#64748b;">Sales Executive</p>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <span class="pill pill-green">Active</span>
+                                <span class="pill pill-orange">Salary Missing</span>
+                            </div>
+                        </div>
+                        <div class="person-meta">
+                            <span>STF-02</span>
+                            <span>+91 98444 45555</span>
+                            <span>meera@company.com</span>
+                        </div>
+                    </article>
+
+                    <article class="person person-terminated">
+                        <div class="person-head">
+                            <div>
+                                <h3 style="font-size:22px;">Arun Singh</h3>
+                                <p style="margin-top:6px; color:#64748b;">Maintenance Supervisor</p>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <span class="pill pill-red">Terminated</span>
+                                <span class="pill pill-green">Salary Ready</span>
+                            </div>
+                        </div>
+                        <div class="person-meta">
+                            <span>STF-03</span>
+                            <span>Last working day: 11 Mar 2026</span>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <div class="stack">
+                <section class="card main-card">
+                    <div class="detail-top">
+                        <div>
+                            <p class="eyebrow">Account Owner Detail</p>
+                            <h2 style="margin-top:10px; font-size:30px;">Nishant Sah</h2>
+                            <p style="margin-top:8px; color:#64748b;">CEO / Workspace Owner</p>
+                        </div>
+
+                        <div class="mini-buttons">
+                            <button class="mini-btn mini-btn-blue">Edit Profile</button>
+                            <button class="mini-btn mini-btn-amber">Email Locked</button>
+                            <button class="mini-btn mini-btn-slate">Account Settings</button>
+                        </div>
+                    </div>
+
+                    <div class="detail-grid">
+                        <div class="subcard">
+                            <div class="mini">Profile</div>
+                            <div class="substack">
+                                <div><span class="mini">Phone</span><div class="value">+91 75884 98834</div></div>
+                                <div><span class="mini">Email</span><div class="value">nishant@company.com</div><div style="margin-top:6px; font-size:12px; color:#92400e; font-weight:700;">Visible, but not editable.</div></div>
+                                <div><span class="mini">Role Summary</span><div class="value">Owns the business account, authorizes policy decisions, and remains the protected tenant owner.</div></div>
+                            </div>
+                        </div>
+
+                        <div class="subcard">
+                            <div class="mini">Owner Controls</div>
+                            <div class="substack">
+                                <div><span class="mini">Access Level</span><div class="value">Account-level role</div></div>
+                                <div><span class="mini">Email Policy</span><div class="value">Not editable from HR</div></div>
+                                <div><span class="mini">Account Handling</span><div class="value">Managed through business settings, not employee lifecycle.</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="action-grid">
+                    <article class="action-card action-green">
+                        <div class="mini" style="color:inherit;">Preview Action</div>
+                        <h3 style="margin-top:10px; font-size:24px;">Add Employee</h3>
+                        <p style="margin-top:12px; font-size:14px; line-height:1.5;">Preview the onboarding form and new staff entry point.</p>
+                    </article>
+                    <article class="action-card action-blue">
+                        <div class="mini" style="color:inherit;">Preview Action</div>
+                        <h3 style="margin-top:10px; font-size:24px;">Edit Profile</h3>
+                        <p style="margin-top:12px; font-size:14px; line-height:1.5;">Preview designation, phone, and role updates.</p>
+                    </article>
+                    <article class="action-card action-indigo">
+                        <div class="mini" style="color:inherit;">Preview Action</div>
+                        <h3 style="margin-top:10px; font-size:24px;">Salary Card</h3>
+                        <p style="margin-top:12px; font-size:14px; line-height:1.5;">Preview compensation logic and banking details.</p>
+                    </article>
+                    <article class="action-card action-red">
+                        <div class="mini" style="color:inherit;">Preview Action</div>
+                        <h3 style="margin-top:10px; font-size:24px;">Terminate Employee</h3>
+                        <p style="margin-top:12px; font-size:14px; line-height:1.5;">Preview the controlled red path for employee exit.</p>
+                    </article>
+                </section>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

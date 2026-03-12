@@ -165,6 +165,26 @@ class CRMAgent extends BaseAgent {
         return this._getState(this._activeTenantId || this.defaultTenantId).mergeReviews;
     }
 
+    _normalizeSearchFilter(value) {
+        if (typeof value !== 'string') return '';
+        return value.trim();
+    }
+
+    _matchesLeadFilters(lead, filters = {}) {
+        const normalizedStatus = this._normalizeSearchFilter(filters.status);
+        const normalizedProfileType = this._normalizeSearchFilter(filters.profile_type);
+
+        if (normalizedStatus && normalizedStatus !== 'ALL' && lead.status !== normalizedStatus) {
+            return false;
+        }
+
+        if (normalizedProfileType && normalizedProfileType !== 'ALL' && (lead.profile_type || 'Customer') !== normalizedProfileType) {
+            return false;
+        }
+
+        return true;
+    }
+
     registerTools() {
         // =========================================================================
         // Core Lifecycle
@@ -426,6 +446,7 @@ class CRMAgent extends BaseAgent {
             type: 'object',
             properties: {
                 lead_id: { type: 'string' },
+                name: { type: 'string' },
                 demographics: { type: 'object' },
                 preferences: { type: 'array', items: { type: 'string' } },
                 email: { type: 'string' },
@@ -440,6 +461,7 @@ class CRMAgent extends BaseAgent {
             const lead = this.leads.get(args.lead_id);
             if (!lead) return { status: "Error", message: "Lead not found" };
 
+            if (args.name) lead.name = args.name;
             if (args.demographics) lead.demographics = { ...lead.demographics, ...args.demographics };
             if (args.preferences) lead.preferences = args.preferences;
             if (args.email) lead.email = args.email;
@@ -645,7 +667,9 @@ class CRMAgent extends BaseAgent {
             properties: {
                 query: { type: 'string' },
                 limit: { type: 'integer' },
-                offset: { type: 'integer' }
+                offset: { type: 'integer' },
+                status: { type: 'string' },
+                profile_type: { type: 'string', enum: ['ALL', 'Customer', 'Staff', 'CEO'] }
             },
             required: ['query']
         }, async (args) => {
@@ -655,6 +679,10 @@ class CRMAgent extends BaseAgent {
             const offset = args.offset || 0;
 
             for (const lead of this.leads.values()) {
+                if (!this._matchesLeadFilters(lead, args)) {
+                    continue;
+                }
+
                 if (lead.name.toLowerCase().includes(q) ||
                     lead.lead_id.includes(q) ||
                     (lead.email && lead.email.toLowerCase().includes(q))) {
@@ -687,10 +715,12 @@ class CRMAgent extends BaseAgent {
         this.registerTool('get_recent_leads', 'Get recently active leads', {
             type: 'object',
             properties: {
-                limit: { type: 'integer' }
+                limit: { type: 'integer' },
+                status: { type: 'string' },
+                profile_type: { type: 'string', enum: ['ALL', 'Customer', 'Staff', 'CEO'] }
             }
         }, async (args) => {
-            const allLeads = Array.from(this.leads.values());
+            const allLeads = Array.from(this.leads.values()).filter((lead) => this._matchesLeadFilters(lead, args));
             // Sort by Created At for now (Ideal: Last Interaction Date)
             allLeads.sort((a, b) => b.created_at.localeCompare(a.created_at));
             return { leads: allLeads.slice(0, args.limit || 10) };

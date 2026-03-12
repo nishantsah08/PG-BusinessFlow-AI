@@ -41,6 +41,7 @@
     *   **Strict Adherence**: Executed autonomously once approved.
     *   **Validation**: User validation required only at creation/update.
     *   **Financial Authorization Gate**: MasterAI (Kalyani/Sales) may initiate financial workflows, but completion is blocked until explicit CEO authorization.
+    *   **System Access Policy**: Actor identity, permission model, and scope enforcement for `CEO` / `Staff` / `Customer` are defined in [system_access_policy.md](./system_access_policy.md). Current centralized enforcement is active for `HR`, `CRM`, and `Property`; `Finance` remains the next phase.
 *   **Session Management & Persistence**:
     *   **Identity Source (Dual Lookup)**: MasterAI identifies users via **phone number OR email**:
         *   **Phone Number (`lead_id`) via CommunicationsAI**: Maps to a CRM profile via `get_lead_by_phone`. The user's `profile_type` determines guardrail behavior.

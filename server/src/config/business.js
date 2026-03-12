@@ -66,6 +66,45 @@ const DEFAULT_BUSINESS_CONFIG = {
         // Default salary values (used when HR card is not available)
         default_base_salary: 4000,
         default_incentive_per_unit: 350,
+        staff_compensation_templates: {
+            default: {
+                base_salary: 4000,
+                components: {
+                    compensation_model: 'STANDARD',
+                    salary_advance_limit: 5000,
+                    reimbursements_allowed: true,
+                    incentives: {
+                        logic: 'Role-based performance incentive',
+                        amount_per_unit: 350
+                    },
+                    allowances: {
+                        travel: 0,
+                        phone: 0
+                    }
+                }
+            },
+            caretaker: {
+                base_salary: 4000,
+                components: {
+                    compensation_model: 'CARETAKER_UNIT_BASED',
+                    salary_advance_limit: 5000,
+                    reimbursements_allowed: true,
+                    incentives: {
+                        logic: 'Fully paid occupied units * amount per unit',
+                        amount_per_unit: 250
+                    },
+                    allowances: {
+                        travel: 0,
+                        phone: 0
+                    },
+                    caretaker_rules: {
+                        daily_cleaning_proof_amount: 100,
+                        weekly_parking_cleaning_amount: 100,
+                        maintenance_complaint_deduction: 100
+                    }
+                }
+            }
+        },
         caretaker_compensation: {
             fixed_basic_salary: 4000,
             per_fully_paid_occupied_unit: 250,

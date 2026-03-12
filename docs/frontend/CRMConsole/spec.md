@@ -8,6 +8,7 @@ Provide an overview-first CRM operations console on route `/crm`, separating bus
 - Render overview analytics and full-width merge review queue.
 - Render `Overview` and `Leads` workspace tabs.
 - Render searchable lead list and right-side lead drawer.
+- In the `Leads` tab, support backend-driven search by `phone / name / email` plus prepopulated `Status` and `Profile` filters.
 - Render timeline with type filters (`ALL`, `SESSION`, `STATUS_CHANGE`, `NOTE`, `MERGE`, `ARTIFACT_LINKED`).
 - Support inline safe edits only for approved snapshot/requirement fields.
 - Allow merge approval from GUI only for roles with `merge_leads` permission.
@@ -17,6 +18,7 @@ None via props. Uses authenticated context and internal component state.
 
 ## Outputs
 - Read operations and mutations through `/api/master_ai/tools/execute` with `agent_name=CRMAgent`.
+- Lead search/filter requests use `search_leads` or `get_recent_leads` with optional `status` and `profile_type` parameters.
 - UI-level confirmation for status changes before mutation execution.
 
 ## Dependencies

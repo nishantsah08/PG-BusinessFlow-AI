@@ -93,6 +93,7 @@ Validate:
 - UI state changes
 - Error display
 - Interaction correctness
+- For cross-channel operational changes, QA must check GUI + CRM sync + WhatsApp, and role-path coverage must include CEO, Staff, and non-staff/customer.
 
 > UI tests are only required once frontend is introduced.
 

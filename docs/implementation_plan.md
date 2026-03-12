@@ -67,6 +67,7 @@ The following strategic updates are now implemented and should be treated as the
 *   **Guardrails (3-Tier)**:
     *   Enforces "Kalyani" persona integrity with tier-specific rules (CEO/Staff/Customer).
     *   Manages system timeouts (60s) and retry logic.
+    *   System-wide actor access and scope enforcement must follow [system_access_policy.md](./system_access_policy.md). Current centralized policy coverage is active for `HR`, `CRM`, and `Property`; `Finance` remains intentionally reserved for the next phase.
     *   **Phase 1**: Simulates all external dependencies (Payment/Email/WhatsApp) via mock events.
 
 ### 2.2 Master AI API Skills (Exhaustive)
@@ -531,7 +532,7 @@ The HR Agent exposes a comprehensive set of tools to support both **Chat (Master
 *   **`hire_staff`**:
     *   *Inputs*: `name`, `designation`, `job_description`, `contact` (primary, email, alternate), `base_salary`.
     *   *Output*: `staff_id` (System Generated).
-    *   *Side Effect*: Emits `staff.hired` event. MasterAI receives it and calls `CRM_Agent.add_lead` to set `profile_type="Staff"`.
+    *   *Side Effect*: Emits `staff.hired` event. MasterAI receives it and calls `CRM_Agent.add_lead` to set `profile_type="Staff"`. If business compensation rules exist for the designation, HR auto-provisions the active Salary Card during hire instead of waiting for a separate manual setup step. The current HR GUI exposes the caretaker template first, keeps bank-details editing separate from compensation review, shows invalid hire input inside the hire modal instead of only at page level, and keeps the caretaker compensation formula read-only while editable numeric amounts remain in the review form.
 *   **`update_staff_profile`**:
     *   *Inputs*: `staff_id`, `name`, `designation`, `contact`, `job_description`.
 *   **`terminate_staff`**:
@@ -547,7 +548,7 @@ The HR Agent exposes a comprehensive set of tools to support both **Chat (Master
     *   *Inputs*: `staff_id`, `bank_details`, `base_salary`, `components` (advance limit, reimbursements, incentives, allowances), `effective_from`.
     *   *Action*: Persist Salary Card and notify Finance Agent.
 *   **`update_salary_card`**:
-    *   *Inputs*: `staff_id`, `new_components`, `reason`.
+    *   *Inputs*: `staff_id`, `new_components`, `new_base_salary`, `new_bank_details`, `reason`.
     *   *Logic*: Updates the active agreement. Maintains history of changes.
 *   **`get_salary_card`**:
     *   *Inputs*: `staff_id`.
