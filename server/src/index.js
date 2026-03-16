@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
 const axios = require('axios');
+const OpenAI = require('openai');
 const MasterAI = require('./agents/MasterAI');
 const PropertyAI = require('./agents/PropertyAI');
 const CRMAgent = require('./agents/CRMAgent');
@@ -11,6 +12,8 @@ const HRAgent = require('./agents/HRAgent');
 const FinanceAI = require('./agents/FinanceAI');
 const CommunicationsAI = require('./agents/CommunicationsAI');
 const TimeAuthorityService = require('./services/TimeAuthorityService');
+const PhoneNormalizationService = require('./services/PhoneNormalizationService');
+const OtpChallengeService = require('./services/OtpChallengeService');
 const BusinessConfig = require('./config/business');
 const WorkflowStore = require('./storage/WorkflowStore');
 const ImageStore = require('./storage/ImageStore');
@@ -19,6 +22,19 @@ const {
     ensurePredefinedFinancialWorkflows,
     isProtectedPredefinedWorkflow
 } = require('./workflows/financialWorkflowPolicy');
+const {
+    normalizeWorkflowDefinition,
+    validateWorkflowDefinition,
+    buildWorkflowClone,
+    buildBlankWorkflowDraft,
+    publishWorkflowVersion,
+    archiveWorkflowVersion,
+    discardWorkflowDraft,
+    resolveEffectiveWorkflow,
+    upgradeWorkflowCollection,
+} = require('./workflows/workflowGovernance');
+const { resolveFinanceButtonContracts } = require('./workflows/financeButtonContracts');
+const { proposeSopAssistantReply } = require('./workflows/sopAssistant');
 const multer = require('multer');
 
 const app = express();
@@ -77,12 +93,14 @@ const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'local';
 const MIN_IMAGE_BYTES = 1024;
 const workflowStore = new WorkflowStore({ backend: STORAGE_BACKEND });
 const imageStore = new ImageStore({ backend: STORAGE_BACKEND, imageDir: IMAGE_DIR });
+const artifactExtractionClient = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 ensurePredefinedFinancialWorkflows(workflowStore);
 
 app.use('/images', express.static(IMAGE_DIR));
 
 const ADMIN_ADAPTER_POLICY = {
     CRMAgent: new Set([
+        'add_lead',
         'get_dashboard_stats',
         'get_merge_candidates',
         'get_recent_leads',
@@ -101,6 +119,21 @@ const ADMIN_ADAPTER_POLICY = {
         'merge_leads',
         'archive_lead',
         'set_primary_phone',
+    ]),
+    PropertyAI: new Set([
+        'add_property',
+        'update_property',
+        'delete_property',
+        'get_properties',
+        'add_unit',
+        'update_unit',
+        'delete_unit',
+        'get_units',
+        'assign_tenant',
+        'vacate_tenant',
+        'set_notice',
+        'get_public_rate_card',
+        'get_property_metrics',
     ]),
     CommunicationsAI: new Set([
         'send_text_message',
@@ -131,11 +164,17 @@ const ADMIN_ADAPTER_POLICY = {
         'get_performance_metrics',
     ]),
     FinanceAI: new Set([
+        'record_booking_hold',
+        'get_booking_holds',
+        'expire_booking_hold',
+        'complete_onboarding_from_booking',
         'record_incoming_txn',
         'get_incoming_txns',
         'get_txn_details',
         'record_outgoing_txn',
+        'record_correction_txn',
         'get_expenses',
+        'get_work_orders',
         'get_ledger',
         'add_ledger_entry',
         'generate_monthly_bills',
@@ -143,12 +182,18 @@ const ADMIN_ADAPTER_POLICY = {
         'process_salary_payout',
         'get_financial_summary',
         'get_defaulters_list',
+        'get_unit_collection_status',
+        'get_assigned_unit_collection_statuses',
+        'add_vendor',
+        'get_vendors',
+        'get_vendor_summary',
     ]),
 };
 
 const ADMIN_ROLE_PERMISSIONS = {
     CEO: {
         CRMAgent: new Set(Array.from(ADMIN_ADAPTER_POLICY.CRMAgent)),
+        PropertyAI: new Set(Array.from(ADMIN_ADAPTER_POLICY.PropertyAI)),
         CommunicationsAI: new Set(Array.from(ADMIN_ADAPTER_POLICY.CommunicationsAI)),
         HRAgent: new Set(Array.from(ADMIN_ADAPTER_POLICY.HRAgent)),
         FinanceAI: new Set(Array.from(ADMIN_ADAPTER_POLICY.FinanceAI)),
@@ -171,6 +216,12 @@ const ADMIN_ROLE_PERMISSIONS = {
             'change_status',
             'link_artifact',
         ]),
+        PropertyAI: new Set([
+            'get_properties',
+            'get_units',
+            'get_public_rate_card',
+            'get_property_metrics',
+        ]),
         HRAgent: new Set([
             'get_salary_card',
             'get_staff_details',
@@ -182,18 +233,11 @@ const ADMIN_ROLE_PERMISSIONS = {
             'approve_leave_request',
         ]),
         FinanceAI: new Set([
-            'get_incoming_txns',
-            'get_txn_details',
-            'get_expenses',
-            'get_ledger',
-            'get_financial_summary',
-            'get_defaulters_list',
             'record_incoming_txn',
             'record_outgoing_txn',
-            'add_ledger_entry',
-            'generate_monthly_bills',
-            'onboard_tenant_contract',
-            'process_salary_payout',
+            'get_unit_collection_status',
+            'get_assigned_unit_collection_statuses',
+            'get_work_orders',
         ]),
         CommunicationsAI: new Set([
             'send_text_message',
@@ -215,12 +259,11 @@ const ADMIN_ROLE_PERMISSIONS = {
             'get_timeline',
             'get_lead_artifacts',
         ]),
+        PropertyAI: new Set([]),
         HRAgent: new Set([]),
         FinanceAI: new Set([
-            'get_incoming_txns',
-            'get_financial_summary',
-            'get_defaulters_list',
             'get_ledger',
+            'get_incoming_txns',
             'get_txn_details',
         ]),
         CommunicationsAI: new Set([
@@ -266,6 +309,35 @@ function findTenantIdByCeoEmail(email) {
         }
     }
     return null;
+}
+
+function findTenantIdByCeoPhone(phone) {
+    let normalizedPhone = null;
+    try {
+        normalizedPhone = PhoneNormalizationService.normalizeToE164(phone);
+    } catch (_error) {
+        return null;
+    }
+    const tenants = BusinessConfig.getAllTenantConfigs();
+    for (const [tenantId, config] of Object.entries(tenants)) {
+        const ceoPhone = String(config?.persona?.ceo_phone || '').trim();
+        if (ceoPhone && ceoPhone === normalizedPhone) {
+            return tenantId;
+        }
+    }
+    return null;
+}
+
+function isCeoPhoneVerificationRequired(tenantConfig = {}, profileType = 'Customer') {
+    if (profileType !== 'CEO') return false;
+    return !String(tenantConfig?.persona?.ceo_phone || '').trim();
+}
+
+function getTenantAccountStatus(tenantConfig = {}, profileType = 'Customer') {
+    if (isCeoPhoneVerificationRequired(tenantConfig, profileType)) {
+        return 'PENDING_CEO_PHONE_VERIFICATION';
+    }
+    return tenantConfig?.account_status || 'ACTIVE';
 }
 
 function deriveTenantIdFromEmail(email) {
@@ -338,6 +410,14 @@ async function resolveAuthContext(req) {
 
     if (trustedEmail && trustedEmail === ceoEmail) {
         profileType = 'CEO';
+        try {
+            const lookup = await crmAgent.callTool('get_lead_by_email', { email: trustedEmail, tenant_id: tenantId });
+            if (lookup?.status === 'Found' && lookup.lead) {
+                crmLead = lookup.lead;
+            }
+        } catch (_err) {
+            // Fail closed to config-owned CEO role.
+        }
     } else if (trustedEmail) {
         try {
             const lookup = await crmAgent.callTool('get_lead_by_email', { email: trustedEmail, tenant_id: tenantId });
@@ -352,18 +432,23 @@ async function resolveAuthContext(req) {
 
     const normalizedProfile = ['CEO', 'Staff', 'Customer'].includes(profileType) ? profileType : 'Customer';
     const permissions = ADMIN_ROLE_PERMISSIONS[normalizedProfile] || ADMIN_ROLE_PERMISSIONS.Customer;
+    const requiresCeoPhoneVerification = isCeoPhoneVerificationRequired(tenantConfig, normalizedProfile);
+    const accountStatus = getTenantAccountStatus(tenantConfig, normalizedProfile);
 
     return {
         tenant_id: tenantId,
         email: trustedEmail || null,
         profile_type: normalizedProfile,
         crm_lead_id: crmLead?.lead_id || null,
+        account_status: accountStatus,
+        requires_ceo_phone_verification: requiresCeoPhoneVerification,
         business_name: tenantConfig?.business_name || null,
         owner: {
             name: tenantConfig?.persona?.name || 'Workspace Owner',
             email: ceoEmail || null,
             phone: tenantConfig?.persona?.ceo_phone || null,
             role: tenantConfig?.persona?.role || 'CEO',
+            phone_verified_at: tenantConfig?.persona?.ceo_phone_verified_at || null,
         },
         hr_compensation_catalog: buildHrCompensationCatalog(tenantConfig),
         permissions: {
@@ -371,6 +456,80 @@ async function resolveAuthContext(req) {
                 Object.entries(permissions).map(([agent, tools]) => [agent, Array.from(tools)])
             ),
         },
+    };
+}
+
+async function resolveOwnStaffRecord(authContext, tenantId) {
+    if (authContext?.profile_type !== 'Staff' || !authContext?.email) {
+        return null;
+    }
+    try {
+        const staffRows = await hrAgent.callTool('get_all_staff', { tenant_id: tenantId });
+        if (!Array.isArray(staffRows)) return null;
+        const email = String(authContext.email || '').trim().toLowerCase();
+        return staffRows.find((staff) => String(staff?.contact?.email || '').trim().toLowerCase() === email) || null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function ensureActivatedAccount(authContext, res) {
+    if (authContext?.requires_ceo_phone_verification) {
+        res.status(403).json({
+            success: false,
+            error: 'Complete CEO phone verification before using the workspace.',
+            code: 'CEO_PHONE_VERIFICATION_REQUIRED',
+        });
+        return false;
+    }
+    return true;
+}
+
+function ensureCeoWorkflowAccess(authContext, res) {
+    if (authContext?.profile_type !== 'CEO') {
+        res.status(403).json({ success: false, error: 'Only CEO can manage SOP drafts, publish, archive, or discard them.' });
+        return false;
+    }
+    return true;
+}
+
+function listTenantVisibleWorkflows(tenantId) {
+    return workflowStore
+        .listForTenant(tenantId)
+        .filter((workflow) => !workflow?.ui_hidden);
+}
+
+function serializeWorkflowForTenant(workflow, tenantId) {
+    const workflows = workflowStore.list();
+    const effective = resolveEffectiveWorkflow(workflows, workflow.workflow_family, tenantId);
+    const isTenantWorkflow = workflow.tenant_id === tenantId;
+    const isSystemTemplate = workflow.version_type === 'system_template' || (!workflow.tenant_id && workflow.protected);
+    const effectiveForTenant = effective?.workflow_id === workflow.workflow_id;
+    let business_state = 'Draft';
+
+    if (workflow.version_type === 'archived_snapshot') {
+        business_state = 'Archived';
+    } else if (workflow.version_type === 'tenant_draft') {
+        business_state = 'Draft';
+    } else if (effectiveForTenant) {
+        business_state = 'Active';
+    } else if (workflow.version_type === 'tenant_published') {
+        business_state = 'Archived';
+    }
+
+    return {
+        ...workflow,
+        effective_for_tenant: effectiveForTenant,
+        business_state,
+        visible_in_sop_list: !isSystemTemplate || effectiveForTenant,
+        template_state: isSystemTemplate ? (effectiveForTenant ? 'ACTIVE_DEFAULT' : 'OVERRIDDEN_BY_TENANT') : null,
+        tenant_state: isTenantWorkflow
+            ? (workflow.version_type === 'tenant_published'
+                ? 'PUBLISHED'
+                : workflow.version_type === 'archived_snapshot'
+                    ? 'ARCHIVED'
+                    : 'DRAFT')
+            : null,
     };
 }
 
@@ -468,12 +627,17 @@ app.post('/api/auth/bootstrap', requireAuth, async (req, res) => {
             created = true;
         }
 
+        const existingConfig = BusinessConfig.getBusinessConfig(targetTenantId);
         const updatedConfig = BusinessConfig.saveTenantConfig(targetTenantId, {
             business_name: deriveBusinessName(displayName, trustedEmail),
+            account_status: created
+                ? 'PENDING_CEO_PHONE_VERIFICATION'
+                : getTenantAccountStatus(existingConfig, 'CEO'),
             persona: {
                 name: displayName || String(trustedEmail.split('@')[0] || 'CEO'),
                 role: 'CEO',
                 ceo_email: trustedEmail,
+                ceo_phone: created ? null : (existingConfig?.persona?.ceo_phone || null),
             },
         });
 
@@ -495,8 +659,135 @@ app.post('/api/auth/bootstrap', requireAuth, async (req, res) => {
                 tenant_id: targetTenantId,
                 business_name: updatedConfig?.business_name || null,
                 profile_type: context.profile_type,
+                account_status: context.account_status,
+                requires_ceo_phone_verification: context.requires_ceo_phone_verification,
                 email: context.email,
                 name: updatedConfig?.persona?.name || displayName || null,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/auth/ceo-phone/start', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (authContext.profile_type !== 'CEO') {
+            return res.status(403).json({ success: false, error: 'Only the CEO can verify the owner phone.' });
+        }
+        if (!authContext.requires_ceo_phone_verification) {
+            return res.status(409).json({ success: false, error: 'CEO phone is already verified for this workspace.' });
+        }
+
+        const rawPhone = String(req.body?.phone || '').trim();
+        if (!rawPhone) {
+            return res.status(400).json({ success: false, error: 'Phone number is required.' });
+        }
+
+        let normalizedPhone;
+        try {
+            normalizedPhone = PhoneNormalizationService.normalizeToE164(rawPhone);
+        } catch (_error) {
+            return res.status(400).json({ success: false, error: 'Invalid phone number format.' });
+        }
+
+        const existingTenantByPhone = findTenantIdByCeoPhone(normalizedPhone);
+        if (existingTenantByPhone && existingTenantByPhone !== authContext.tenant_id) {
+            return res.status(409).json({ success: false, error: 'This phone number is already bound to another workspace owner.' });
+        }
+
+        const challenge = OtpChallengeService.createChallenge({
+            scope: authContext.tenant_id,
+            actor: authContext.email,
+            payload: {
+                phone: normalizedPhone,
+                tenant_id: authContext.tenant_id,
+                email: authContext.email,
+            },
+        });
+
+        WhatsAppSimulatorBus.recordOutbound({
+            to: normalizedPhone,
+            text: { body: `Your PG Business Portal CEO verification OTP is ${challenge.code}. It expires in 10 minutes.` },
+        }, { simulated: true, data: { id: challenge.created_at } });
+
+        return res.json({
+            success: true,
+            data: {
+                phone: normalizedPhone,
+                expires_at: challenge.expires_at,
+                delivery_channel: 'whatsapp_simulator',
+                dev_otp: !IS_PROD ? challenge.code : undefined,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/auth/ceo-phone/verify', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (authContext.profile_type !== 'CEO') {
+            return res.status(403).json({ success: false, error: 'Only the CEO can complete owner phone verification.' });
+        }
+        if (!authContext.requires_ceo_phone_verification) {
+            return res.status(409).json({ success: false, error: 'CEO phone is already verified for this workspace.' });
+        }
+
+        const otp = String(req.body?.otp || '').trim();
+        if (!otp) {
+            return res.status(400).json({ success: false, error: 'OTP is required.' });
+        }
+
+        const verification = OtpChallengeService.verifyChallenge({
+            scope: authContext.tenant_id,
+            actor: authContext.email,
+            code: otp,
+        });
+        if (!verification.ok) {
+            return res.status(400).json({ success: false, error: verification.error });
+        }
+
+        const verifiedPhone = verification.payload?.phone;
+        const existingConfig = BusinessConfig.getBusinessConfig(authContext.tenant_id);
+        const updatedConfig = BusinessConfig.saveTenantConfig(authContext.tenant_id, {
+            account_status: 'ACTIVE',
+            persona: {
+                ...(existingConfig?.persona || {}),
+                ceo_email: authContext.email,
+                ceo_phone: verifiedPhone,
+                ceo_phone_verified_at: TimeAuthorityService.nowIST(),
+            },
+        });
+
+        await upsertTenantCeoCrmProfile(authContext.tenant_id, {
+            name: updatedConfig?.persona?.name || 'Workspace Owner',
+            email: authContext.email,
+            phone: verifiedPhone,
+        });
+
+        const refreshedContext = await resolveAuthContext({
+            headers: {
+                ...(req.headers || {}),
+                'x-tenant-id': authContext.tenant_id,
+                'x-actor-email': authContext.email,
+            },
+            query: req.query || {},
+            body: req.body || {},
+            authUser: req.authUser || null,
+            tenantId: authContext.tenant_id,
+        });
+
+        return res.json({
+            success: true,
+            data: {
+                tenant_id: authContext.tenant_id,
+                phone: verifiedPhone,
+                profile_type: refreshedContext.profile_type,
+                account_status: refreshedContext.account_status,
+                requires_ceo_phone_verification: refreshedContext.requires_ceo_phone_verification,
             },
         });
     } catch (error) {
@@ -589,6 +880,41 @@ function requireDebugAccess(req, res, next) {
     return next();
 }
 
+function normalizeExtractedReference(value) {
+    const source = String(value || '').trim();
+    if (!source) return '';
+    const match = source.match(/[A-Z0-9-]{6,}/i);
+    return match ? String(match[0]).toUpperCase() : '';
+}
+
+async function extractArtifactReference(files = []) {
+    if (!artifactExtractionClient) return '';
+    const imageFiles = files.filter((file) => file?.mimetype?.startsWith('image/') && file.size >= MIN_IMAGE_BYTES).slice(0, 4);
+    if (imageFiles.length === 0) return '';
+    try {
+        const response = await artifactExtractionClient.responses.create({
+            model: process.env.OPENAI_ARTIFACT_EXTRACTION_MODEL || 'gpt-4.1-mini',
+            input: [{
+                role: 'user',
+                content: [
+                    {
+                        type: 'input_text',
+                        text: 'These are payment proof images. Extract the single most likely payment transaction reference / UTR / reference ID if clearly visible. Return only the reference text. If none is visible, return an empty string.'
+                    },
+                    ...imageFiles.map((file) => ({
+                        type: 'input_image',
+                        image_url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+                    })),
+                ],
+            }],
+        });
+        return normalizeExtractedReference(response?.output_text || '');
+    } catch (error) {
+        console.warn('[ArtifactUpload] Reference extraction failed:', error?.message || error);
+        return '';
+    }
+}
+
 // Image upload endpoint — saves files to disk and returns accessible URLs
 app.post('/api/upload/images', requireAuth, upload.array('images', 20), (req, res) => {
     try {
@@ -615,6 +941,28 @@ app.post('/api/upload/images', requireAuth, upload.array('images', 20), (req, re
     }
 });
 
+app.post('/api/upload/artifacts', requireAuth, upload.array('artifacts', 20), async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ success: false, error: 'No files provided' });
+        }
+        const urls = [];
+        const skipped = [];
+        for (const file of req.files) {
+            if (!file?.buffer?.length) {
+                skipped.push({ name: file?.originalname || 'unknown', reason: 'empty-file' });
+                continue;
+            }
+            urls.push(imageStore.saveBuffer(file.buffer, file.originalname, 'artifact'));
+        }
+        const extractedReference = await extractArtifactReference(req.files);
+        res.json({ success: true, data: { urls, skipped, extracted_reference: extractedReference } });
+    } catch (error) {
+        console.error('Artifact Upload Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Initialize Agents
 const propertyAI = new PropertyAI();
 const crmAgent = new CRMAgent();
@@ -627,6 +975,105 @@ const masterAI = new MasterAI([propertyAI, crmAgent, hrAgent, financeAI, commsAI
 masterAI.attachAgentListeners([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
 
 const allAgents = [masterAI, propertyAI, crmAgent, hrAgent, financeAI, commsAI];
+
+async function upsertTenantCeoCrmProfile(tenantId, owner = {}) {
+    const normalizedTenantId = normalizeTenantIdFromRequest({ headers: { 'x-tenant-id': tenantId } });
+    const email = String(owner?.email || '').trim().toLowerCase();
+    const name = String(owner?.name || 'Workspace Owner').trim();
+    const phone = String(owner?.phone || '').trim();
+    if (!email || !phone) {
+        return null;
+    }
+
+    let lookup = null;
+    const byPhone = await crmAgent.callTool('get_lead_by_phone', { tenant_id: normalizedTenantId, phone });
+    if (byPhone?.status === 'Found' && byPhone.lead) {
+        lookup = byPhone.lead;
+    }
+
+    if (!lookup) {
+        const byEmail = await crmAgent.callTool('get_lead_by_email', { tenant_id: normalizedTenantId, email });
+        if (byEmail?.status === 'Found' && byEmail.lead) {
+            lookup = byEmail.lead;
+        }
+    }
+
+    if (lookup) {
+        await crmAgent.callTool('update_lead_snapshot', {
+            tenant_id: normalizedTenantId,
+            lead_id: lookup.lead_id,
+            name,
+            email,
+            profile_type: 'CEO',
+        });
+        const knownPhones = new Set([
+            lookup.lead_id,
+            lookup.phones?.primary?.number,
+            ...((lookup.phones?.others || []).map((entry) => entry?.number)),
+        ].filter(Boolean));
+        if (!knownPhones.has(phone)) {
+            await crmAgent.callTool('add_secondary_phone', {
+                tenant_id: normalizedTenantId,
+                lead_id: lookup.lead_id,
+                phone_number: phone,
+                label: 'CEO Contact',
+            });
+        }
+        return lookup.lead_id;
+    }
+
+    const created = await crmAgent.callTool('add_lead', {
+        tenant_id: normalizedTenantId,
+        name,
+        primary_phone: phone,
+        email,
+        profile_type: 'CEO',
+        source: { category: 'System', detail: 'ceo.verified' },
+    });
+    return created?.lead_id || phone;
+}
+
+async function syncExistingTenantOwnerProfilesToCrm() {
+    const allTenants = BusinessConfig.getAllTenantConfigs();
+    for (const [tenantId, config] of Object.entries(allTenants)) {
+        if (getTenantAccountStatus(config, 'CEO') === 'PENDING_CEO_PHONE_VERIFICATION') continue;
+        const phone = String(config?.persona?.ceo_phone || '').trim();
+        const email = String(config?.persona?.ceo_email || '').trim().toLowerCase();
+        if (!phone || !email) continue;
+        try {
+            await upsertTenantCeoCrmProfile(tenantId, {
+                name: config?.persona?.name || 'Workspace Owner',
+                phone,
+                email,
+            });
+        } catch (error) {
+            console.warn(`[Owner CRM Sync] ${tenantId} failed: ${error.message}`);
+        }
+    }
+}
+
+async function resolveTenantIdByPhone(phone) {
+    let normalizedPhone = null;
+    try {
+        normalizedPhone = PhoneNormalizationService.normalizeToE164(phone);
+    } catch (_error) {
+        return null;
+    }
+
+    const allTenants = BusinessConfig.getAllTenantConfigs();
+    for (const tenantId of Object.keys(allTenants)) {
+        try {
+            const lookup = await crmAgent.callTool('get_lead_by_phone', { tenant_id: tenantId, phone: normalizedPhone });
+            if (lookup?.status === 'Found' && lookup.lead) {
+                return tenantId;
+            }
+        } catch (_error) {
+            // Continue scanning tenants.
+        }
+    }
+
+    return findTenantIdByCeoPhone(normalizedPhone);
+}
 
 async function seedSystemDemoData() {
     if (process.env.SEED_DEMO_DATA === 'false') return;
@@ -983,6 +1430,7 @@ async function seedSystemDemoData() {
 }
 
 (async () => {
+    await syncExistingTenantOwnerProfilesToCrm();
     await seedSystemDemoData();
 })();
 
@@ -1045,6 +1493,10 @@ app.get('/api/system/agents', requireDebugAccess, (req, res) => {
 // 2. Chat with Master AI
 const chatHandler = async (req, res) => {
     try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) {
+            return;
+        }
         // Handle FormData fields that were stringified on the frontend
         let message = req.body.message;
         let messages = req.body.messages;
@@ -1123,20 +1575,30 @@ app.post('/api/communications/chat', requireAuth, upload.any(), chatHandler);
 
 // 2.1 Get MasterAI Events
 app.get('/api/master_ai/events', requireAuth, (req, res) => {
-    res.json({ success: true, data: { events: [...recentEvents].reverse().slice(0, req.query.limit || 20) } });
+    resolveAuthContext(req).then((authContext) => {
+        if (!ensureActivatedAccount(authContext, res)) return;
+        res.json({ success: true, data: { events: [...recentEvents].reverse().slice(0, req.query.limit || 20) } });
+    }).catch((error) => {
+        res.status(500).json({ success: false, error: error.message });
+    });
 });
 
 // 2.2 Get MasterAI Trace
 app.get('/api/master_ai/trace/:id', requireAuth, (req, res) => {
-    // Return a mock trace since we don't persist them locally
-    res.json({
-        success: true,
-        data: {
-            plan: "Execution Plan Generated",
-            sub_tasks: [
-                { agent: "PropertyAI", instruction: "Analyzed request for properties", status: "completed" }
-            ]
-        }
+    resolveAuthContext(req).then((authContext) => {
+        if (!ensureActivatedAccount(authContext, res)) return;
+        // Return a mock trace since we don't persist them locally
+        res.json({
+            success: true,
+            data: {
+                plan: "Execution Plan Generated",
+                sub_tasks: [
+                    { agent: "PropertyAI", instruction: "Analyzed request for properties", status: "completed" }
+                ]
+            }
+        });
+    }).catch((error) => {
+        res.status(500).json({ success: false, error: error.message });
     });
 });
 
@@ -1195,6 +1657,10 @@ app.post('/api/system/agent/control', requireAuth, requireDebugAccess, (req, res
 // 2.4 Property API Route (Direct Tool Access) - LEGACY (To be deprecated)
 app.post('/api/property/tools/:tool_name', requireAuth, async (req, res) => {
     try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) {
+            return;
+        }
         const toolName = req.params.tool_name;
         // Verify tool exists in propertyAI
         if (!propertyAI.capabilities.tools.includes(toolName)) {
@@ -1218,6 +1684,9 @@ app.post('/api/master_ai/tools/execute', requireAuth, async (req, res) => {
         }
 
         const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) {
+            return;
+        }
         const policyCheck = validateAdminAdapterPolicy(agent_name, tool_name, parameters || {}, authContext);
         if (!policyCheck.ok) {
             return res.status(policyCheck.status).json({ success: false, error: policyCheck.error });
@@ -1230,6 +1699,18 @@ app.post('/api/master_ai/tools/execute', requireAuth, async (req, res) => {
             requested_by: authContext.email || req.authUser?.email || null,
             requested_by_role: authContext.profile_type || 'Customer',
         };
+
+        if (authContext.profile_type === 'Staff' && agent_name === 'FinanceAI' && ['get_unit_collection_status', 'get_assigned_unit_collection_statuses'].includes(tool_name)) {
+            const ownStaffRecord = await resolveOwnStaffRecord(authContext, req.tenantId || parameters?.tenant_id);
+            if (!ownStaffRecord?.id) {
+                return res.status(403).json({ success: false, error: 'Staff finance scope could not be resolved.' });
+            }
+            enrichedParameters.staff_id = ownStaffRecord.id;
+        }
+
+        if (authContext.profile_type === 'Customer' && agent_name === 'FinanceAI' && authContext.crm_lead_id && ['get_ledger', 'get_incoming_txns', 'get_txn_details'].includes(tool_name)) {
+            enrichedParameters.payer_id = authContext.crm_lead_id;
+        }
 
         const isCeo = authContext.profile_type === 'CEO' && authContext.email;
         if (isCeo && enrichedParameters) {
@@ -1246,10 +1727,16 @@ app.post('/api/master_ai/tools/execute', requireAuth, async (req, res) => {
 });
 
 // ── 2.5 Workflow Definitions CRUD ───────────────────────────────────
-// GET /api/workflows — list all
-app.get('/api/workflows', requireAuth, (req, res) => {
+// GET /api/workflows — list all visible SOP versions for the tenant
+app.get('/api/workflows', requireAuth, async (req, res) => {
     try {
-        const workflows = workflowStore.list();
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) {
+            return;
+        }
+        const workflows = listTenantVisibleWorkflows(req.tenantId)
+            .map((workflow) => serializeWorkflowForTenant(workflow, authContext.tenant_id || req.tenantId))
+            .filter((workflow) => workflow.visible_in_sop_list);
         res.json({ success: true, data: { workflows } });
     } catch (error) {
         console.error('Workflow List Error:', error);
@@ -1257,107 +1744,157 @@ app.get('/api/workflows', requireAuth, (req, res) => {
     }
 });
 
-// GET /api/workflows/:id — get single
-app.get('/api/workflows/:id', requireAuth, (req, res) => {
+// GET /api/workflows/:id — get single version
+app.get('/api/workflows/:id', requireAuth, async (req, res) => {
     try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) {
+            return;
+        }
         const wf = workflowStore.getById(req.params.id);
         if (!wf) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
         }
-        res.json({ success: true, data: wf });
+        if (wf.tenant_id && wf.tenant_id !== (authContext.tenant_id || req.tenantId)) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+        res.json({ success: true, data: serializeWorkflowForTenant(wf, authContext.tenant_id || req.tenantId) });
     } catch (error) {
         console.error('Workflow Get Error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// POST /api/workflows — create new
-app.post('/api/workflows', requireAuth, (req, res) => {
+// POST /api/workflows — create a blank draft or clone a draft from an existing version
+app.post('/api/workflows', requireAuth, async (req, res) => {
     try {
-        const { workflow_id, name, description, trigger_event, steps } = req.body;
-        if (!workflow_id || !trigger_event || !steps) {
-            return res.status(400).json({ success: false, error: 'Missing required fields: workflow_id, trigger_event, steps' });
-        }
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
 
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const { clone_from_workflow_id, ...payload } = req.body || {};
         const workflows = workflowStore.list();
-        if (workflows.find(w => w.workflow_id === workflow_id)) {
-            return res.status(409).json({ success: false, error: `Workflow '${workflow_id}' already exists` });
+
+        if (clone_from_workflow_id) {
+            const source = workflows.find((workflow) => workflow.workflow_id === clone_from_workflow_id);
+            if (!source) {
+                return res.status(404).json({ success: false, error: `Workflow '${clone_from_workflow_id}' not found` });
+            }
+
+            const existingDraft = workflows.find((workflow) => (
+                workflow.tenant_id === tenantId
+                && workflow.workflow_family === source.workflow_family
+                && workflow.version_type === 'tenant_draft'
+            ));
+            if (existingDraft) {
+                return res.status(200).json({ success: true, data: serializeWorkflowForTenant(existingDraft, tenantId) });
+            }
+
+            const clone = buildWorkflowClone(source, { tenant_id: tenantId });
+            const mergedClone = normalizeWorkflowDefinition({
+                ...clone,
+                ...payload,
+                tenant_id: tenantId,
+                version_type: 'tenant_draft',
+            }, {
+                existingWorkflows: workflows,
+                allowIncomplete: true,
+            });
+            workflows.push(mergedClone);
+            workflowStore.saveAll(workflows);
+            return res.status(201).json({ success: true, data: serializeWorkflowForTenant(mergedClone, tenantId) });
         }
 
-        const newWorkflow = {
-            workflow_id,
-            name: name || '',
-            description: description || '',
-            trigger_event,
-            steps: steps || [],
-            created_at: TimeAuthorityService.nowIST()
-        };
-        workflows.push(newWorkflow);
+        const family = String(payload.workflow_family || payload.family || payload.workflow_id || `sop_${Date.now()}`).trim();
+        const blankDraft = buildBlankWorkflowDraft({
+            tenant_id: tenantId,
+            workflow_family: family,
+            workflow_id: payload.workflow_id,
+            name: payload.name || payload.title || '',
+            domain: payload.domain || null,
+            module_owner: payload.module_owner || payload.domain || null,
+        });
+        const normalizedDraft = normalizeWorkflowDefinition({
+            ...blankDraft,
+            ...payload,
+            tenant_id: tenantId,
+            version_type: 'tenant_draft',
+        }, {
+            existingWorkflows: workflows,
+            allowIncomplete: true,
+        });
+        workflows.push(normalizedDraft);
         workflowStore.saveAll(workflows);
 
-        console.log(`[Workflows] Created: ${workflow_id}`);
-        res.status(201).json({ success: true, data: newWorkflow });
+        console.log(`[Workflows] Draft created: ${normalizedDraft.workflow_id}`);
+        res.status(201).json({ success: true, data: serializeWorkflowForTenant(normalizedDraft, tenantId) });
     } catch (error) {
         console.error('Workflow Create Error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// PUT /api/workflows/:id — update existing
-app.put('/api/workflows/:id', requireAuth, (req, res) => {
+// PUT /api/workflows/:id — update an existing tenant draft
+app.put('/api/workflows/:id', requireAuth, async (req, res) => {
     try {
-        if (isProtectedPredefinedWorkflow(req.params.id)) {
-            return res.status(403).json({
-                success: false,
-                error: `Workflow '${req.params.id}' is system-protected and cannot be edited directly.`
-            });
-        }
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
 
+        const tenantId = authContext.tenant_id || req.tenantId;
         const workflows = workflowStore.list();
-        const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
+        const idx = workflows.findIndex((workflow) => workflow.workflow_id === req.params.id);
+
         if (idx === -1) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
         }
+        if (workflows[idx].tenant_id && workflows[idx].tenant_id !== tenantId) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+        if (workflows[idx].version_type !== 'tenant_draft') {
+            return res.status(403).json({
+                success: false,
+                error: 'Only tenant drafts can be edited directly. Create or reopen a draft first.',
+            });
+        }
 
-        const { name, description, trigger_event, steps } = req.body;
-        if (name !== undefined) workflows[idx].name = name;
-        if (description !== undefined) workflows[idx].description = description;
-        if (trigger_event !== undefined) workflows[idx].trigger_event = trigger_event;
-        if (steps !== undefined) workflows[idx].steps = steps;
-        workflows[idx].updated_at = TimeAuthorityService.nowIST();
+        const normalizedWorkflow = normalizeWorkflowDefinition({
+            ...workflows[idx],
+            ...req.body,
+            tenant_id: tenantId,
+            version_type: 'tenant_draft',
+        }, {
+            existingWorkflow: workflows[idx],
+            existingWorkflows: workflows,
+            allowIncomplete: true,
+        });
+        workflows[idx] = normalizedWorkflow;
 
         workflowStore.saveAll(workflows);
-        console.log(`[Workflows] Updated: ${req.params.id}`);
-        res.json({ success: true, data: workflows[idx] });
+        console.log(`[Workflows] Draft updated: ${req.params.id}`);
+        res.json({ success: true, data: serializeWorkflowForTenant(workflows[idx], tenantId) });
     } catch (error) {
         console.error('Workflow Update Error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// DELETE /api/workflows/:id — delete
-app.delete('/api/workflows/:id', requireAuth, (req, res) => {
+// DELETE /api/workflows/:id — discard draft only
+app.delete('/api/workflows/:id', requireAuth, async (req, res) => {
     try {
-        if (isProtectedPredefinedWorkflow(req.params.id)) {
-            return res.status(403).json({
-                success: false,
-                error: `Workflow '${req.params.id}' is system-protected and cannot be deleted.`
-            });
-        }
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
 
-        let workflows = workflowStore.list();
-        const idx = workflows.findIndex(w => w.workflow_id === req.params.id);
-        if (idx === -1) {
-            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
-        }
-
-        const deleted = workflows.splice(idx, 1)[0];
-        workflowStore.saveAll(workflows);
-        console.log(`[Workflows] Deleted: ${req.params.id}`);
-        res.json({ success: true, data: deleted });
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const result = discardWorkflowDraft(workflowStore.list(), req.params.id, tenantId);
+        workflowStore.saveAll(result.workflows);
+        console.log(`[Workflows] Draft discarded: ${req.params.id}`);
+        res.json({ success: true, data: result.workflow });
     } catch (error) {
         console.error('Workflow Delete Error:', error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(400).json({ success: false, error: error.message });
     }
 });
 
@@ -1375,6 +1912,278 @@ app.get('/api/verify-openai', requireAuth, async (req, res) => {
     }
 });
 
+app.post('/api/workflows/:id/validate', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const workflows = workflowStore.list();
+        const idx = workflows.findIndex((workflow) => workflow.workflow_id === req.params.id);
+        if (idx === -1) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+        if (workflows[idx].tenant_id && workflows[idx].tenant_id !== tenantId) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+        if (workflows[idx].version_type !== 'tenant_draft') {
+            return res.status(400).json({ success: false, error: 'Only tenant drafts can be validated.' });
+        }
+
+        const validation = validateWorkflowDefinition(workflows[idx], {
+            existingWorkflows: upgradeWorkflowCollection(workflows.filter((workflow) => workflow.workflow_id !== req.params.id)),
+            isUpdate: true,
+            existingWorkflowId: req.params.id,
+            mode: 'publish',
+        });
+        workflows[idx] = normalizeWorkflowDefinition({
+            ...workflows[idx],
+            validation_status: validation.ok ? 'validated' : 'needs_correction',
+        }, {
+            existingWorkflow: workflows[idx],
+            existingWorkflows: workflows,
+            allowIncomplete: true,
+        });
+        workflowStore.saveAll(workflows);
+
+        res.json({
+            success: true,
+            data: {
+                workflow: serializeWorkflowForTenant(workflows[idx], tenantId),
+                validation,
+            },
+        });
+    } catch (error) {
+        console.error('Workflow Validate Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/workflows/:id/publish', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const result = publishWorkflowVersion(workflowStore.list(), req.params.id, tenantId);
+        workflowStore.saveAll(result.workflows);
+        res.json({ success: true, data: serializeWorkflowForTenant(result.workflow, tenantId) });
+    } catch (error) {
+        console.error('Workflow Publish Error:', error);
+        res.status(400).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/workflows/:id/archive', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const result = archiveWorkflowVersion(workflowStore.list(), req.params.id, tenantId);
+        workflowStore.saveAll(result.workflows);
+        res.json({ success: true, data: serializeWorkflowForTenant(result.workflow, tenantId) });
+    } catch (error) {
+        console.error('Workflow Archive Error:', error);
+        res.status(400).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/workflows/:id/chat', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const workflow = workflowStore.getById(req.params.id);
+        if (!workflow) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+        if (workflow.tenant_id && workflow.tenant_id !== tenantId) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+
+        const message = String(req.body?.message || '').trim();
+        const assistantContext = await masterAI.buildSopAssistantContext(workflow, {
+            tenant_id: tenantId,
+            profile_type: authContext.profile_type || 'Customer',
+            email: authContext.email || null,
+            channel: 'sop_workspace',
+        });
+        const result = proposeSopAssistantReply(workflow, message, {
+            tenant_id: tenantId,
+            actor_role: authContext.profile_type || 'Customer',
+            actor_email: authContext.email || null,
+            system_context: assistantContext,
+        });
+
+        res.json({
+            success: true,
+            data: {
+                reply: result.assistant_message,
+                proposal: result.proposal,
+                workflow: serializeWorkflowForTenant(workflow, tenantId),
+            },
+        });
+    } catch (error) {
+        console.error('Workflow Chat Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Compatibility wrappers for old surfaces during transition
+app.post('/api/workflows/:id/activate', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const result = publishWorkflowVersion(workflowStore.list(), req.params.id, tenantId);
+        workflowStore.saveAll(result.workflows);
+        res.json({ success: true, data: serializeWorkflowForTenant(result.workflow, tenantId) });
+    } catch (error) {
+        console.error('Workflow Activate Error:', error);
+        res.status(400).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/workflows/:id/deactivate', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const result = archiveWorkflowVersion(workflowStore.list(), req.params.id, tenantId);
+        workflowStore.saveAll(result.workflows);
+        res.json({ success: true, data: serializeWorkflowForTenant(result.workflow, tenantId) });
+    } catch (error) {
+        console.error('Workflow Deactivate Error:', error);
+        res.status(400).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/workflows/:id/clone', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (!ensureCeoWorkflowAccess(authContext, res)) return;
+
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const workflows = workflowStore.list();
+        const source = workflows.find((workflow) => workflow.workflow_id === req.params.id);
+        if (!source) {
+            return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found` });
+        }
+        const existingDraft = workflows.find((workflow) => (
+            workflow.tenant_id === tenantId
+            && workflow.workflow_family === source.workflow_family
+            && workflow.version_type === 'tenant_draft'
+        ));
+        if (existingDraft) {
+            return res.status(200).json({ success: true, data: serializeWorkflowForTenant(existingDraft, tenantId) });
+        }
+
+        const clone = buildWorkflowClone(source, { tenant_id: tenantId });
+        workflows.push(clone);
+        workflowStore.saveAll(workflows);
+        res.status(201).json({ success: true, data: serializeWorkflowForTenant(clone, tenantId) });
+    } catch (error) {
+        console.error('Workflow Clone Error:', error);
+        res.status(400).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/finance/button-contracts', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        const tenantId = authContext.tenant_id || req.tenantId;
+        const financeToolSchemas = Object.fromEntries(
+            (financeAI.getTools() || []).map((tool) => [tool.name, tool.input_schema || {}])
+        );
+        const contracts = resolveFinanceButtonContracts(workflowStore.list(), tenantId, financeToolSchemas);
+        res.json({
+            success: true,
+            data: {
+                buttons: contracts,
+                generated_at: TimeAuthorityService.nowIST(),
+            },
+        });
+    } catch (error) {
+        console.error('Finance Button Contracts Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/finance/approvals', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        const result = await masterAI.callTool('list_pending_financial_workflow_requests', {
+            tenant_id: authContext.tenant_id || req.tenantId,
+        });
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+
+        const pending = Array.isArray(result.pending) ? result.pending : [];
+        const scopedPending = authContext.profile_type === 'CEO'
+            ? pending
+            : pending.filter((request) => String(request.requested_by || '').toLowerCase() === String(authContext.email || '').toLowerCase());
+
+        res.json({ success: true, data: { pending: scopedPending } });
+    } catch (error) {
+        console.error('Finance Approval List Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/finance/approvals/:id/approve', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (authContext.profile_type !== 'CEO') {
+            return res.status(403).json({ success: false, error: 'Only CEO can approve finance workflow requests.' });
+        }
+        const result = await masterAI.callTool('approve_financial_workflow_request', {
+            authorization_id: req.params.id,
+            approved_by: authContext.email,
+            note: req.body?.note || '',
+            tenant_id: authContext.tenant_id || req.tenantId,
+        });
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Finance Approval Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/finance/approvals/:id/reject', requireAuth, async (req, res) => {
+    try {
+        const authContext = await resolveAuthContext(req);
+        if (!ensureActivatedAccount(authContext, res)) return;
+        if (authContext.profile_type !== 'CEO') {
+            return res.status(403).json({ success: false, error: 'Only CEO can reject finance workflow requests.' });
+        }
+        const result = await masterAI.callTool('reject_financial_workflow_request', {
+            authorization_id: req.params.id,
+            rejected_by: authContext.email,
+            reason: req.body?.reason || '',
+            tenant_id: authContext.tenant_id || req.tenantId,
+        });
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Finance Rejection Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 async function processIncomingWhatsAppPayload(payload) {
     console.log('Incoming Webhook: received payload', {
         object: payload?.object || null,
@@ -1386,6 +2195,14 @@ async function processIncomingWhatsAppPayload(payload) {
     const systemEvent = await commsAI.callTool('handle_incoming_message', { payload });
 
     if (systemEvent) {
+        const actorPhone = systemEvent?.payload?.from || systemEvent?.context?.user_id || null;
+        const resolvedTenantId = actorPhone ? await resolveTenantIdByPhone(actorPhone) : null;
+        if (resolvedTenantId) {
+            systemEvent.context = {
+                ...(systemEvent.context || {}),
+                tenant_id: resolvedTenantId,
+            };
+        }
         console.log('System Event Generated:', JSON.stringify(systemEvent, null, 2));
 
         if (systemEvent.error) {
