@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Wrench, AlertCircle, Clock, CheckCircle, Loader2, Plus, X } from 'lucide-react';
 import { executeDashboardTool } from './toolClient';
+import useTimeDisplay from '../../../hooks/useTimeDisplay';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendColor = "text-green-600" }) => (
     <div className="bg-white p-5 rounded-xl border border-gray-100 flex flex-col justify-between shadow-sm">
@@ -50,6 +51,7 @@ const getNextStatus = (currentStatus) => {
 };
 
 const MaintenanceView = () => {
+    const { formatTime } = useTimeDisplay();
     const [isLoading, setIsLoading] = useState(true);
     const [properties, setProperties] = useState([]);
     const [tickets, setTickets] = useState([]);
@@ -388,7 +390,12 @@ const MaintenanceView = () => {
                                                         <div className="space-y-1">
                                                             {remarks.map((entry, index) => (
                                                                 <div key={`${ticket.id}-remark-${index}`} className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded px-2 py-1">
-                                                                    <span className="font-medium">{new Date(entry.date).toLocaleString()}</span>: {entry.text}
+                                                                    <span className="font-medium">{(() => {
+                                                                        const formatted = formatTime(entry.date);
+                                                                        return formatted?.date
+                                                                            ? `${formatted.date}${formatted.time ? ` ${formatted.time}` : ''}`
+                                                                            : String(entry.date || '');
+                                                                    })()}</span>: {entry.text}
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -471,8 +478,9 @@ const MaintenanceView = () => {
             </div>
 
             {errorModal.open && (
-                <div className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg">
+                <div className="fixed inset-0 z-[80] overflow-y-auto bg-black/50 px-4 pb-6 pt-24">
+                    <div className="mx-auto flex min-h-full items-start justify-center">
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg">
                         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                             <h3 className="text-base font-semibold text-gray-900">{errorModal.title}</h3>
                             <button
@@ -493,6 +501,7 @@ const MaintenanceView = () => {
                                 OK
                             </button>
                         </div>
+                    </div>
                     </div>
                 </div>
             )}

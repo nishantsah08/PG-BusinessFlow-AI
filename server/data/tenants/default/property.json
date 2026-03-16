@@ -88,6 +88,294 @@
             "is_enabled": true,
             "created_at": "2026-03-11T03:59:56.136Z",
             "updated_at": "2026-03-11T03:59:56.136Z"
+        },
+        {
+            "id": "PROP-5",
+            "name": "FinanceFlow1773322274396",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:31:14.639Z",
+            "updated_at": "2026-03-12T13:31:14.639Z"
+        },
+        {
+            "id": "PROP-6",
+            "name": "FinanceFlow1773322351928",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:32:32.331Z",
+            "updated_at": "2026-03-12T13:32:32.331Z"
+        },
+        {
+            "id": "PROP-7",
+            "name": "FinanceFlow1773322455820",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:34:15.994Z",
+            "updated_at": "2026-03-12T13:34:15.994Z"
+        },
+        {
+            "id": "PROP-8",
+            "name": "FinanceFlow1773322507974",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:35:08.125Z",
+            "updated_at": "2026-03-12T13:35:08.125Z"
+        },
+        {
+            "id": "PROP-9",
+            "name": "FinanceFlow1773322573192",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:36:13.351Z",
+            "updated_at": "2026-03-12T13:36:13.351Z"
+        },
+        {
+            "id": "PROP-10",
+            "name": "FinanceFlow1773322608444",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:36:48.602Z",
+            "updated_at": "2026-03-12T13:36:48.602Z"
+        },
+        {
+            "id": "PROP-11",
+            "name": "FinanceFlow1773322675856",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:37:56.036Z",
+            "updated_at": "2026-03-12T13:37:56.036Z"
+        },
+        {
+            "id": "PROP-12",
+            "name": "FinanceFlow1773322715614",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:38:35.790Z",
+            "updated_at": "2026-03-12T13:38:35.790Z"
+        },
+        {
+            "id": "PROP-13",
+            "name": "FinanceFlow1773322913281",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:41:53.474Z",
+            "updated_at": "2026-03-12T13:41:53.474Z"
+        },
+        {
+            "id": "PROP-14",
+            "name": "FinanceFlow1773323065686",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:44:25.806Z",
+            "updated_at": "2026-03-12T13:44:25.806Z"
+        },
+        {
+            "id": "PROP-15",
+            "name": "FinanceFlow1773323207008",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:46:47.131Z",
+            "updated_at": "2026-03-12T13:46:47.131Z"
+        },
+        {
+            "id": "PROP-16",
+            "name": "FinanceFlow1773323373744",
+            "address": "12 Lake View Road, Pune",
+            "pin_code": "411014",
+            "area": "Viman Nagar",
+            "city": "Pune",
+            "state": "Maharashtra",
+            "amenities": [
+                "WiFi"
+            ],
+            "floors": 3,
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "google_business_link": "",
+            "image_urls": [],
+            "status": "ACTIVE",
+            "is_enabled": true,
+            "created_at": "2026-03-12T13:49:33.902Z",
+            "updated_at": "2026-03-12T13:49:33.902Z"
         }
     ],
     "units": [
@@ -111,15 +399,26 @@
                 "Power Backup",
                 "Laundry"
             ],
-            "tenant_id": "default",
+            "tenant_id": "+919622274396",
             "requested_by": "nishantsah@outlook.in",
             "requested_by_role": "CEO",
             "ceo_authorized": true,
             "approved_by": "nishantsah@outlook.in",
-            "status": "AVAILABLE",
-            "history": [],
+            "status": "BOOKED",
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:31:14.873Z",
+                    "tenant": "+919622274396",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500
+                    }
+                }
+            ],
             "created_at": "2026-03-07T07:07:38.155Z",
-            "updated_at": "2026-03-07T07:07:38.155Z"
+            "updated_at": "2026-03-12T13:31:14.873Z"
         },
         {
             "id": "UNIT-2",
@@ -130,16 +429,27 @@
                 "Single Sharing"
             ],
             "base_rent": 12600,
-            "tenant_id": "default",
+            "tenant_id": "+919800098000",
             "amenities": [
                 "WiFi",
                 "CCTV"
             ],
             "rate_card": null,
-            "status": "AVAILABLE",
-            "history": [],
+            "status": "BOOKED",
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T10:24:44.615Z",
+                    "tenant": "+919800098000",
+                    "metadata": {
+                        "start": "2026-03-12",
+                        "rent": 12600,
+                        "deposit": 2500
+                    }
+                }
+            ],
             "created_at": "2026-03-07T07:15:56.559Z",
-            "updated_at": "2026-03-07T07:15:56.559Z"
+            "updated_at": "2026-03-12T10:24:44.616Z"
         },
         {
             "id": "UNIT-3",
@@ -150,16 +460,27 @@
                 "Double Sharing"
             ],
             "base_rent": 14600,
-            "tenant_id": "default",
+            "tenant_id": "+919800098000",
             "amenities": [
                 "WiFi",
                 "CCTV"
             ],
             "rate_card": null,
-            "status": "AVAILABLE",
-            "history": [],
+            "status": "BOOKED",
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T10:26:49.461Z",
+                    "tenant": "+919800098000",
+                    "metadata": {
+                        "start": "2026-03-12",
+                        "rent": 14600,
+                        "deposit": 2500
+                    }
+                }
+            ],
             "created_at": "2026-03-07T07:16:16.142Z",
-            "updated_at": "2026-03-07T07:16:16.142Z"
+            "updated_at": "2026-03-12T10:26:49.461Z"
         },
         {
             "id": "UNIT-4",
@@ -289,11 +610,453 @@
             "history": [],
             "created_at": "2026-03-10T06:51:40.157Z",
             "updated_at": "2026-03-11T03:35:39.205Z"
+        },
+        {
+            "id": "UNIT-9",
+            "property_id": "PROP-1",
+            "unit_number": "4396",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-27",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "AVAILABLE",
+            "is_enabled": true,
+            "history": [],
+            "created_at": "2026-03-12T13:31:14.763Z",
+            "updated_at": "2026-03-12T13:31:14.763Z"
+        },
+        {
+            "id": "UNIT-10",
+            "property_id": "PROP-1",
+            "unit_number": "1928",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-28",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "AVAILABLE",
+            "is_enabled": true,
+            "history": [],
+            "created_at": "2026-03-12T13:32:32.376Z",
+            "updated_at": "2026-03-12T13:32:32.376Z"
+        },
+        {
+            "id": "UNIT-11",
+            "property_id": "PROP-7",
+            "unit_number": "5820",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-29",
+            "tenant_id": "+919622455820",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:34:16.084Z",
+                    "tenant": "+919622455820",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-29",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:34:16.042Z",
+            "updated_at": "2026-03-12T13:34:16.084Z"
+        },
+        {
+            "id": "UNIT-12",
+            "property_id": "PROP-8",
+            "unit_number": "7974",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-30",
+            "tenant_id": "+919622507974",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:35:08.208Z",
+                    "tenant": "+919622507974",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-30",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:35:08.163Z",
+            "updated_at": "2026-03-12T13:35:08.208Z"
+        },
+        {
+            "id": "UNIT-13",
+            "property_id": "PROP-9",
+            "unit_number": "3192",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-31",
+            "tenant_id": "+919622573192",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:36:13.438Z",
+                    "tenant": "+919622573192",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-31",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:36:13.400Z",
+            "updated_at": "2026-03-12T13:36:13.438Z"
+        },
+        {
+            "id": "UNIT-14",
+            "property_id": "PROP-10",
+            "unit_number": "8444",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-32",
+            "tenant_id": "+919622608444",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:36:48.693Z",
+                    "tenant": "+919622608444",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-32",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:36:48.645Z",
+            "updated_at": "2026-03-12T13:36:48.693Z"
+        },
+        {
+            "id": "UNIT-15",
+            "property_id": "PROP-11",
+            "unit_number": "5856",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-33",
+            "tenant_id": "+919622675856",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:37:56.118Z",
+                    "tenant": "+919622675856",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-33",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:37:56.079Z",
+            "updated_at": "2026-03-12T13:37:56.118Z"
+        },
+        {
+            "id": "UNIT-16",
+            "property_id": "PROP-12",
+            "unit_number": "5614",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-34",
+            "tenant_id": "+919622715614",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:38:35.882Z",
+                    "tenant": "+919622715614",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-34",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:38:35.838Z",
+            "updated_at": "2026-03-12T13:38:35.882Z"
+        },
+        {
+            "id": "UNIT-17",
+            "property_id": "PROP-13",
+            "unit_number": "3281",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-36",
+            "tenant_id": "+919622913281",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:41:53.574Z",
+                    "tenant": "+919622913281",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-36",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:41:53.534Z",
+            "updated_at": "2026-03-12T13:41:53.574Z"
+        },
+        {
+            "id": "UNIT-18",
+            "property_id": "PROP-14",
+            "unit_number": "5686",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-41",
+            "tenant_id": "+919623065686",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:44:25.889Z",
+                    "tenant": "+919623065686",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-41",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:44:25.848Z",
+            "updated_at": "2026-03-12T13:44:25.889Z"
+        },
+        {
+            "id": "UNIT-19",
+            "property_id": "PROP-15",
+            "unit_number": "7008",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-45",
+            "tenant_id": "+919623207008",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:46:47.226Z",
+                    "tenant": "+919623207008",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-45",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:46:47.183Z",
+            "updated_at": "2026-03-12T13:46:47.226Z"
+        },
+        {
+            "id": "UNIT-20",
+            "property_id": "PROP-16",
+            "unit_number": "3744",
+            "floor": 1,
+            "types": [
+                "Double Sharing"
+            ],
+            "base_rent": 12000,
+            "amenities": [
+                "WiFi"
+            ],
+            "caretaker_staff_id": "STF-49",
+            "tenant_id": "+919623373744",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "rate_card": null,
+            "caretaker_name": null,
+            "status": "BOOKED",
+            "is_enabled": true,
+            "history": [
+                {
+                    "state": "BOOKED",
+                    "date": "2026-03-12T13:49:33.996Z",
+                    "tenant": "+919623373744",
+                    "metadata": {
+                        "start": "2026-03-01",
+                        "rent": 12000,
+                        "deposit": 2500,
+                        "caretaker_staff_id": "STF-49",
+                        "caretaker_name": null
+                    }
+                }
+            ],
+            "created_at": "2026-03-12T13:49:33.947Z",
+            "updated_at": "2026-03-12T13:49:33.996Z"
         }
     ],
     "meters": [],
     "maintenance_requests": [],
-    "lastUpdatedAt": "2026-03-11T07:28:29.893Z",
+    "lastUpdatedAt": "2026-03-16T11:06:31.654Z",
     "businessConfig": {
         "tenant_id": "default",
         "business_name": "Dev Bypass User's Workspace",
@@ -346,6 +1109,45 @@
             "late_fee_daily": 50,
             "default_base_salary": 4000,
             "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
             "caretaker_compensation": {
                 "fixed_basic_salary": 4000,
                 "per_fully_paid_occupied_unit": 250,
@@ -353,6 +1155,7 @@
                 "weekly_parking_cleaning_amount": 100,
                 "maintenance_complaint_deduction": 100
             }
-        }
+        },
+        "account_status": "ACTIVE"
     }
 }

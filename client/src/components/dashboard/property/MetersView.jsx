@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Plus, Loader2, Zap, Trash2, Search, LineChart, FileText, X } from 'lucide-react';
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { executeDashboardTool } from './toolClient';
+import useTimeDisplay from '../../../hooks/useTimeDisplay';
 
 const MetersView = () => {
+    const { formatTime } = useTimeDisplay();
     const [properties, setProperties] = useState([]);
     const [selectedPropertyId, setSelectedPropertyId] = useState(null);
     const [units, setUnits] = useState([]);
@@ -129,8 +131,15 @@ const MetersView = () => {
     const selectedMeter = meters.find(m => m.id === selectedMeterId);
 
     // Chart Format
+    const formatDisplayDate = (value) => formatTime(value)?.date || String(value || '');
+    const formatDisplayDateTime = (value) => {
+        const formatted = formatTime(value);
+        if (!formatted?.date) return String(value || '');
+        return formatted.time ? `${formatted.date} ${formatted.time}` : formatted.date;
+    };
+
     const chartData = selectedMeter ? selectedMeter.readings.map(r => ({
-        date: new Date(r.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: formatDisplayDate(r.date),
         value: r.value
     })) : [];
 
@@ -234,7 +243,7 @@ const MetersView = () => {
                                     <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                                         {[...selectedMeter.readings].reverse().map(r => (
                                             <div key={r.id || Math.random()} className="flex justify-between items-center text-sm p-2 rounded bg-gray-50 border border-gray-100">
-                                                <span className="text-gray-500">{new Date(r.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                                <span className="text-gray-500">{formatDisplayDateTime(r.date)}</span>
                                                 <span className="font-semibold text-gray-900">{r.value}</span>
                                             </div>
                                         ))}
@@ -271,8 +280,9 @@ const MetersView = () => {
             </div>
 
             {errorModal.open && (
-                <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg">
+                <div className="fixed inset-0 z-[70] overflow-y-auto bg-black/50 px-4 pb-6 pt-24">
+                    <div className="mx-auto flex min-h-full items-start justify-center">
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-lg">
                         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                             <h3 className="text-base font-semibold text-gray-900">Unable to save reading</h3>
                             <button
@@ -293,6 +303,7 @@ const MetersView = () => {
                                 OK
                             </button>
                         </div>
+                    </div>
                     </div>
                 </div>
             )}

@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
 
 const MasterAITab = () => {
     const { user } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [messages, setMessages] = useState([
         { role: 'assistant', content: 'Hello! I am Kalyani, your Head of Operations & Sales. How can I help you today?' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const hydratedContext = useRef(false);
+
+    useEffect(() => {
+        const context = searchParams.get('context');
+        if (!context || hydratedContext.current) return;
+
+        if (context === 'finance') {
+            setMessages((current) => ([
+                ...current,
+                {
+                    role: 'assistant',
+                    content: 'Finance context is ready. You can ask about pending approvals, unit collections, or initiate a finance workflow request here.',
+                },
+            ]));
+            setInput('Help me with Finance.');
+        }
+        hydratedContext.current = true;
+        setSearchParams((params) => {
+            params.delete('context');
+            return params;
+        }, { replace: true });
+    }, [searchParams, setSearchParams]);
 
     const sendMessage = async (e) => {
         e.preventDefault();

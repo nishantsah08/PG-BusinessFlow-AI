@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Users, Search, Phone, Mail, Clock3, Filter, X } from 'lucide-react';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { useTimeDisplay } from '../../hooks/useTimeDisplay';
 
 const TIMELINE_FILTERS = ['ALL', 'SESSION', 'STATUS_CHANGE', 'NOTE', 'MERGE', 'ARTIFACT_LINKED'];
 const STATUS_OPTIONS = ['Enquiry', 'Visited', 'Onboarded', 'Left'];
@@ -38,20 +39,13 @@ const formatSource = (source) => {
     return parts.length > 0 ? parts.join(' / ') : 'Not specified';
 };
 
-const formatTimestamp = (value) => {
+const formatTimestamp = (value, formatTime) => {
     if (!value) return 'Unknown time';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return String(value);
-    return date.toLocaleString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+    const formatted = formatTime(value);
+    return formatted ? [formatted.date, formatted.time].filter(Boolean).join(' ') : String(value);
 };
 
-const buildMovementSeries = (leads) => {
+const buildMovementSeries = (leads, formatTime) => {
     const grouped = new Map();
     leads.forEach((lead) => {
         const rawDate = String(lead.created_at || '').slice(0, 10);
@@ -71,7 +65,7 @@ const buildMovementSeries = (leads) => {
         .slice(-6)
         .map((entry) => ({
             ...entry,
-            label: new Date(`${entry.date}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+            label: formatTime(`${entry.date}T00:00:00+05:30`)?.date || entry.date
         }));
 };
 
@@ -133,6 +127,7 @@ const InlineTriangleButton = ({ onClick, active, testId }) => (
 );
 
 const CRMConsole = () => {
+    const { formatTime } = useTimeDisplay();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [stats, setStats] = useState(emptyStats);
@@ -289,7 +284,7 @@ const CRMConsole = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const movementSeries = useMemo(() => buildMovementSeries(leads), [leads]);
+    const movementSeries = useMemo(() => buildMovementSeries(leads, formatTime), [formatTime, leads]);
     const funnelRows = useMemo(() => buildFunnelRows(stats), [stats]);
     const filteredTimeline = useMemo(() => {
         if (timelineFilter === 'ALL') return timeline;
@@ -955,7 +950,7 @@ const CRMConsole = () => {
                                                             <div className="flex flex-wrap items-start justify-between gap-3">
                                                                 <div>
                                                                     <div className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">{event.type}</div>
-                                                                    <div className="mt-1 text-sm text-slate-500">{formatTimestamp(event.timestamp)}</div>
+                                                                    <div className="mt-1 text-sm text-slate-500">{formatTimestamp(event.timestamp, formatTime)}</div>
                                                                 </div>
                                                                 {event.type === 'SESSION' ? (
                                                                     <div className="flex flex-wrap gap-2 text-xs">
@@ -981,8 +976,9 @@ const CRMConsole = () => {
             </div>
 
             {pendingStatusChange ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" data-testid="crm-status-confirm-modal">
-                    <div className="w-full max-w-lg rounded-[28px] border border-stone-200 bg-white p-6 shadow-2xl">
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/40 px-4 pb-6 pt-24" data-testid="crm-status-confirm-modal">
+                    <div className="mx-auto flex min-h-full items-start justify-center">
+                        <div className="w-full max-w-lg rounded-[28px] border border-stone-200 bg-white p-6 shadow-2xl">
                         <h3 className="text-xl font-semibold text-slate-900">Confirm status change</h3>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
                             Move <strong>{selectedLead?.name || 'this lead'}</strong> to <strong>{pendingStatusChange.to_status}</strong> with reason <strong>{pendingStatusChange.reason}</strong>?
@@ -991,6 +987,7 @@ const CRMConsole = () => {
                             <button type="button" onClick={() => setPendingStatusChange(null)} className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700" data-testid="crm-status-confirm-cancel">Cancel</button>
                             <button type="button" onClick={handleConfirmStatusChange} className="rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white" disabled={savingField === 'status'} data-testid="crm-status-confirm-yes">{savingField === 'status' ? 'Updating...' : 'Yes, update'}</button>
                         </div>
+                    </div>
                     </div>
                 </div>
             ) : null}

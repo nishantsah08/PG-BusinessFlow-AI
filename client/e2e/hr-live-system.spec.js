@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { apiBaseUrl, bootstrapTenant, verifyCeoPhone } from './helpers/auth';
 
 const getLeadPrimaryPhone = (lead) => lead?.phones?.primary?.number || lead?.lead_id || null;
 const executeTool = async (request, apiBaseUrl, tenantId, ceoEmail, agentName, toolName, parameters) => {
@@ -22,7 +23,6 @@ const executeTool = async (request, apiBaseUrl, tenantId, ceoEmail, agentName, t
 test.describe('HR live system flow', () => {
     test('validates HR GUI changes against CRM sync and WhatsApp ingress', async ({ page, request }) => {
         test.setTimeout(180000);
-        const apiBaseUrl = 'http://localhost:3001';
 
         const stamp = Date.now();
         page.on('pageerror', (error) => {
@@ -33,6 +33,7 @@ test.describe('HR live system flow', () => {
         });
 
         const ceoEmail = `hr.gui.qa.${stamp}@example.com`;
+        const ceoPhone = `+9175${String(stamp).slice(-8)}`;
         const initialName = `HR QA ${stamp}`;
         const initialDesignation = 'Caretaker';
         const initialPhone = `+9188${String(stamp).slice(-8)}`;
@@ -71,22 +72,13 @@ test.describe('HR live system flow', () => {
         };
 
         console.log('step: bootstrap signup');
-        const signupResponse = await request.post(`${apiBaseUrl}/api/auth/bootstrap`, {
-            headers: {
-                'X-Actor-Email': ceoEmail,
-            },
-            data: {
-                intent: 'signup',
-                email: ceoEmail,
-                name: `HR GUI QA ${stamp}`,
-                picture: null,
-            },
+        const signup = await bootstrapTenant(request, {
+            email: ceoEmail,
+            name: `HR GUI QA ${stamp}`,
         });
-        expect(signupResponse.ok()).toBeTruthy();
-        const signupJson = await signupResponse.json();
-        expect(signupJson.success).toBeTruthy();
-        const tenantId = signupJson.data?.tenant_id;
+        const tenantId = signup?.tenant_id;
         expect(tenantId).toBeTruthy();
+        await verifyCeoPhone(request, { tenantId, email: ceoEmail, phone: ceoPhone });
         console.log(`step: bootstrap ready tenant=${tenantId}`);
 
         console.log('step: hydrate auth and open hr');

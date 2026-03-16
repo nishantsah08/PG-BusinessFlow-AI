@@ -52,7 +52,7 @@ const LoginPage = () => {
             profile_type: payload.profile_type || 'Customer',
             type: 'Google'
         });
-        navigate('/master');
+        navigate(payload.requires_ceo_phone_verification ? '/activate-ceo' : '/master');
     };
 
     const handleGoogleSuccess = (intent) => async (credentialResponse) => {
@@ -90,7 +90,7 @@ const LoginPage = () => {
             profile_type: payload.profile_type || 'Customer',
             type: 'Bypass'
         });
-        navigate('/master');
+        navigate(payload.requires_ceo_phone_verification ? '/activate-ceo' : '/master');
     };
 
     return (

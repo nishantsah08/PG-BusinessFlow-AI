@@ -1,5 +1,6 @@
 # WorkflowsPage Decisions
 
-- **Two-panel layout over tabs**: Chose a side-by-side layout (list + builder) to allow quick switching between workflows without losing context, matching the `ControlPanel` pattern.
-- **API-backed state over local-storage**: Even in Phase 1, workflows are persisted to `data/workflows.json` via backend API for consistency with the system's Phase 1 data convention.
-- **StateWrapper integration**: Reused the existing `StateWrapper` component for all 5 UI states rather than building custom loading/error UI.
+- **Business-facing SOP over raw workflow definition**: the page should read like an operating procedure, not like execution config.
+- **GUI-only governance**: SOP/workflow editing, validation, publish, and archive actions happen only inside this workspace.
+- **Scoped assistant over free chat**: the assistant uses MasterAI context but is constrained to the selected SOP.
+- **Full-screen workspace over side-panel editing**: SOP review and change must happen in a primary working surface, not in a cramped modal or nested panel.

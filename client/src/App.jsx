@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { UIProvider } from './context/UIContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -20,6 +20,8 @@ import CRMConsole from './components/dashboard/CRMConsole';
 import LoginPage from './pages/LoginPage';
 import HRPage from './pages/HRPage';
 import FinancePage from './pages/FinancePage';
+import CeoPhoneVerificationPage from './pages/CeoPhoneVerificationPage';
+import WorkflowStudioPage from './pages/WorkflowStudioPage';
 
 // Placeholder Pages for routing
 const Placeholder = ({ title }) => (
@@ -32,10 +34,25 @@ const Placeholder = ({ title }) => (
 );
 
 // Protected Route Wrapper
-const ProtectedRoute = ({ children }) => {
-    const { user } = useAuth();
+const ProtectedRoute = ({ children, allowPending = false }) => {
+    const { user, authContext, authContextLoading } = useAuth();
+    const location = useLocation();
     if (!user) {
         return <Navigate to="/login" replace />;
+    }
+    if (authContextLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
+                <div className="rounded-2xl border border-slate-800 bg-slate-900 px-6 py-5 text-sm">Loading workspace access...</div>
+            </div>
+        );
+    }
+    const requiresVerification = Boolean(authContext?.requires_ceo_phone_verification);
+    if (!allowPending && requiresVerification) {
+        return <Navigate to="/activate-ceo" replace state={{ from: location }} />;
+    }
+    if (allowPending && !requiresVerification) {
+        return <Navigate to="/master" replace />;
     }
     return children;
 };
@@ -59,6 +76,14 @@ function App() {
                                         <Routes>
                                             {/* Public Login Route */}
                                             <Route path="/login" element={<LoginPage />} />
+                                            <Route
+                                                path="/activate-ceo"
+                                                element={(
+                                                    <ProtectedRoute allowPending>
+                                                        <CeoPhoneVerificationPage />
+                                                    </ProtectedRoute>
+                                                )}
+                                            />
 
                                             {/* Protected Application Routes */}
                                             <Route path="/" element={
@@ -68,6 +93,7 @@ function App() {
                                             }>
                                                 {/* Redirect root to Control Panel initially */}
                                                 <Route index element={<Navigate to="/master" replace />} />
+                                                <Route path="overview" element={<Navigate to="/master" replace />} />
 
                                                 {/* Phase 2: Control Panel */}
                                                 <Route path="master" element={<ControlPanel />} />
@@ -80,6 +106,9 @@ function App() {
 
                                                 {/* Finance */}
                                                 <Route path="finance" element={<FinancePage />} />
+
+                                                {/* Workflows */}
+                                                <Route path="workflows" element={<WorkflowStudioPage />} />
 
                                                 {/* CRM */}
                                                 <Route path="crm" element={<CRMConsole />} />

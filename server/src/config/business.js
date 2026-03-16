@@ -165,6 +165,15 @@ function buildMergedConfig(tenantId) {
         return defaultCfg;
     }
 
+    const basePersona = tenantId === DEFAULT_TENANT_ID
+        ? defaultCfg.persona
+        : {
+            ...defaultCfg.persona,
+            ceo_email: null,
+            ceo_phone: null,
+            name: null,
+        };
+
     const merged = {
         ...defaultCfg,
         ...tenantCfg,
@@ -182,7 +191,7 @@ function buildMergedConfig(tenantId) {
             ...(tenantCfg.finance || {})
         },
         persona: {
-            ...defaultCfg.persona,
+            ...basePersona,
             ...(tenantCfg.persona || {})
         }
     };

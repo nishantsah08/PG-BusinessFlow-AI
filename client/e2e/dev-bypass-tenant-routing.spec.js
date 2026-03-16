@@ -14,6 +14,7 @@ test.describe('Developer bypass tenant routing', () => {
                     data: {
                         tenant_id: payload?.email === 'ceo.maya.verma@example.com' ? 'ceo_maya_verma_example_com' : 'default',
                         profile_type: 'CEO',
+                        requires_ceo_phone_verification: false,
                         name: 'Maya Verma'
                     }
                 })
@@ -30,6 +31,7 @@ test.describe('Developer bypass tenant routing', () => {
                         tenant_id: 'ceo_maya_verma_example_com',
                         email: 'ceo.maya.verma@example.com',
                         profile_type: 'CEO',
+                        requires_ceo_phone_verification: false,
                         permissions: { admin_adapter: {} }
                     }
                 })

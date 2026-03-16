@@ -18,6 +18,8 @@ This policy applies to:
 - WhatsApp
 - Any future user-facing conversational ingress routed through `MasterAI`
 
+For SOP/workflow governance, this policy also applies to the dedicated SOP workspace in the authenticated portal.
+
 ---
 
 ## 2. Core Principle
@@ -61,6 +63,8 @@ Identity resolution uses:
 - CRM profile context
 - HR staff mapping
 - business tenant ownership context
+
+For a newly created business, `CEO` cross-channel identity is not considered active until the owner phone is verified and bound to the tenant. Until then, the workspace remains provisional and protected actions must be denied.
 
 Identity resolution returns a normalized runtime identity such as:
 
@@ -158,7 +162,7 @@ Prompt wording alone is not sufficient protection. Final access control must be 
 ### Finance
 
 - `CEO`: Full financial visibility and approval authority.
-- `Staff`: Limited operational finance visibility as approved by module policy.
+- `Staff`: Limited operational finance visibility for assigned-unit current-month finance, plus workflow initiation without approval authority.
 - `Customer`: Own dues, own payment state, own receipts only.
 
 ### Property
@@ -174,8 +178,45 @@ The current centralized `MasterAI` policy actively enforces:
 - `HR`
 - `CRM`
 - `Property`
+- `Finance`
 
-`Finance` is intentionally left as the next policy phase and must remain separately controlled until its actor matrix is finalized.
+`Finance` v1 is enforced with a stricter rule than other modules: reads are scope-limited by actor, while all mutations must run through predefined deterministic workflows with CEO approval gates.
+
+---
+
+## 8.1 SOP Governance Boundary
+
+Business-facing SOP management is GUI-only.
+
+Allowed SOP/workflow governance surface:
+
+- authenticated portal SOP workspace
+
+Not allowed:
+
+- public or customer channels
+- free-form workflow mutation through broad MasterAI chat
+
+This means WhatsApp must not support governed SOP mutation such as:
+
+- cloning
+- drafting
+- publishing
+- archiving
+- discarding
+- activation / deactivation
+- workflow governance approvals
+
+WhatsApp may support safe SOP assistance such as:
+
+- SOP listing
+- SOP detail viewing
+- SOP status queries
+- SOP validation review
+
+When a user asks to create or change an SOP on WhatsApp, the system must refuse and direct them to the portal because the WhatsApp environment is not conducive for governed SOP work.
+
+WhatsApp may still be used as a downstream delivery channel from an already-published workflow.
 
 ---
 

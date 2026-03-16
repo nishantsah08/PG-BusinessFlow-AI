@@ -1,0 +1,284 @@
+{
+    "leads": {
+        "+917305008116": {
+            "lead_id": "+917305008116",
+            "name": "Finance WA QA 1773405008116",
+            "profile_type": "CEO",
+            "email": "finance.wa.qa.1773405008116@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+917305008116",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "System",
+                "detail": "ceo.verified"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T18:00:08.612+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918405008116": {
+            "lead_id": "+918405008116",
+            "name": "Caretaker 1773405008116",
+            "profile_type": "Staff",
+            "email": "caretaker.1773405008116@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+918405008116",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Finance",
+                "detail": "Incoming payment recording"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T18:00:08.786+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919605008116": {
+            "lead_id": "+919605008116",
+            "name": "Tenant 1773405008116",
+            "profile_type": "Customer",
+            "email": "tenant.1773405008116@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+919605008116",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Finance",
+                "detail": "User inquiry"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T18:00:08.897+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        }
+    },
+    "timelines": {
+        "+917305008116": [
+            {
+                "event_id": "EVT-1773405008612-610",
+                "timestamp": "2026-03-13T18:00:08.612+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T18:00:08.612+05:30"
+            },
+            {
+                "event_id": "EVT-1773405914544-172",
+                "timestamp": "2026-03-13T18:15:14.544+05:30",
+                "type": "SESSION",
+                "lead_id": "+917305008116",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+917305008116",
+                    "MasterAI"
+                ],
+                "summary": "A request for the current month's payment status and pending amount for a specific tenant was made. The tenant has not made any payments thus far.",
+                "sentiment": "Neutral",
+                "tone": "Formal",
+                "financial_impact": "Pending rent amount of ₹12,000.",
+                "compliance_impact": "None",
+                "tenant_id": "finance_wa_qa_1773405008116_example_com",
+                "links": {
+                    "artifacts": [],
+                    "related_event_ids": []
+                }
+            }
+        ],
+        "+918405008116": [
+            {
+                "event_id": "EVT-1773405008786-855",
+                "timestamp": "2026-03-13T18:00:08.786+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T18:00:08.786+05:30"
+            },
+            {
+                "event_id": "EVT-1773405937453-703",
+                "timestamp": "2026-03-13T18:15:37.453+05:30",
+                "type": "SESSION",
+                "lead_id": "+918405008116",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+918405008116",
+                    "MasterAI"
+                ],
+                "summary": "An incoming payment of INR 3,000 was recorded for rent from tenant +919605008116 via UPI. The finance workflow has been initiated for approval.",
+                "sentiment": "Positive",
+                "tone": "Formal",
+                "financial_impact": "A recorded payment of INR 3,000 increases cash inflow for the business.",
+                "compliance_impact": "Compliance with payment recording protocols is maintained.",
+                "tenant_id": "finance_wa_qa_1773405008116_example_com",
+                "links": {
+                    "artifacts": [],
+                    "related_event_ids": []
+                }
+            }
+        ],
+        "+919605008116": [
+            {
+                "event_id": "EVT-1773405008898-374",
+                "timestamp": "2026-03-13T18:00:08.898+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T18:00:08.897+05:30"
+            },
+            {
+                "event_id": "EVT-1773405933556-119",
+                "timestamp": "2026-03-13T18:15:33.556+05:30",
+                "type": "SESSION",
+                "lead_id": "+919605008116",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+919605008116",
+                    "MasterAI"
+                ],
+                "summary": "User requested information about outgoing expenses and the full business ledger for the current month. However, only personal dues and payments could be provided, indicating limitations in accessing business financial data.",
+                "sentiment": "Neutral",
+                "tone": "Casual",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "finance_wa_qa_1773405008116_example_com",
+                "links": {
+                    "artifacts": [],
+                    "related_event_ids": []
+                }
+            }
+        ]
+    },
+    "mergeReviews": {},
+    "lastUpdatedAt": "2026-03-16T12:26:58.521+05:30",
+    "businessConfig": {
+        "tenant_id": "finance_wa_qa_1773405008116_example_com",
+        "business_name": "Finance WA QA 1773405008116's Workspace",
+        "persona": {
+            "name": "Finance WA QA 1773405008116",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773405008116@example.com",
+            "ceo_phone": "+917305008116",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:00:08.607+05:30"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        },
+        "account_status": "ACTIVE"
+    }
+}

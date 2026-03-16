@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
         return savedUser ? JSON.parse(savedUser) : null;
     });
     const [authContext, setAuthContext] = useState(null);
-    const [authContextLoading, setAuthContextLoading] = useState(false);
+    const [authContextLoading, setAuthContextLoading] = useState(() => Boolean(localStorage.getItem('master_ai_user')));
 
     const refreshAuthContext = async () => {
         if (!user) {

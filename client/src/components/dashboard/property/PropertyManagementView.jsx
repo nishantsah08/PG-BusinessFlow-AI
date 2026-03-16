@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Building, Search, Save, Loader2, Edit2, Trash2, X, Tag, ListFilter, MoreVertical } from 'lucide-react';
+import { Plus, Building, Search, Save, Loader2, Edit2, Trash2, X, Tag, ListFilter, MoreVertical, Wallet } from 'lucide-react';
 
 const PIN_DIRECTORY = {
     '411001': { area: 'Camp', city: 'Pune', state: 'Maharashtra' },
@@ -82,6 +82,10 @@ const PropertyManagementView = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isPropertyActionMenuOpen, setIsPropertyActionMenuOpen] = useState(false);
     const [openUnitMenuId, setOpenUnitMenuId] = useState(null);
+    const [financeUnitId, setFinanceUnitId] = useState(null);
+    const [financeSnapshot, setFinanceSnapshot] = useState(null);
+    const [financeError, setFinanceError] = useState('');
+    const [financeLoading, setFinanceLoading] = useState(false);
     const propertyActionMenuRef = useRef(null);
     const unitActionMenuRefs = useRef({});
 
@@ -183,6 +187,24 @@ const PropertyManagementView = () => {
         const tenantId = getTenantIdFromLocalUser();
         const body = {
             agent_name: 'PropertyAI',
+            tool_name: tool,
+            parameters
+        };
+        if (tenantId) {
+            body.tenant_id = tenantId;
+        }
+        const response = await fetch('/api/master_ai/tools/execute', {
+            method: 'POST',
+            headers: getApiHeaders(true),
+            body: JSON.stringify(body)
+        });
+        return parseToolResponse(response);
+    };
+
+    const executeFinanceTool = async (tool, parameters = {}) => {
+        const tenantId = getTenantIdFromLocalUser();
+        const body = {
+            agent_name: 'FinanceAI',
             tool_name: tool,
             parameters
         };
@@ -740,6 +762,21 @@ const PropertyManagementView = () => {
         }
     };
 
+    const handleOpenUnitFinance = async (unit) => {
+        setFinanceUnitId(unit.id);
+        setFinanceSnapshot(null);
+        setFinanceError('');
+        setFinanceLoading(true);
+        try {
+            const result = await executeFinanceTool('get_unit_collection_status', { unit_id: unit.id });
+            setFinanceSnapshot(result?.data?.data || null);
+        } catch (error) {
+            setFinanceError(error.message || 'Failed to load unit finance context.');
+        } finally {
+            setFinanceLoading(false);
+        }
+    };
+
     const normalizedExistingPin = String(selectedProperty?.pin_code || '').trim();
     const existingImages = getImageSources(selectedProperty);
     const hasRequiredName = String(editName || '').trim().length > 0;
@@ -1190,6 +1227,16 @@ const PropertyManagementView = () => {
                                                                         <Edit2 className="w-3.5 h-3.5" />
                                                                         Edit Unit
                                                                     </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setOpenUnitMenuId(null);
+                                                                            handleOpenUnitFinance(u);
+                                                                        }}
+                                                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                                                                    >
+                                                                        <Wallet className="w-3.5 h-3.5" />
+                                                                        Current-Month Finance
+                                                                    </button>
                                                                     {canDeleteUnit(u) ? (
                                                                         <button
                                                                             aria-label={`Delete Unit ${u.unit_number}`}
@@ -1232,8 +1279,8 @@ const PropertyManagementView = () => {
 
             {/* Unit Modal */}
             {isUnitModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 px-4 pb-6 pt-24">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[calc(100dvh-6.5rem)]">
                         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <h3 className="text-lg font-bold text-gray-900">{editingUnitId ? 'Edit Unit' : 'Add New Unit'}</h3>
                             <button onClick={() => setIsUnitModalOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -1437,6 +1484,85 @@ const PropertyManagementView = () => {
                                 {isSavingObject ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 {editingUnitId ? 'Save Changes' : 'Add Unit'}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {financeUnitId && (
+                <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 px-4 pb-6 pt-24">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-6.5rem)]">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Current-Month Unit Finance</h3>
+                                <p className="text-sm text-gray-500">This view reuses Property context and loads the finance breakup for the selected unit.</p>
+                            </div>
+                            <button aria-label="Close Unit Finance Modal" onClick={() => setFinanceUnitId(null)} className="text-gray-400 hover:text-gray-600">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {financeLoading ? (
+                                <div className="flex items-center gap-3 text-sm text-gray-500">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Loading current-month finance...
+                                </div>
+                            ) : financeError ? (
+                                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">{financeError}</div>
+                            ) : financeSnapshot ? (
+                                <div className="space-y-4">
+                                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Unit</div>
+                                        <div className="mt-2 text-2xl font-semibold text-slate-900">Unit {financeSnapshot.unit_number}</div>
+                                        <div className="mt-1 text-sm text-slate-600">Current month: {financeSnapshot.month_year}</div>
+                                    </div>
+                                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                        <div className="rounded-xl border border-slate-200 px-4 py-4">
+                                            <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Rent due</div>
+                                            <div className="mt-2 text-xl font-semibold text-slate-900">INR {Number(financeSnapshot.rent_due || 0).toLocaleString('en-IN')}</div>
+                                        </div>
+                                        <div className="rounded-xl border border-slate-200 px-4 py-4">
+                                            <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Deposit due</div>
+                                            <div className="mt-2 text-xl font-semibold text-slate-900">INR {Number(financeSnapshot.deposit_due || 0).toLocaleString('en-IN')}</div>
+                                        </div>
+                                        <div className="rounded-xl border border-slate-200 px-4 py-4">
+                                            <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Received</div>
+                                            <div className="mt-2 text-xl font-semibold text-slate-900">INR {Number(financeSnapshot.received || 0).toLocaleString('en-IN')}</div>
+                                        </div>
+                                        <div className="rounded-xl border border-slate-200 px-4 py-4">
+                                            <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Pending</div>
+                                            <div className="mt-2 text-xl font-semibold text-slate-900">INR {Number(financeSnapshot.pending || 0).toLocaleString('en-IN')}</div>
+                                        </div>
+                                    </div>
+                                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Payment status</div>
+                                        <div className="mt-2 text-lg font-semibold text-slate-900">{financeSnapshot.payment_status}</div>
+                                    </div>
+                                    <div className="rounded-xl border border-slate-200 px-4 py-4">
+                                        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Current-month breakup</div>
+                                        <div className="mt-4 space-y-3">
+                                            {(financeSnapshot.breakup || []).map((entry) => (
+                                                <div key={entry.ledger_entry_id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm">
+                                                    <div>
+                                                        <div className="font-semibold text-slate-900">{entry.category}</div>
+                                                        <div className="mt-1 text-xs text-slate-500">{entry.status}</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-slate-900">Due INR {Number(entry.amount_due || 0).toLocaleString('en-IN')}</div>
+                                                        <div className="mt-1 text-xs text-slate-500">Paid INR {Number(entry.amount_paid || 0).toLocaleString('en-IN')} · Pending INR {Number(entry.balance || 0).toLocaleString('en-IN')}</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {(financeSnapshot.breakup || []).length === 0 && (
+                                                <div className="text-sm text-slate-500">No current-month ledger entries are attached to this unit yet.</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-sm text-gray-500">No current-month finance context was found for this unit.</div>
+                            )}
                         </div>
                     </div>
                 </div>

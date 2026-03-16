@@ -1,19 +1,25 @@
 # WorkflowList Specification
 
 ## Purpose
-Renders a scrollable list of workflow definition cards with select, delete, and create actions.
+Renders the SOP list table inside the `SOPs` module.
 
 ## Scope
-- Display each workflow as a card using the natural language `name` and `description` as primary text (falling back to `workflow_id` and `trigger_event` if unavailable).
-- Click to select for editing.
-- Delete with inline confirmation overlay.
-- "New Workflow" create button at bottom.
-- Empty state when no workflows exist.
+- Display each visible SOP as one full-width row with:
+  - business state: `Active`, `Draft`, or `Archived`
+  - SOP name
+  - business outcome summary
+  - updated timestamp
+  - `Open` action
+- Support top-level filtering through `Active`, `Draft`, `Archived`, and `All`.
+- Support search across SOP name and readable SOP text.
+- Open the SOP in the full-screen SOP workspace.
+- Keep cloning, versioning, and publish history out of the list view.
+- Show an empty state when no SOPs match the current filter.
 
 ## Inputs
 - `workflows` (Array): list of workflow definition objects.
 - `selectedId` (string|null): currently selected workflow ID.
-- `onSelect(workflow)`, `onDelete(id)`, `onCreateNew()` callbacks.
+- `onSelect(workflow)` callback.
 
 ## Dependencies
-- `lucide-react`: `GitBranch`, `Trash2`, `Edit3`, `Plus`, `Zap` icons.
+- `lucide-react`: `Search`, `Filter`, `Plus` icons.

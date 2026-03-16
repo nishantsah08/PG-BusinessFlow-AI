@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import SystemObservationPanel from './SystemObservationPanel';
-import WorkflowsView from './WorkflowsView';
-import { Activity, GitBranch } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
 
 const RightPanel = ({
@@ -12,14 +11,10 @@ const RightPanel = ({
     requestLogs
 }) => {
     const { isDeveloperMode } = useDeveloperMode();
-    const [activeTopTab, setActiveTopTab] = useState(isDeveloperMode ? 'monitor' : 'workflows');
 
-    // Force switch to workflows if developer mode is turned off while monitor is open
-    useEffect(() => {
-        if (!isDeveloperMode && activeTopTab === 'monitor') {
-            setActiveTopTab('workflows');
-        }
-    }, [isDeveloperMode, activeTopTab]);
+    if (!isDeveloperMode) {
+        return null;
+    }
 
     // --- Closed View ---
     if (!isOpen) {
@@ -37,7 +32,7 @@ const RightPanel = ({
                     className="hidden md:block text-gray-400 font-bold tracking-[0.2em] text-xs uppercase"
                     style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
                 >
-                    System Observation
+                    System Monitor
                 </div>
             </div>
         );
@@ -48,31 +43,11 @@ const RightPanel = ({
         <div className="w-full md:w-2/5 h-1/2 md:h-full flex flex-col bg-gray-50 border-l border-gray-200 shadow-xl z-20 transition-all duration-300">
             {/* Header and Toggle */}
             <div className="p-3 bg-white border-b border-gray-200 flex justify-between items-center shrink-0">
-
-                {/* Segmented Control for Top Tabs */}
                 <div className="flex bg-gray-100 p-1 rounded-lg">
-                    {isDeveloperMode && (
-                        <button
-                            onClick={() => setActiveTopTab('monitor')}
-                            className={`flex items-center px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeTopTab === 'monitor'
-                                ? 'bg-white text-blue-700 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            <Activity className="w-3.5 h-3.5 mr-1.5" />
-                            System Monitor
-                        </button>
-                    )}
-                    <button
-                        onClick={() => setActiveTopTab('workflows')}
-                        className={`flex items-center px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeTopTab === 'workflows'
-                            ? 'bg-white text-blue-700 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        <GitBranch className="w-3.5 h-3.5 mr-1.5" />
-                        Workflows
-                    </button>
+                    <div className="flex items-center px-3 py-1.5 text-xs font-semibold rounded-md bg-white text-blue-700 shadow-sm">
+                        <Activity className="w-3.5 h-3.5 mr-1.5" />
+                        System Monitor
+                    </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -90,15 +65,11 @@ const RightPanel = ({
 
             {/* Content Area */}
             <div className="flex-1 overflow-hidden relative bg-gray-50">
-                {activeTopTab === 'monitor' ? (
-                    <SystemObservationPanel
-                        onLogRequest={onLogRequest}
-                        lastTraceId={lastTraceId}
-                        requestLogs={requestLogs}
-                    />
-                ) : (
-                    <WorkflowsView />
-                )}
+                <SystemObservationPanel
+                    onLogRequest={onLogRequest}
+                    lastTraceId={lastTraceId}
+                    requestLogs={requestLogs}
+                />
             </div>
         </div>
     );

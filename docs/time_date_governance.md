@@ -23,6 +23,7 @@ All internal timestamps must follow ISO-8601 + IST offset: `YYYY-MM-DDTHH:mm:ss+
 ### 2.2 Display Standard (Default)
 Default format: `DD-MM-YYYY`.
 - **Example:** `25-02-2026`
+- **UI Rule**: All visible date fields in the portal must render in India-style date format by default. Browser-native date inputs that display locale-specific formats such as `MM/DD/YYYY` must not be shown as the final visible presentation.
 
 ## 3️⃣ ARCHITECTURE MODEL
 
@@ -121,6 +122,7 @@ Reject if developer:
 - Sorts using formatted string.
 - Converts before saving.
 - Lets frontend control timestamp.
+- Leaves browser-native date controls showing non-governed locale formats in the visible UI.
 
 ---
 **FINAL SUMMARY:**  

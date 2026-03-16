@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Loader2, Zap, UserX, AlertTriangle, Layers, Home, Info, Building } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { executeDashboardTool } from './toolClient';
+import DateInputField from '../../common/DateInputField';
 
 const BookingOverviewView = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -142,18 +143,20 @@ const BookingOverviewView = () => {
                         ))}
                     </select>
                     <span className="text-gray-500 ml-2">From:</span>
-                    <input
-                        type="date"
+                    <DateInputField
+                        ariaLabel="Booking Overview From Date"
                         value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5"
+                        onValueChange={setFromDate}
+                        className="min-w-[136px] bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5"
+                        buttonClassName="rounded-lg border border-gray-200 bg-gray-50 p-2 text-gray-500 hover:bg-gray-100"
                     />
                     <span className="text-gray-500">To:</span>
-                    <input
-                        type="date"
+                    <DateInputField
+                        ariaLabel="Booking Overview To Date"
                         value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5"
+                        onValueChange={setToDate}
+                        className="min-w-[136px] bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5"
+                        buttonClassName="rounded-lg border border-gray-200 bg-gray-50 p-2 text-gray-500 hover:bg-gray-100"
                     />
                 </div>
             </div>

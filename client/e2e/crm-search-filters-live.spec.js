@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { apiBaseUrl, bootstrapTenant, verifyCeoPhone } from './helpers/auth';
 
 const executeTool = async (request, apiBaseUrl, tenantId, actorEmail, agentName, toolName, parameters) => {
     const response = await request.post(`${apiBaseUrl}/api/master_ai/tools/execute`, {
@@ -21,9 +22,9 @@ const executeTool = async (request, apiBaseUrl, tenantId, actorEmail, agentName,
 test.describe('CRM live search and filters', () => {
     test('searches by phone/name/email and filters by status and profile in the live GUI', async ({ page, request }) => {
         test.setTimeout(180000);
-        const apiBaseUrl = 'http://localhost:3001';
         const stamp = Date.now();
         const ceoEmail = `crm.gui.qa.${stamp}@example.com`;
+        const ceoPhone = `+9174${String(stamp).slice(-8)}`;
         const tenantName = `CRM GUI QA ${stamp}`;
 
         const staffLead = {
@@ -33,22 +34,13 @@ test.describe('CRM live search and filters', () => {
             designation: 'Caretaker',
         };
 
-        const signupResponse = await request.post(`${apiBaseUrl}/api/auth/bootstrap`, {
-            headers: {
-                'X-Actor-Email': ceoEmail,
-            },
-            data: {
-                intent: 'signup',
-                email: ceoEmail,
-                name: tenantName,
-                picture: null,
-            },
+        const signup = await bootstrapTenant(request, {
+            email: ceoEmail,
+            name: tenantName,
         });
-        expect(signupResponse.ok()).toBeTruthy();
-        const signupJson = await signupResponse.json();
-        expect(signupJson.success).toBeTruthy();
-        const tenantId = signupJson.data?.tenant_id;
+        const tenantId = signup?.tenant_id;
         expect(tenantId).toBeTruthy();
+        await verifyCeoPhone(request, { tenantId, email: ceoEmail, phone: ceoPhone });
 
         await executeTool(request, apiBaseUrl, tenantId, ceoEmail, 'HRAgent', 'hire_staff', {
             name: staffLead.name,

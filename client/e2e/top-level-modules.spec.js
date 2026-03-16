@@ -19,21 +19,24 @@ test.describe('Top-level modules', () => {
                     success: true,
                     data: {
                         email: 'qa-top-level@test.local',
-                        profile_type: 'Staff',
+                        profile_type: 'CEO',
+                        owner: {
+                            phone: '+919822223333',
+                        },
                         permissions: {
                             admin_adapter: {
                                 CommunicationsAI: [],
                                 HRAgent: [
                                     'get_all_staff',
-                                    'get_salary_card',
-                                    'hire_staff',
-                                    'update_staff_profile',
-                                    'create_salary_card',
-                                    'update_salary_card'
+                                    'get_staff_details',
+                                    'get_salary_card'
                                 ],
                                 FinanceAI: [
+                                    'get_financial_summary',
                                     'get_incoming_txns',
-                                    'get_expenses'
+                                    'get_expenses',
+                                    'record_incoming_txn',
+                                    'record_outgoing_txn'
                                 ],
                                 CRMAgent: [],
                                 PropertyAI: []
@@ -58,6 +61,15 @@ test.describe('Top-level modules', () => {
                     contact: { primary: '+919833334444', email: 'ramesh@pgflow.ai' },
                     status: 'ACTIVE'
                 }];
+            } else if (tool === 'get_staff_details') {
+                data = {
+                    id: 'STF-01',
+                    name: 'Ramesh Kumar',
+                    designation: 'Property Manager',
+                    job_description: 'Ops',
+                    contact: { primary: '+919833334444', email: 'ramesh@pgflow.ai' },
+                    status: 'ACTIVE'
+                };
             } else if (tool === 'get_salary_card') {
                 data = {
                     staff_id: 'STF-01',
@@ -74,6 +86,8 @@ test.describe('Top-level modules', () => {
                         allowances: { travel: 1000, phone: 500 }
                     }
                 };
+            } else if (tool === 'get_financial_summary') {
+                data = { total_inflow: 12000, total_outflow: 1500, total_outstanding: 3500 };
             } else if (tool === 'get_incoming_txns') {
                 data = { transactions: [{ txn_id: 'IN-1', payer_id: '+919800098000', amount: 12000, date: '2026-03-01', payment_mode: 'UPI', status: 'SUCCESS' }] };
             } else if (tool === 'get_expenses') {
@@ -88,37 +102,48 @@ test.describe('Top-level modules', () => {
                 body: JSON.stringify({ success: true, data })
             });
         });
+
+        await page.route('**/api/finance/approvals', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ success: true, data: { pending: [] } }),
+            });
+        });
+
+        await page.route('**/api/master_ai/events*', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ success: true, data: [] }),
+            });
+        });
     });
 
-    test('navigates to HR and Finance as first-class modules', async ({ page }) => {
-        await page.goto('/master');
+    test('navigates to Master AI, SOPs, HR, and Finance as first-class modules', async ({ page }) => {
+        await page.goto('/');
 
+        await expect(page.getByRole('link', { name: 'Master AI' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'SOPs' })).toBeVisible();
         await expect(page.getByRole('link', { name: 'HR' })).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Finance' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Finance', exact: true })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'MasterAI Interface' })).toBeVisible();
+        await expect(page.getByPlaceholder('Instruct MasterAI...')).toBeVisible();
+
+        await page.getByRole('link', { name: 'SOPs' }).click();
+        await expect(page.getByRole('heading', { name: 'SOPs' })).toBeVisible();
+        await expect(page.getByText('Record Booking Hold')).toBeVisible();
 
         await page.getByRole('link', { name: 'HR' }).click();
-        await expect(page.getByRole('heading', { name: 'HR Operations' })).toBeVisible();
-        await expect(page.getByTestId('hr-employee-list-section')).toBeVisible();
-        await expect(page.getByTestId('hr-add-employee-section')).toBeVisible();
-        await expect(page.getByTestId('hr-edit-employee-section')).toBeVisible();
-        await expect(page.getByTestId('hr-rate-card-section')).toBeVisible();
-        await expect(page.getByPlaceholder('Employee name')).toHaveCount(0);
-        await page.getByRole('button', { name: 'Add Employee' }).click();
-        await expect(page.getByPlaceholder('Employee name')).toBeVisible();
-        await page.getByRole('button', { name: 'Close Add Employee Modal' }).click();
-        await page.getByRole('button', { name: 'Edit Employee' }).click();
-        await expect(page.getByPlaceholder('Designation')).toBeVisible();
-        await page.getByRole('button', { name: 'Close Edit Employee Modal' }).click();
-        await page.getByRole('button', { name: 'Edit Rate Card' }).click();
-        await expect(page.getByPlaceholder('Base salary')).toBeVisible();
-        await page.getByRole('button', { name: 'Close Rate Card Modal' }).click();
+        await expect(page.getByRole('heading', { name: 'People and compensation' })).toBeVisible();
+        await expect(page.getByTestId('hr-people-roster')).toBeVisible();
 
         await page.getByRole('link', { name: 'Finance' }).click();
-        await expect(page.getByRole('heading', { name: 'Finance Operations' })).toBeVisible();
-        await expect(page.getByTestId('finance-overview-section')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Controlled finance workflows' })).toBeVisible();
+        await expect(page.getByTestId('finance-overview-page')).toBeVisible();
         await page.getByRole('button', { name: 'Incoming' }).click();
-        await expect(page.getByTestId('finance-incoming-section')).toBeVisible();
+        await expect(page.getByTestId('finance-incoming-tab')).toBeVisible();
         await page.getByRole('button', { name: 'Outgoing' }).click();
-        await expect(page.getByTestId('finance-outgoing-section')).toBeVisible();
+        await expect(page.getByTestId('finance-outgoing-tab')).toBeVisible();
     });
 });

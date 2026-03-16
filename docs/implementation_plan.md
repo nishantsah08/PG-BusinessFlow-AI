@@ -26,6 +26,10 @@ The following strategic updates are now implemented and should be treated as the
 6. **Deployment Structure**
    - Separate GCP development/production deployment scripts and environment files are defined under `infra/gcp/`.
    - Firebase Hosting targets for development and production are defined for web deployment.
+7. **Workspace Activation Baseline**
+   - A newly created business account stays in `PENDING_CEO_PHONE_VERIFICATION` until the CEO phone is OTP-verified.
+   - Protected workspace actions remain blocked during this provisional state.
+   - On verification, the tenant-bound CRM `CEO` identity is created/updated and becomes the trusted cross-channel phone anchor for GUI/WhatsApp policy enforcement.
 
 > [!IMPORTANT]
 > **Phase 1: Dummy Data & Local Simulation**
@@ -67,7 +71,7 @@ The following strategic updates are now implemented and should be treated as the
 *   **Guardrails (3-Tier)**:
     *   Enforces "Kalyani" persona integrity with tier-specific rules (CEO/Staff/Customer).
     *   Manages system timeouts (60s) and retry logic.
-    *   System-wide actor access and scope enforcement must follow [system_access_policy.md](./system_access_policy.md). Current centralized policy coverage is active for `HR`, `CRM`, and `Property`; `Finance` remains intentionally reserved for the next phase.
+    *   System-wide actor access and scope enforcement must follow [system_access_policy.md](./system_access_policy.md). Current centralized policy coverage is active for `HR`, `CRM`, `Property`, and `Finance`.
     *   **Phase 1**: Simulates all external dependencies (Payment/Email/WhatsApp) via mock events.
 
 ### 2.2 Master AI API Skills (Exhaustive)
@@ -177,6 +181,10 @@ These tools are used by the Admin Panel to monitor, manage, and verify the Orche
     *   *Trigger Mechanisms*: Event-based (matching system event), Timer-based (scheduled interval), or MasterAI-decided (based on conversation context and workflow description).
     *   *Purpose*: Creates a new standardized business process.
     *   *Validation*: User must approve the logic here. Once defined, it is executed autonomously.
+    *   *Authoring Standard*: Workflow drafting, schedule/intent capture, seeded-workflow governance, and go-live validation follow [workflow_authoring_and_validation.md](./workflow_authoring_and_validation.md).
+    *   *Visibility Rule*: Master AI should surface only business-facing workflows in the operator workflow list. Internal helper workflows may stay seeded but should remain hidden from the normal GUI list.
+    *   *Finance GUI Rule*: Finance overview, incoming/outgoing popups, and approval surfaces may exist in GUI, but finance mutations must still execute only through predefined deterministic workflows.
+    *   *Application GUI Form Rule*: Workflow-backed popups and admin forms across the portal must follow [docs/frontend/form_and_popup_policy.md](./frontend/form_and_popup_policy.md).
 *   **`update_workflow`**:
     *   *Inputs*: `workflow_id`, `name`, `description`, `trigger_event`, `new_steps`.
     *   *Purpose*: Updates an existing flow. Requires re-validation by User.
@@ -583,7 +591,8 @@ The HR Agent exposes a comprehensive set of tools to support both **Chat (Master
 ### 6.1 Data Schemas
 #### Transaction Schema
 *   **Incoming (Revenue)**: `txn_id` (IN-XXXX), `amount`, `date` (IST), `payer_id`, `payment_mode` (UPI/Cash/PG/NetBanking), `allocations` (List of objects), `attachment` (GCS Link).
-*   **Outgoing (Expense)**: `txn_id` (OUT-XXXX), `category` (OpEx/CapEx), `sub_category`, `work_done`, `property_id`, `amount`, `date` (IST), `payee`, `payment_mode`, `approved_by`, `remarks`.
+*   **Outgoing (Expense)**: `txn_id` (OUT-XXXX), `work_order_id`, `work_title`, `category` (OpEx/CapEx), `sub_category`, `work_done`, `property_id`, `unit_id` (Optional), `amount` (paid now), `line_items` (Optional), `date` (IST), `payee`, `vendor_id` (Optional), `payment_mode`, `approved_by`, `remarks`.
+    *   *Logic Note*: `record_outgoing_txn` remains the visible workflow entry. FinanceAI resolves or creates the internal work context and must ask follow-up questions instead of guessing when work placement is ambiguous.
 
 #### Ledger Entry Schema (The Bucket)
 *   `entry_id`, `payer_id`, `category` (Rent/Electricity/LateFee), `month_year`, `amount_due`, `amount_paid`, `balance`, `status` (PAID/PENDING/PARTIALLY_PAID).
@@ -611,8 +620,17 @@ The Finance AI exposes tools for MasterAI (Chat) and the Admin Dashboard (GUI).
 
 #### Revenue & Collections
 *   **`record_incoming_txn`**:
-    *   *Inputs*: `amount`, `payer_id`, `payment_mode`, `date`, `attachment_url`, `txn_id` (Optional).
-    *   *Logic*: Triggers the **Waterfall Logic** to allocate funds to ledger buckets.
+    *   *Inputs*: `amount`, `payer_id`, `payment_mode`, `date`, `attachment_url`, `txn_id` (Optional), `linked_property_id` (Optional), `linked_unit_id` (Optional), `note` (Optional).
+    *   *Logic*: Triggers the **Waterfall Logic** to allocate funds to ledger buckets. `payer_id` remains the account key; property/unit are contextual because a payment may arrive before final allocation or after a tenant has shifted units. Normal incoming collection is self-allocated by FinanceAI; booking holds are handled through their own workflow.
+*   **`record_booking_hold`**:
+    *   *Inputs*: `payer_id`, `amount`, `payment_mode`, `received_at`, `linked_property_id` (Optional), `linked_unit_id` (Optional), `evidence_link` (Optional), `notes` (Optional).
+    *   *Logic*: Records pre-onboarding booking money as a hold, not as normal rent collection. If onboarding is not completed within the 10-day hold window, the booking expires and the amount is forfeited.
+*   **`get_booking_holds`**:
+    *   *Inputs*: `payer_id` (Optional), `status` (Optional), `limit`.
+    *   *Returns*: Active and historical booking holds for operations and onboarding.
+*   **`complete_onboarding_from_booking`**:
+    *   *Inputs*: `booking_hold_id`, `lead_id`, `unit_id`, `property_id`, `onboarding_date`, `negotiated_rent`, `security_deposit`, `rent_payment_timing`, `utility_payment_timing`.
+    *   *Logic*: Applies held booking money commercially from the CEO-entered onboarding date while keeping original receipt date for audit. The onboarding date can be backdated and becomes the commercial effective date for billing applicability.
 *   **`get_txn_details`**:
     *   *Inputs*: `txn_id`.
     *   *Returns*: Full transaction record including its allocations.
@@ -621,9 +639,18 @@ The Finance AI exposes tools for MasterAI (Chat) and the Admin Dashboard (GUI).
 
 #### Expenses & Outgoings
 *   **`record_outgoing_txn`**:
-    *   *Inputs*: `category`, `sub_category`, `work_done`, `property_id`, `amount`, `payee`, `payment_mode`, `approved_by`, `remarks`.
+    *   *Inputs*: `category`, `sub_category`, `work_order_id` (Optional), `work_title` (Optional), `work_done`, `property_id`, `unit_id` (Optional), `amount`, `line_items` (Optional), `payee`, `vendor_id` (Optional), `payment_mode`, `approved_by`, `remarks`, `attachment_urls` (Optional), `date`.
+    *   *Logic*: Records one real-world outgoing transaction while FinanceAI internally creates or reuses the work context. One work may later contain multiple vendors, purchases, payments, and settlement delta without editing old financial truth.
 *   **`get_expenses`**:
     *   *Inputs*: `property_id` (Optional), `category`, `date_range`.
+*   **`get_work_orders`**:
+    *   *Inputs*: `property_id` (Optional), `status` (Optional), `search` (Optional).
+    *   *Returns*: Internal work contexts used by outgoing transactions so GUI and follow-up handling can safely attach later payments or additional purchases.
+*   **`add_vendor`**:
+    *   *Inputs*: `vendor_name`, `category`, `primary_phone` (Optional), `email` (Optional), `upi_id` (Optional), bank details (Optional), `notes` (Optional).
+    *   *Logic*: Creates a Finance-owned vendor record so outgoing transactions can be tracked vendor-wise.
+*   **`get_vendors` / `get_vendor_summary`**:
+    *   *Returns*: Vendor register, current period paid, total paid, transaction count, and derived open payable balance across active work contexts.
 
 #### Ledger & Billing
 *   **`get_ledger`**:
@@ -635,6 +662,8 @@ The Finance AI exposes tools for MasterAI (Chat) and the Admin Dashboard (GUI).
 *   **`generate_monthly_bills`**:
     *   *Inputs*: `property_id` (Optional - for bulk), `month`, `year`.
     *   *Logic*: Directs Billing Agent to calculate dues based on **Negotiated Rates** and Meter Readings.
+    *   *Billing Period Rule*: The workflow may run on any operational date, but it always calculates for the target billing month.
+    *   *Prorata Rule*: If the contract is commercially valid for only part of that month, only those valid days are billed on prorata basis; remaining charge behavior follows the negotiated rate card.
     *   *Output*: Returns a list of **GCS Links** to the generated PDF bills.
 *   **`onboard_tenant_contract`**:
     *   *Inputs*: `lead_id`, `negotiated_rent`, `security_deposit`, `rent_payment_timing`, `utility_payment_timing`, `effective_from`.
@@ -653,10 +682,32 @@ The Finance AI exposes tools for MasterAI (Chat) and the Admin Dashboard (GUI).
 #### Dashboard & Analytics
 *   **`get_financial_summary`**:
     *   *Inputs*: `date_range`, `property_id` (Optional).
-    *   *Returns*: Total Inflow, Total Outflow, Outstanding Dues.
+    *   *Returns*: Total Inflow, Total Outflow, Cash In Hand, Outstanding Dues, Active Booking Holds.
 *   **`get_defaulters_list`**:
     *   *Inputs*: `threshold_days`, `limit`.
     *   *Returns*: Tenants with pending ledger entries beyond the threshold.
+
+### 6.4 Locked Finance SOP Execution Baseline (Current Program Scope)
+
+Business-facing SOP set:
+
+1. `Record Booking Hold`
+2. `Expire Booking Hold`
+3. `Onboard Tenant`
+4. `Generate Monthly Bills`
+5. `Rent Collection`
+6. `Record Outgoing Transaction`
+7. `Offboard Tenant`
+8. `Correct Finance Entry`
+
+Execution baseline:
+
+- Monthly bills run month-end with reruns on 5th and 10th.
+- Bill communication must avoid duplicate send for the same tenant and billing month.
+- Rent reminder windows run on 4th and 9th; this cycle stops on 15th and escalates likely unpaid tenants to CEO.
+- Customer payment reporting can come from GUI/WhatsApp, but posting requires CEO approval.
+- Offboarding closes only after settlement movement is posted and final customer message is sent.
+- Finance corrections are compensating records only; in-place edits are not allowed.
 
 ---
 
@@ -798,6 +849,14 @@ The WhatsApp Adapter exposes a comprehensive set of tools for MasterAI to manage
 6.  **Master AI Workflow**:
     *   Mock a "Payment Received" event.
     *   Verify `MasterAI` triggers `Payment Acknowledgement` workflow -> Calls `CommunicationsAI` -> Logs "Message Sent".
+
+7.  **Finance SOP Simulation (GUI + WhatsApp)**:
+    *   Simulate `Customer` reporting payment on WhatsApp; verify posting is blocked until CEO approval.
+    *   Simulate `Staff` (caretaker) submitting spend and verify reimbursement remains pending until CEO approval path.
+    *   Simulate `CEO` run for monthly billing rerun windows (5th/10th) and verify same-month duplicate bill send is blocked.
+    *   Simulate rent reminder cadence on 4th and 9th, then verify stop/escalation behavior on 15th.
+    *   Simulate offboarding settlement with surplus/deficit path and verify closure is blocked until settlement movement is completed and final customer message is sent.
+    *   Simulate correction flow and verify only CEO can execute `Correct Finance Entry` and audit trail remains compensating-only.
 
 ---
 

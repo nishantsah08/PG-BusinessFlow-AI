@@ -3,6 +3,8 @@
 ## Purpose
 Provides the overarching layout scaffolding for the authenticated portion of the application. It composes the screen out of a horizontal top bar, a vertical side navigation, and a dynamic main content area.
 
+Application-wide form and popup behavior follows [form_and_popup_policy.md](../form_and_popup_policy.md).
+
 ## Layout Structure
 - **Global Container**: Forces a `100vh` flex-column to prohibit the body from scrolling entirely.
 - **Top Row**: Renders the `<TopBar />`.

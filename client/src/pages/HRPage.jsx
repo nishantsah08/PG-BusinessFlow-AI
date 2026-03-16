@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Mail, ShieldAlert, X } from 'lucide-react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import DateInputField from '../components/common/DateInputField';
+import { useTimeDisplay } from '../hooks/useTimeDisplay';
 
 const blankHireForm = {
     name: '',
@@ -141,9 +143,9 @@ const ModalFieldRow = ({ label, helper, children }) => (
 );
 
 const ModalShell = ({ maxWidthClassName, children }) => (
-    <div className="fixed inset-0 z-[200] overflow-y-auto bg-slate-950/55 p-4 py-6">
-        <div className="flex min-h-full items-start justify-center md:items-center">
-            <div className={`max-h-[calc(100dvh-3rem)] w-full overflow-y-auto rounded-[28px] border border-slate-200 bg-white p-6 shadow-2xl ${maxWidthClassName}`}>
+    <div className="fixed inset-0 z-[200] overflow-y-auto bg-slate-950/55 px-4 pb-6 pt-24">
+        <div className="flex min-h-full items-start justify-center">
+            <div className={`max-h-[calc(100dvh-6.5rem)] w-full overflow-y-auto rounded-[28px] border border-slate-200 bg-white p-6 shadow-2xl ${maxWidthClassName}`}>
                 {children}
             </div>
         </div>
@@ -184,6 +186,7 @@ const isActiveVisible = (person, statusFilter) => {
 
 const HRPage = () => {
     const { authContext, user } = useAuth();
+    const { formatTime } = useTimeDisplay();
 
     const [employees, setEmployees] = useState([]);
     const [rateCards, setRateCards] = useState({});
@@ -263,6 +266,7 @@ const HRPage = () => {
             ].some((value) => String(value).toLowerCase().includes(query));
         });
     }, [people, search, statusFilter]);
+    const formatDisplayDate = (value) => formatTime(value)?.date || String(value || '');
 
     const executeHRTool = useCallback(async ({ tool_name, parameters }) => {
         if (!canExecute(tool_name)) {
@@ -740,7 +744,7 @@ const HRPage = () => {
                                             <span>{person.id}</span>
                                             {person.contact?.primary ? <span>{person.contact.primary}</span> : null}
                                             {person.contact?.email ? <span>{person.contact.email}</span> : null}
-                                            {person.last_working_day ? <span>Last working day: {person.last_working_day}</span> : null}
+                                            {person.last_working_day ? <span>Last working day: {formatDisplayDate(person.last_working_day)}</span> : null}
                                         </div>
                                     </button>
                                 );
@@ -1072,7 +1076,12 @@ const HRPage = () => {
                         </div>
                         <form onSubmit={handleTerminateEmployee} className="space-y-1">
                             <ModalFieldRow label="Last Working Day" helper="Final active working date for the employee.">
-                                <input value={terminationForm.last_working_day} onChange={(event) => setTerminationForm((prev) => ({ ...prev, last_working_day: event.target.value }))} className={compensationFieldClassName} type="date" />
+                                <DateInputField
+                                    ariaLabel="Last Working Day"
+                                    value={terminationForm.last_working_day}
+                                    onValueChange={(nextValue) => setTerminationForm((prev) => ({ ...prev, last_working_day: nextValue }))}
+                                    className={compensationFieldClassName}
+                                />
                             </ModalFieldRow>
                             <ModalFieldRow label="Termination Reason" helper="Required for HR record and final settlement context.">
                                 <textarea value={terminationForm.reason} onChange={(event) => setTerminationForm((prev) => ({ ...prev, reason: event.target.value }))} className="min-h-32 w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900" placeholder="Reason for termination" />

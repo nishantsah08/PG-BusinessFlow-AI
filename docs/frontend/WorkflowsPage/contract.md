@@ -1,12 +1,17 @@
 # WorkflowsPage Contract
 
 ## Props
+
 None. Route-level page component.
 
 ## Context hooks
-- `useUI()` — for `addNotification` toast system.
-- Uses `apiClient` (imported module, not a hook).
 
-## Child Components
-- `WorkflowList` — receives `workflows[]`, `selectedId`, `onSelect`, `onDelete`, `onCreateNew`.
-- `WorkflowBuilder` — receives `workflow` (object|null), `onSave`, `onCancel`.
+- `useUI()` for notifications
+- `apiClient` for workflow governance API calls
+
+## Child surfaces
+
+- SOP list surface
+- SOP workspace surface
+- SOP-scoped assistant chat surface
+- Publish confirmation surface

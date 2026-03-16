@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { apiBaseUrl, bootstrapTenant, verifyCeoPhone } from './helpers/auth';
 
 const executeTool = async (request, apiBaseUrl, tenantId, ceoEmail, agentName, toolName, parameters) => {
     const response = await request.post(`${apiBaseUrl}/api/master_ai/tools/execute`, {
@@ -21,31 +22,22 @@ const executeTool = async (request, apiBaseUrl, tenantId, ceoEmail, agentName, t
 test.describe('HR live guardrails', () => {
     test('blocks invalid operator actions and keeps system state aligned', async ({ page, request }) => {
         test.setTimeout(180000);
-        const apiBaseUrl = 'http://localhost:3001';
         const stamp = Date.now();
         const ceoEmail = `hr.gui.guardrails.${stamp}@example.com`;
+        const ceoPhone = `+9176${String(stamp).slice(-8)}`;
         const validName = `HR Guardrails ${stamp}`;
         const validPhone = `+9186${String(stamp).slice(-8)}`;
         const validEmail = `staff.guardrails.${stamp}@example.com`;
         const invalidPhone = '5465';
 
         console.log('guardrails: bootstrap signup');
-        const signupResponse = await request.post(`${apiBaseUrl}/api/auth/bootstrap`, {
-            headers: {
-                'X-Actor-Email': ceoEmail,
-            },
-            data: {
-                intent: 'signup',
-                email: ceoEmail,
-                name: `HR Guardrails ${stamp}`,
-                picture: null,
-            },
+        const signup = await bootstrapTenant(request, {
+            email: ceoEmail,
+            name: `HR Guardrails ${stamp}`,
         });
-        expect(signupResponse.ok()).toBeTruthy();
-        const signupJson = await signupResponse.json();
-        expect(signupJson.success).toBeTruthy();
-        const tenantId = signupJson.data?.tenant_id;
+        const tenantId = signup?.tenant_id;
         expect(tenantId).toBeTruthy();
+        await verifyCeoPhone(request, { tenantId, email: ceoEmail, phone: ceoPhone });
 
         await page.addInitScript(({ email, tenantId, name }) => {
             window.localStorage.setItem('master_ai_user', JSON.stringify({

@@ -10,6 +10,14 @@ const {
     ensurePredefinedFinancialWorkflows,
     isProtectedPredefinedWorkflow
 } = require('../workflows/financialWorkflowPolicy');
+const {
+    normalizeWorkflowDefinition,
+    validateWorkflowDefinition,
+    buildWorkflowClone,
+    publishWorkflowVersion,
+    archiveWorkflowVersion,
+    resolveEffectiveWorkflow,
+} = require('../workflows/workflowGovernance');
 
 const workflowStore = new WorkflowStore({ backend: process.env.STORAGE_BACKEND || 'local' });
 const STAFF_SELF_HR_TOOL_NAMES = new Set([
@@ -63,24 +71,35 @@ const CUSTOMER_PROPERTY_READ_TOOL_NAMES = new Set([
     'get_public_rate_card',
     'get_amenities',
 ]);
+const STAFF_FINANCE_TOOL_NAMES = new Set([
+    'get_assigned_unit_collection_statuses',
+    'get_unit_collection_status',
+    'record_incoming_txn',
+    'record_outgoing_txn',
+]);
+const CUSTOMER_FINANCE_TOOL_NAMES = new Set([
+    'get_ledger',
+    'get_incoming_txns',
+    'get_txn_details',
+]);
 const CHAT_ACCESS_POLICY = {
     CEO: {
         HRAgent: { mode: 'full' },
         CRMAgent: { mode: 'full' },
         PropertyAI: { mode: 'full' },
-        FinanceAI: { mode: 'reserved_for_v2' },
+        FinanceAI: { mode: 'full' },
     },
     Staff: {
         HRAgent: { mode: 'self_only', toolNames: STAFF_SELF_HR_TOOL_NAMES },
         CRMAgent: { mode: 'operational_full', toolNames: STAFF_CRM_TOOL_NAMES },
         PropertyAI: { mode: 'read_only', toolNames: STAFF_PROPERTY_READ_TOOL_NAMES },
-        FinanceAI: { mode: 'reserved_for_v2' },
+        FinanceAI: { mode: 'assigned_finance', toolNames: STAFF_FINANCE_TOOL_NAMES },
     },
     Customer: {
         HRAgent: { mode: 'none', toolNames: new Set() },
         CRMAgent: { mode: 'self_only', toolNames: CUSTOMER_SELF_CRM_TOOL_NAMES },
         PropertyAI: { mode: 'public_and_own', toolNames: CUSTOMER_PROPERTY_READ_TOOL_NAMES },
-        FinanceAI: { mode: 'reserved_for_v2' },
+        FinanceAI: { mode: 'self_only', toolNames: CUSTOMER_FINANCE_TOOL_NAMES },
     },
 };
 
@@ -179,6 +198,110 @@ class MasterAI extends BaseAgent {
         return {
             ...args,
             tenant_id: args.tenant_id || args.tenantId || tenantId
+        };
+    }
+
+    _getSubAgentByName(agentName) {
+        return this.subAgents.find((agent) => agent.name === agentName) || null;
+    }
+
+    async _safeAssistantContextCall(agentName, toolName, args = {}, tenantId = this.defaultTenantId) {
+        const agent = this._getSubAgentByName(agentName);
+        if (!agent) return null;
+
+        try {
+            return await agent.callTool(toolName, this._buildTenantContextArgs(args, tenantId));
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    async buildSopAssistantContext(workflow = {}, userContext = {}) {
+        const tenantId = this._getTenantIdFromContext(userContext);
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
+        const [
+            crmDashboard,
+            recentLeads,
+            allStaff,
+            properties,
+            units,
+            financeSummary,
+            vendors,
+        ] = await Promise.all([
+            this._safeAssistantContextCall('CRMAgent', 'get_dashboard_stats', {}, normalizedTenantId),
+            this._safeAssistantContextCall('CRMAgent', 'get_recent_leads', { limit: 5 }, normalizedTenantId),
+            this._safeAssistantContextCall('HRAgent', 'get_all_staff', {}, normalizedTenantId),
+            this._safeAssistantContextCall('PropertyAI', 'get_properties', {}, normalizedTenantId),
+            this._safeAssistantContextCall('PropertyAI', 'get_units', {}, normalizedTenantId),
+            this._safeAssistantContextCall('FinanceAI', 'get_financial_summary', {}, normalizedTenantId),
+            this._safeAssistantContextCall('FinanceAI', 'get_vendors', {}, normalizedTenantId),
+        ]);
+
+        const sopRows = this._buildWorkflowFamilyStatusRows(normalizedTenantId);
+        const staffRows = Array.isArray(allStaff) ? allStaff : [];
+        const propertyRows = Array.isArray(properties)
+            ? properties
+            : Array.isArray(properties?.properties) ? properties.properties : [];
+        const unitRows = Array.isArray(units)
+            ? units
+            : Array.isArray(units?.units) ? units.units : [];
+        const vendorRows = Array.isArray(vendors)
+            ? vendors
+            : Array.isArray(vendors?.vendors) ? vendors.vendors : [];
+        const leadRows = Array.isArray(recentLeads)
+            ? recentLeads
+            : Array.isArray(recentLeads?.leads) ? recentLeads.leads : [];
+
+        return {
+            tenant_id: normalizedTenantId,
+            actor_role: userContext?.profile_type || 'Customer',
+            actor_email: userContext?.email || null,
+            selected_sop: {
+                workflow_id: workflow.workflow_id || null,
+                workflow_family: workflow.workflow_family || null,
+                name: workflow.name || null,
+                module_owner: workflow.module_owner || workflow.domain || null,
+                version_type: workflow.version_type || null,
+            },
+            visible_sops: {
+                counts: {
+                    active: sopRows.filter((row) => row.enabled).length,
+                    archived: sopRows.filter((row) => !row.enabled && row.type !== 'system_default').length,
+                    total: sopRows.length,
+                },
+                preview: sopRows.slice(0, 8).map((row) => ({
+                    name: row.name,
+                    workflow_id: row.workflow_id,
+                    state: row.enabled ? 'active' : 'inactive',
+                    note: row.note,
+                })),
+            },
+            crm: {
+                dashboard: crmDashboard || null,
+                recent_leads: leadRows.slice(0, 5).map((lead) => ({
+                    lead_id: lead?.lead_id || lead?.primary_phone || null,
+                    name: lead?.name || null,
+                    status: lead?.status || null,
+                    profile_type: lead?.profile_type || null,
+                })),
+            },
+            hr: {
+                staff_count: staffRows.length,
+                designations: Array.from(new Set(
+                    staffRows
+                        .map((row) => String(row?.designation || '').trim())
+                        .filter(Boolean)
+                )).slice(0, 8),
+            },
+            property: {
+                property_count: propertyRows.length,
+                unit_count: unitRows.length,
+                sample_properties: propertyRows.slice(0, 5).map((row) => row?.name || row?.property_id).filter(Boolean),
+            },
+            finance: {
+                summary: financeSummary || null,
+                vendor_count: vendorRows.length,
+            },
         };
     }
 
@@ -281,6 +404,14 @@ class MasterAI extends BaseAgent {
             return { mode: 'none', toolNames: new Set() };
         }
 
+        if (rule.mode === 'self_only' && agent.name === 'FinanceAI' && !identityContext.ownCrmLead?.lead_id) {
+            return { mode: 'none', toolNames: new Set() };
+        }
+
+        if (rule.mode === 'assigned_finance' && agent.name === 'FinanceAI' && !identityContext.ownStaffMember?.id) {
+            return { mode: 'none', toolNames: new Set() };
+        }
+
         return rule;
     }
 
@@ -355,6 +486,32 @@ class MasterAI extends BaseAgent {
 
         if (agent?.name === 'CRMAgent' && identityContext.role === 'Customer') {
             return this._scopeCustomerCrmArgs(toolName, args, identityContext.ownCrmLead);
+        }
+
+        if (agent?.name === 'FinanceAI') {
+            if (identityContext.role === 'Customer') {
+                const payerId = identityContext.ownCrmLead?.lead_id;
+                if (!payerId) {
+                    throw new Error('Customer finance scope could not be resolved.');
+                }
+                return {
+                    ...args,
+                    payer_id: payerId,
+                };
+            }
+
+            if (identityContext.role === 'Staff') {
+                if (!identityContext.ownStaffMember?.id) {
+                    throw new Error('Staff profile could not be resolved for Finance access.');
+                }
+
+                if (toolName === 'get_assigned_unit_collection_statuses' || toolName === 'get_unit_collection_status') {
+                    return {
+                        ...args,
+                        staff_id: identityContext.ownStaffMember.id,
+                    };
+                }
+            }
         }
 
         return args;
@@ -485,6 +642,418 @@ class MasterAI extends BaseAgent {
         return agentName === 'FinanceAI' && !!FINANCIAL_MUTATION_TOOL_TO_WORKFLOW[toolName];
     }
 
+    _getAllWorkflows() {
+        return workflowStore.list();
+    }
+
+    _getTenantVisibleWorkflows(tenantId = this.defaultTenantId) {
+        return workflowStore.listForTenant(this._normalizeTenantId(tenantId));
+    }
+
+    _getTenantVisibleBusinessWorkflows(tenantId = this.defaultTenantId) {
+        return this._getTenantVisibleWorkflows(tenantId)
+            .filter((workflow) => !workflow?.ui_hidden);
+    }
+
+    _prioritizeWorkflowCandidates(workflows = [], tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
+        const score = (workflow = {}) => {
+            let value = 0;
+            if (workflow.tenant_id === normalizedTenantId) value += 4;
+            if (workflow.effective_for_tenant) value += 2;
+            if (workflow.is_active) value += 1;
+            return value;
+        };
+
+        const byFamily = new Map();
+        workflows.forEach((workflow) => {
+            const key = workflow.workflow_family || workflow.workflow_id;
+            const current = byFamily.get(key);
+            if (!current || score(workflow) > score(current)) {
+                byFamily.set(key, workflow);
+            }
+        });
+        return Array.from(byFamily.values());
+    }
+
+    _formatWorkflowTriggerInPlainEnglish(workflow = {}) {
+        if (workflow.trigger_type === 'schedule' && workflow.schedule) {
+            const schedule = workflow.schedule;
+            const parts = [
+                schedule.frequency,
+                schedule.run_rule,
+                schedule.run_time ? `at ${schedule.run_time}` : null,
+                schedule.timezone ? `(${schedule.timezone})` : null,
+            ].filter(Boolean);
+            return parts.length > 0 ? parts.join(' ') : 'Runs on a schedule.';
+        }
+        return workflow.intent_rule || workflow.intent_description || workflow.trigger_description || 'Trigger rule not defined.';
+    }
+
+    _findWorkflowByNeedle(needle, tenantId = this.defaultTenantId) {
+        const safeNeedle = String(needle || '').trim().toLowerCase();
+        if (!safeNeedle) return null;
+        const candidates = this._prioritizeWorkflowCandidates(
+            this._getTenantVisibleBusinessWorkflows(tenantId),
+            tenantId
+        );
+        const exactId = candidates.find((workflow) => String(workflow.workflow_id || '').toLowerCase() === safeNeedle);
+        if (exactId) return exactId;
+        const exactName = candidates.find((workflow) => String(workflow.name || '').toLowerCase() === safeNeedle);
+        if (exactName) return exactName;
+        const partial = candidates.find((workflow) => {
+            const id = String(workflow.workflow_id || '').toLowerCase();
+            const name = String(workflow.name || '').toLowerCase();
+            return id.includes(safeNeedle) || name.includes(safeNeedle);
+        });
+        return partial || null;
+    }
+
+    _formatWorkflowDetailsForChat(workflow = {}) {
+        const trigger = this._formatWorkflowTriggerInPlainEnglish(workflow);
+        const steps = Array.isArray(workflow.user_view_steps) && workflow.user_view_steps.length > 0
+            ? workflow.user_view_steps
+            : (Array.isArray(workflow.steps) ? workflow.steps.map((step) => step?.description).filter(Boolean) : []);
+        const numberedSteps = steps.length > 0
+            ? steps.map((step, index) => `${index + 1}. ${step}`).join('\n')
+            : '1. No plain-English steps defined yet.';
+        const approval = workflow?.approval?.required
+            ? `Approval required. Initiators: ${(workflow.approval.initiators || []).join(', ') || 'Not specified'}`
+            : 'No approval gate configured.';
+        const failure = workflow?.rollback_policy?.rule || 'No rollback/failure rule defined.';
+        return [
+            `SOP: ${workflow.name || workflow.workflow_id}`,
+            `ID: ${workflow.workflow_id}`,
+            `When it runs: ${trigger}`,
+            '',
+            'Detailed flow:',
+            numberedSteps,
+            '',
+            `Approval: ${approval}`,
+            `Failure rule: ${failure}`,
+            workflow.protected ? 'This is a protected default SOP. Use the portal SOP workspace if you need to prepare a draft.' : 'This SOP has a tenant-owned version available in the portal workspace.',
+        ].join('\n');
+    }
+
+    _extractWorkflowNeedleFromMessage(message = '') {
+        const text = String(message || '').trim();
+        if (!text) return '';
+        const normalizeNeedle = (value = '') => String(value || '')
+            .trim()
+            .replace(/\s+(workflow|sop|procedure)$/i, '')
+            .trim();
+        const quotedMatch = text.match(/["']([^"']+)["']/);
+        if (quotedMatch?.[1]) return normalizeNeedle(quotedMatch[1]);
+        const forMatch = text.match(/(?:workflow|sop|procedure)\s+(?:called|named)?\s*([a-zA-Z0-9_ -]+)/i);
+        if (forMatch?.[1]) return normalizeNeedle(forMatch[1]);
+        const detailsMatch = text.match(/details?\s+on\s+([a-zA-Z0-9_ -]+)/i);
+        if (detailsMatch?.[1]) return normalizeNeedle(detailsMatch[1]);
+        const editMatch = text.match(/(?:edit|clone|archive|delete|validate|publish|update|change|modify)\s+([a-zA-Z0-9_ -]+)/i);
+        if (editMatch?.[1]) return normalizeNeedle(editMatch[1]);
+        return normalizeNeedle(text);
+    }
+
+    _looksLikeWorkflowListRequest(message = '') {
+        const text = String(message || '').toLowerCase();
+        if (/\b(detail|details|explain|edit|modify|change|update|create|new|clone|archive|delete|validate|publish)\b/.test(text)) {
+            return false;
+        }
+        return (/\b(list|lsit|show)\b/.test(text) && /\b(workflows?|sops?|procedures?)\b/.test(text))
+            || (/\bhow many\b/.test(text) && /\b(workflows?|sops?|procedures?)\b/.test(text))
+            || /\blist\s+(it|them)\b/.test(text)
+            || /\blsit\s+(it|them)\b/.test(text)
+            || /\blist\s+all\b/.test(text);
+    }
+
+    _looksLikeWorkflowDetailRequest(message = '') {
+        const text = String(message || '').toLowerCase();
+        return (/\b(detail|details|explain|view)\b/.test(text) && /\b(workflows?|sops?|procedures?)\b/.test(text))
+            || (/\bshow\b/.test(text) && /\bdetails?\b/.test(text) && /\b(workflows?|sops?|procedures?)\b/.test(text))
+            || (/\b(detail|details|show)\b/.test(text) && /\bbill|billing|monthly\b/.test(text));
+    }
+
+    _looksLikeWorkflowEditRequest(message = '') {
+        const text = String(message || '').toLowerCase();
+        return /\b(edit|modify|change|update|create|new|clone|draft)\b/.test(text)
+            && /\b(workflows?|sops?|procedures?)\b/.test(text);
+    }
+
+    _looksLikeWorkflowValidationRequest(message = '') {
+        const text = String(message || '').toLowerCase();
+        return /\b(validate|validation|valid|ready to publish|ready for publish)\b/.test(text)
+            && /\b(workflows?|sops?|procedures?)\b/.test(text);
+    }
+
+    _looksLikeWorkflowLifecycleRequest(message = '') {
+        const text = String(message || '').toLowerCase();
+        return /\b(delete|discard|publish|archive)\b/.test(text)
+            && /\b(workflows?|sops?|procedures?)\b/.test(text);
+    }
+
+    _looksLikeWorkflowStatusRequest(message = '') {
+        const text = String(message || '').toLowerCase();
+        return /\b(active|inactive|enabled|disabled|status)\b/.test(text) && /\b(workflows?|sops?|procedures?)\b/.test(text);
+    }
+
+    _buildWorkflowFamilyStatusRows(tenantId = this.defaultTenantId) {
+        const workflows = this._getTenantVisibleBusinessWorkflows(tenantId);
+        const byFamily = new Map();
+        workflows.forEach((wf) => {
+            const family = wf.workflow_family || wf.workflow_id;
+            if (!byFamily.has(family)) {
+                byFamily.set(family, []);
+            }
+            byFamily.get(family).push(wf);
+        });
+
+        const rows = [];
+        byFamily.forEach((familyRows) => {
+            const template = familyRows.find((wf) => !wf.tenant_id && wf.protected) || null;
+            const tenantVariants = familyRows.filter((wf) => wf.tenant_id === tenantId);
+            const activeTenantVariant = tenantVariants.find((wf) => wf.is_active) || null;
+
+            if (template) {
+                rows.push({
+                    type: 'system_default',
+                    family: template.workflow_family || template.workflow_id,
+                    name: template.name || template.workflow_id,
+                    workflow_id: template.workflow_id,
+                    enabled: !activeTenantVariant,
+                    note: activeTenantVariant ? 'superseded by tenant variant' : 'current runner',
+                });
+            }
+
+            tenantVariants.forEach((variant) => {
+                rows.push({
+                    type: 'user_cloned',
+                    family: variant.workflow_family || variant.workflow_id,
+                    name: variant.name || variant.workflow_id,
+                    workflow_id: variant.workflow_id,
+                    enabled: Boolean(variant.is_active),
+                    note: variant.is_active ? 'current runner' : 'not current runner',
+                });
+            });
+
+            if (!template && tenantVariants.length === 0 && familyRows.length > 0) {
+                familyRows.forEach((wf) => {
+                    rows.push({
+                        type: wf.tenant_id ? 'user_custom' : 'system_default',
+                        family: wf.workflow_family || wf.workflow_id,
+                        name: wf.name || wf.workflow_id,
+                        workflow_id: wf.workflow_id,
+                        enabled: Boolean(wf.is_active),
+                        note: wf.is_active ? 'current runner' : 'not current runner',
+                    });
+                });
+            }
+        });
+
+        return rows;
+    }
+
+    _buildWorkflowListForChat(tenantId = this.defaultTenantId) {
+        const rows = this._buildWorkflowFamilyStatusRows(tenantId);
+        if (rows.length === 0) {
+            return 'No SOPs are visible right now.';
+        }
+        const lines = rows
+            .map((row) => {
+                const typeLabel = row.type === 'system_default'
+                    ? 'System Default'
+                    : (row.type === 'user_cloned' ? 'User Cloned' : 'User Custom');
+                const state = row.enabled ? 'Enabled' : 'Disabled';
+                return `- ${row.name} (${row.workflow_id}) [${typeLabel}] - ${state}`;
+            })
+            .join('\n');
+        return `Visible SOPs (${rows.length}):\n${lines}\n\nSay "show details on <SOP name>" to view the business procedure.`;
+    }
+
+    _buildWorkflowStatusForChat(tenantId = this.defaultTenantId) {
+        const rows = this._buildWorkflowFamilyStatusRows(tenantId);
+        if (rows.length === 0) {
+            return 'No SOP status rows are visible right now.';
+        }
+        const lines = rows
+            .map((row, index) => {
+                const typeLabel = row.type === 'system_default'
+                    ? 'System Default'
+                    : (row.type === 'user_cloned' ? 'User Cloned' : 'User Custom');
+                const state = row.enabled ? 'Enabled' : 'Disabled';
+                return `${index + 1}. ${row.name} (${row.workflow_id}) [${typeLabel}] - ${state} (${row.note})`;
+            })
+            .join('\n');
+        return `SOP status:\n${lines}\n\nRule: only one tenant-published SOP can be live inside the same system template family.`;
+    }
+
+    _buildWorkflowValidationForChat(workflow = {}, tenantId = this.defaultTenantId) {
+        const workflowName = workflow.name || workflow.workflow_id || 'Selected SOP';
+        const workflowState = workflow.version_type === 'archived_snapshot'
+            ? 'Archived'
+            : workflow.version_type === 'tenant_draft'
+                ? 'Draft'
+                : 'Active';
+
+        if (workflow.version_type !== 'tenant_draft') {
+            const liveValidation = String(workflow.validation_status || 'validated').toLowerCase() === 'needs_correction'
+                ? 'Needs correction'
+                : 'Validated';
+            return [
+                'SOP validation:',
+                `- SOP: ${workflowName}`,
+                `- State: ${workflowState}`,
+                `- Result: ${liveValidation}`,
+                '- Note: Validation is mainly used for drafts before publish. This version is not a draft.',
+            ].join('\n');
+        }
+
+        const validation = validateWorkflowDefinition(workflow, {
+            existingWorkflows: this._getAllWorkflows().filter((row) => row.workflow_id !== workflow.workflow_id),
+            isUpdate: true,
+            existingWorkflowId: workflow.workflow_id,
+            mode: 'publish',
+        });
+
+        const lines = [
+            'SOP validation:',
+            `- SOP: ${workflowName}`,
+            `- State: ${workflowState}`,
+            `- Result: ${validation.ok ? 'Ready to publish' : 'Needs correction'}`,
+        ];
+
+        if (validation.ok) {
+            lines.push('- Checks: all required SOP controls are present.');
+        } else {
+            const issues = Array.isArray(validation.errors) ? validation.errors.filter(Boolean) : [];
+            if (issues.length > 0) {
+                lines.push('- Issues:');
+                issues.forEach((issue) => lines.push(`  - ${issue}`));
+            }
+        }
+
+        const warnings = Array.isArray(validation.warnings) ? validation.warnings.filter(Boolean) : [];
+        if (warnings.length > 0) {
+            lines.push('- Warnings:');
+            warnings.forEach((warning) => lines.push(`  - ${warning}`));
+        }
+
+        return lines.join('\n');
+    }
+
+    _tryHandleWorkflowChatIntent(history = [], identityContext = {}) {
+        const lastUserMessage = [...history].reverse().find((entry) => entry?.role === 'user');
+        const text = String(lastUserMessage?.content || '').trim();
+        if (!text) return null;
+
+        const channel = String(identityContext?.channel || '').toLowerCase();
+        const isDetailRequest = this._looksLikeWorkflowDetailRequest(text);
+        const isEditRequest = this._looksLikeWorkflowEditRequest(text);
+        const isValidationRequest = this._looksLikeWorkflowValidationRequest(text);
+        const isLifecycleRequest = this._looksLikeWorkflowLifecycleRequest(text);
+        const isListRequest = this._looksLikeWorkflowListRequest(text);
+        const isStatusRequest = this._looksLikeWorkflowStatusRequest(text);
+        const workflowNeedle = this._extractWorkflowNeedleFromMessage(text);
+
+        if (channel === 'whatsapp') {
+            if (isEditRequest) {
+                return 'I can explain or list SOPs on WhatsApp, but I do not allow creating or changing SOPs here because the WhatsApp environment is not conducive for governed SOP work. Please use the SOP workspace in the portal.';
+            }
+
+            if (isLifecycleRequest) {
+                return 'I can explain and review SOPs on WhatsApp, but publish, archive, or discard actions still happen only in the SOP workspace in the portal.';
+            }
+
+            if (isListRequest) {
+                return this._buildWorkflowListForChat(identityContext.tenantId || this.defaultTenantId);
+            }
+
+            if (isStatusRequest) {
+                return this._buildWorkflowStatusForChat(identityContext.tenantId || this.defaultTenantId);
+            }
+
+            if (isDetailRequest) {
+                const workflow = this._findWorkflowByNeedle(workflowNeedle, identityContext.tenantId || this.defaultTenantId);
+                if (!workflow) {
+                    return workflowNeedle
+                        ? `I could not find an SOP matching "${workflowNeedle}".`
+                        : this._buildWorkflowListForChat(identityContext.tenantId || this.defaultTenantId);
+                }
+                return this._formatWorkflowDetailsForChat(workflow);
+            }
+
+            if (isValidationRequest) {
+                const workflow = this._findWorkflowByNeedle(workflowNeedle, identityContext.tenantId || this.defaultTenantId);
+                if (!workflow) {
+                    return workflowNeedle
+                        ? `I could not find an SOP matching "${workflowNeedle}".`
+                        : this._buildWorkflowListForChat(identityContext.tenantId || this.defaultTenantId);
+                }
+                return this._buildWorkflowValidationForChat(workflow, identityContext.tenantId || this.defaultTenantId);
+            }
+        }
+
+        if (isListRequest || isStatusRequest || isDetailRequest || isEditRequest || isValidationRequest || isLifecycleRequest) {
+            return 'SOP management now happens only inside the SOP workspace in the portal. Open the SOPs module from the sidebar to view, draft, validate, publish, or archive a procedure.';
+        }
+
+        return null;
+    }
+
+    _resolveFinanceWorkflow(toolName, tenantId = this.defaultTenantId) {
+        const canonicalWorkflowId = FINANCIAL_MUTATION_TOOL_TO_WORKFLOW[toolName];
+        if (!canonicalWorkflowId) return null;
+        const workflows = this._getAllWorkflows();
+        const canonical = workflows.find((workflow) => workflow.workflow_id === canonicalWorkflowId);
+        if (!canonical) return null;
+        return resolveEffectiveWorkflow(workflows, canonical.workflow_family, tenantId) || canonical;
+    }
+
+    _validateWorkflowPayload(input = {}, options = {}) {
+        const normalized = normalizeWorkflowDefinition(input, options);
+        const validation = validateWorkflowDefinition(normalized, {
+            existingWorkflows: this._getAllWorkflows(),
+            isUpdate: Boolean(options.existingWorkflow),
+            existingWorkflowId: options.existingWorkflow?.workflow_id || null,
+        });
+        return { normalized, validation };
+    }
+
+    _setActiveWorkflowForTenant(workflowId, tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
+        const workflows = this._getAllWorkflows();
+        const result = publishWorkflowVersion(workflows, workflowId, normalizedTenantId, {
+            now: TimeAuthorityService.nowIST(),
+        });
+        workflowStore.saveAll(result.workflows);
+        return result.workflow;
+    }
+
+    _deactivateTenantWorkflow(workflowId, tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
+        const workflows = this._getAllWorkflows();
+        const result = archiveWorkflowVersion(workflows, workflowId, normalizedTenantId, {
+            now: TimeAuthorityService.nowIST(),
+        });
+        workflowStore.saveAll(result.workflows);
+        return result.workflow;
+    }
+
+    _cloneWorkflowForTenant(workflowId, tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
+        const workflows = this._getAllWorkflows();
+        const source = workflows.find((workflow) => workflow.workflow_id === workflowId);
+        if (!source) {
+            throw new Error(`Workflow '${workflowId}' not found.`);
+        }
+        const clone = buildWorkflowClone(source, { tenant_id: normalizedTenantId });
+        const { validation } = this._validateWorkflowPayload(clone);
+        if (!validation.ok) {
+            throw new Error(validation.errors.join(' '));
+        }
+        workflows.push(clone);
+        workflowStore.saveAll(workflows);
+        return clone;
+    }
+
     _resolveWorkflowParams(templateParams = {}, context = {}) {
         const resolved = {};
         Object.entries(templateParams).forEach(([key, value]) => {
@@ -501,6 +1070,57 @@ class MasterAI extends BaseAgent {
             resolved[key] = value;
         });
         return resolved;
+    }
+
+    async _executeWorkflowDefinition(workflow, context = {}, source = 'workflow', tenantId = this.defaultTenantId) {
+        const normalizedTenantId = this._normalizeTenantId(tenantId);
+        const results = [];
+        this._emitSystemEvent('workflow.started', null, {
+            workflow_id: workflow.workflow_id,
+            workflow_family: workflow.workflow_family,
+            source,
+            tenant_id: normalizedTenantId,
+        });
+
+        try {
+            for (const step of workflow.steps || []) {
+                const stepArgs = this._resolveWorkflowParams(step.params || {}, context || {});
+                const agent = step.agent === this.name
+                    ? this
+                    : this.subAgents.find((candidate) => candidate.name === step.agent);
+                if (!agent) {
+                    throw new Error(`Workflow step agent '${step.agent}' is not connected.`);
+                }
+
+                const result = step.agent === this.name
+                    ? await this.callTool(step.tool, this._buildTenantContextArgs(stepArgs, normalizedTenantId))
+                    : await agent.callTool(step.tool, this._buildTenantContextArgs(stepArgs, normalizedTenantId));
+
+                results.push({
+                    step_id: step.step_id,
+                    agent: step.agent,
+                    tool: step.tool,
+                    result,
+                });
+            }
+
+            this._emitSystemEvent('workflow.ended', null, {
+                workflow_id: workflow.workflow_id,
+                workflow_family: workflow.workflow_family,
+                source,
+                tenant_id: normalizedTenantId,
+            });
+            return { status: 'SUCCESS', workflow_id: workflow.workflow_id, steps: results };
+        } catch (error) {
+            this._emitSystemEvent('workflow.error', null, {
+                workflow_id: workflow.workflow_id,
+                workflow_family: workflow.workflow_family,
+                source,
+                tenant_id: normalizedTenantId,
+                error: error.message,
+            });
+            throw error;
+        }
     }
 
     _isCeoApprover(identity, tenantId = this.defaultTenantId) {
@@ -532,6 +1152,174 @@ class MasterAI extends BaseAgent {
         };
         this._setAuthRequest(authorization_id, normalizedTenantId, request);
         return request;
+    }
+
+    _isProceedConfirmation(message = '') {
+        return /\b(proceed|confirm|go ahead|submit|record this|record it|yes)\b/i.test(String(message || '').trim());
+    }
+
+    _isCancelInstruction(message = '') {
+        return /\b(cancel|stop|ignore|do not proceed|don't proceed)\b/i.test(String(message || '').trim());
+    }
+
+    _formatFinanceWorkflowDate(dateLike = TimeAuthorityService.nowIST()) {
+        const raw = String(dateLike || '');
+        return raw.includes('T') ? raw.slice(0, 10) : raw.slice(0, 10);
+    }
+
+    async _resolveFinanceUnitContextForPayer(payerId, tenantId = this.defaultTenantId) {
+        const propertyAgent = this.subAgents.find((agent) => agent.name === 'PropertyAI');
+        if (!propertyAgent || !payerId) {
+            return { linked_unit_id: undefined, linked_property_id: undefined };
+        }
+
+        try {
+            const units = await propertyAgent.callTool('get_units', this._buildTenantContextArgs({}, tenantId));
+            if (!Array.isArray(units)) {
+                return { linked_unit_id: undefined, linked_property_id: undefined };
+            }
+            const matches = units.filter((unit) => unit && unit.tenant_id === payerId && unit.status !== 'DELETED');
+            if (matches.length !== 1) {
+                return { linked_unit_id: undefined, linked_property_id: undefined };
+            }
+            const matchedUnit = matches[0];
+            return {
+                linked_unit_id: matchedUnit.id || undefined,
+                linked_property_id: matchedUnit.property_id || undefined,
+            };
+        } catch (_error) {
+            return { linked_unit_id: undefined, linked_property_id: undefined };
+        }
+    }
+
+    async _buildWhatsAppIncomingPaymentDraft(message, session, from, tenantId = this.defaultTenantId) {
+        const text = String(message || '').trim();
+        if (!/record incoming payment/i.test(text)) {
+            return null;
+        }
+
+        const amountMatch = text.match(/payment\s+of\s+₹?\s*([\d,]+(?:\.\d+)?)/i);
+        const phoneMatch = text.match(/from\s+(\+?\d[\d\s-]{7,}\d)/i);
+        const modeMatch = text.match(/\bby\s+(UPI|Cash|Payment Gateway|Net Banking)\b/i);
+        if (!amountMatch || !phoneMatch || !modeMatch) {
+            return null;
+        }
+
+        let payerId = null;
+        try {
+            payerId = PhoneNormalizationService.normalizeToE164(phoneMatch[1]);
+        } catch (_error) {
+            return null;
+        }
+
+        const amount = Number(String(amountMatch[1]).replace(/,/g, ''));
+        if (!(amount > 0)) {
+            return null;
+        }
+
+        const paymentMode = modeMatch[1].toUpperCase() === 'NET BANKING' ? 'Net Banking' : modeMatch[1];
+        const contextType = /rent/i.test(text) ? 'RENT_COLLECTION' : 'OTHER';
+        const financeContext = await this._resolveFinanceUnitContextForPayer(payerId, tenantId);
+        const runtimeConfig = this._getRuntimeConfig(tenantId);
+        const conversationRole = this._getConversationRole(session?.leadContext || {}, runtimeConfig?.persona || runtimeConfig);
+        const requesterName = session?.leadContext?.name || payerId || from;
+        const requestedDate = this._formatFinanceWorkflowDate(TimeAuthorityService.nowIST());
+
+        return {
+            type: 'finance_incoming_payment',
+            summary: {
+                amount,
+                payer_id: payerId,
+                payment_mode: paymentMode,
+                payment_date: requestedDate,
+                linked_unit_id: financeContext.linked_unit_id,
+                linked_property_id: financeContext.linked_property_id,
+                note: contextType === 'RENT_COLLECTION' ? 'For current month rent' : 'Finance incoming payment',
+            },
+            toolName: 'record_incoming_txn',
+            args: {
+                payer_id: payerId,
+                amount,
+                payment_mode: paymentMode,
+                date: requestedDate,
+                context_type: contextType,
+                linked_unit_id: financeContext.linked_unit_id,
+                linked_property_id: financeContext.linked_property_id,
+                note: contextType === 'RENT_COLLECTION' ? 'For current month rent' : undefined,
+                requested_by: requesterName,
+                requested_by_role: conversationRole,
+            },
+        };
+    }
+
+    _buildWhatsAppFinanceDraftReply(draft) {
+        const summary = draft?.summary || {};
+        return [
+            "I'll summarize the details for recording the incoming payment:",
+            '',
+            `- Amount: INR ${Number(summary.amount || 0).toLocaleString('en-IN')}`,
+            `- Payer ID: ${summary.payer_id}`,
+            `- Payment Mode: ${summary.payment_mode}`,
+            `- Payment Date: ${summary.payment_date}`,
+            `- Linked Unit: ${summary.linked_unit_id || 'Not linked'}`,
+            `- Note: ${summary.note || 'Finance incoming payment'}`,
+            '',
+            'Reply "Proceed" to create the finance workflow request, or "Cancel" to stop.',
+        ].join('\n');
+    }
+
+    _buildWhatsAppFinanceExecutionReply(result = {}) {
+        if (result?.status === 'PENDING_CEO_AUTHORIZATION') {
+            return `Finance request created and sent for CEO approval.\nAuthorization ID: ${result.authorization_id}\nWorkflow: ${result.workflow_id}`;
+        }
+        if (result?.status === 'REJECTED') {
+            return result?.error || 'Finance workflow could not be authorized.';
+        }
+        return `Finance workflow executed successfully.\nWorkflow: ${result.workflow_id || 'finance_workflow'}`;
+    }
+
+    async _postProcessFinanceWorkflowResult(workflowId, result = {}, tenantId = this.defaultTenantId) {
+        if (workflowId !== 'finance_record_outgoing_txn_v1') {
+            return result;
+        }
+
+        const outgoingStep = Array.isArray(result.steps)
+            ? result.steps.find((step) => step.tool === 'record_outgoing_txn')
+            : null;
+        const vendorConfirmation = outgoingStep?.result?.vendor_confirmation;
+        if (!vendorConfirmation?.recipient_phone || !vendorConfirmation?.message) {
+            return result;
+        }
+
+        const commsAgent = this.subAgents.find((candidate) => candidate.name === 'CommunicationsAI');
+        if (!commsAgent) {
+            return {
+                ...result,
+                warnings: [...(result.warnings || []), 'Vendor payment confirmation could not be sent because CommunicationsAI is not connected.']
+            };
+        }
+
+        try {
+            const confirmationResult = await commsAgent.callTool('send_text_message', this._buildTenantContextArgs({
+                recipient_phone: vendorConfirmation.recipient_phone,
+                content: vendorConfirmation.message,
+            }, tenantId));
+            return {
+                ...result,
+                vendor_confirmation: confirmationResult,
+            };
+        } catch (error) {
+            this._emitSystemEvent('workflow.communication_failed', null, {
+                workflow_id: workflowId,
+                tenant_id: tenantId,
+                recipient_phone: vendorConfirmation.recipient_phone,
+                error: error.message,
+            });
+            return {
+                ...result,
+                warnings: [...(result.warnings || []), `Vendor payment confirmation failed: ${error.message}`]
+            };
+        }
     }
 
     async _syncStaffProfileToCrm(payload = {}, tenantId = this.defaultTenantId) {
@@ -615,25 +1403,29 @@ class MasterAI extends BaseAgent {
 
     async _executeDeterministicFinanceWorkflow(toolName, args, source = 'chat', tenantId = this.defaultTenantId) {
         const normalizedTenantId = this._normalizeTenantId(tenantId);
-        const workflowId = FINANCIAL_MUTATION_TOOL_TO_WORKFLOW[toolName];
-        if (!workflowId) {
+        const workflow = this._resolveFinanceWorkflow(toolName, normalizedTenantId);
+        if (!workflow) {
             throw new Error(`No deterministic workflow mapping found for FinanceAI.${toolName}`);
         }
 
-        const workflow = workflowStore.getById(workflowId);
-        if (!workflow) {
-            throw new Error(`Predefined workflow '${workflowId}' not found for FinanceAI.${toolName}`);
-        }
-
-        const step = (workflow.steps || []).find(s => s.agent === 'FinanceAI' && s.tool === toolName);
-        if (!step) {
-            throw new Error(`Workflow '${workflowId}' does not define FinanceAI.${toolName}`);
+        if (
+            workflow.workflow_family === 'finance_record_correction_txn'
+            && args?.ceo_authorized !== true
+            && String(args?.requested_by_role || '').toLowerCase() !== 'ceo'
+        ) {
+            return {
+                status: 'REJECTED',
+                workflow_id: workflow.workflow_id,
+                workflow_family: workflow.workflow_family,
+                error: 'Only CEO can initiate Correct Finance Entry.',
+            };
         }
 
         if (args?.ceo_authorized !== true) {
-            const pending = this._createFinanceAuthorizationRequest(toolName, args, workflowId, source, normalizedTenantId);
+            const pending = this._createFinanceAuthorizationRequest(toolName, args, workflow.workflow_id, source, normalizedTenantId);
             this._emitSystemEvent('workflow.authorization_requested', null, {
-                workflow_id: workflowId,
+                workflow_id: workflow.workflow_id,
+                workflow_family: workflow.workflow_family,
                 authorization_id: pending.authorization_id,
                 requested_by: pending.requested_by,
                 requested_by_role: pending.requested_by_role,
@@ -642,7 +1434,8 @@ class MasterAI extends BaseAgent {
             });
             return {
                 status: 'PENDING_CEO_AUTHORIZATION',
-                workflow_id: workflowId,
+                workflow_id: workflow.workflow_id,
+                workflow_family: workflow.workflow_family,
                 authorization_id: pending.authorization_id,
                 message: toolName === 'record_incoming_txn'
                     ? 'Incoming payment requires CEO bank-statement confirmation before posting.'
@@ -653,24 +1446,17 @@ class MasterAI extends BaseAgent {
         if (!this._isCeoApprover(args?.approved_by, normalizedTenantId)) {
             return {
                 status: 'REJECTED',
-                workflow_id: workflowId,
+                workflow_id: workflow.workflow_id,
+                workflow_family: workflow.workflow_family,
                 error: 'Only CEO can authorize financial workflow completion.'
             };
         }
-
-        const financeArgs = this._resolveWorkflowParams(step.params || {}, args || {});
-        const financeAgent = this.subAgents.find(a => a.name === 'FinanceAI');
-        if (!financeAgent) {
-            throw new Error('FinanceAI not connected to MasterAI');
-        }
-
-        this._emitSystemEvent('workflow.started', null, { workflow_id: workflowId, source });
-        const result = await financeAgent.callTool(toolName, this._buildTenantContextArgs(financeArgs, normalizedTenantId));
-        this._emitSystemEvent('workflow.ended', null, { workflow_id: workflowId, source });
-
+        const executionResult = await this._executeWorkflowDefinition(workflow, args || {}, source, normalizedTenantId);
+        const result = await this._postProcessFinanceWorkflowResult(workflow.workflow_id, executionResult, normalizedTenantId);
         return {
             ...result,
-            workflow_id: workflowId,
+            workflow_id: workflow.workflow_id,
+            workflow_family: workflow.workflow_family,
             deterministic: true
         };
     }
@@ -706,23 +1492,23 @@ class MasterAI extends BaseAgent {
             if (isProtectedPredefinedWorkflow(args.workflow_id)) {
                 return { success: false, error: `Workflow '${args.workflow_id}' is system-protected and cannot be replaced.` };
             }
-            const workflows = workflowStore.list();
+            const workflows = this._getAllWorkflows();
             if (workflows.find(w => w.workflow_id === args.workflow_id)) {
                 return { success: false, error: `Workflow '${args.workflow_id}' already exists. Use update_workflow instead.` };
             }
-            const newWorkflow = {
-                workflow_id: args.workflow_id,
-                name: args.name || '',
-                description: args.description || '',
-                trigger_event: args.trigger_event,
-                trigger_description: args.trigger_description || '',
-                steps: args.steps,
-                created_at: TimeAuthorityService.nowIST()
-            };
-            workflows.push(newWorkflow);
+            const { normalized, validation } = this._validateWorkflowPayload(args);
+            if (!validation.ok) {
+                return { success: false, error: validation.errors.join(' ') };
+            }
+            workflows.push(normalized);
             workflowStore.saveAll(workflows);
             this._emitSystemEvent('workflow.defined', null, { workflow_id: args.workflow_id });
-            return { success: true, message: `Workflow '${args.workflow_id}' created successfully.` };
+            return {
+                success: true,
+                message: `Workflow '${args.workflow_id}' created successfully.`,
+                workflow: normalized,
+                warnings: validation.warnings,
+            };
         });
 
         this.registerTool('update_workflow', 'Updates an existing operational workflow definition. Use this when the user asks to modify a process.', {
@@ -755,22 +1541,94 @@ class MasterAI extends BaseAgent {
             if (isProtectedPredefinedWorkflow(args.workflow_id)) {
                 return { success: false, error: `Workflow '${args.workflow_id}' is system-protected and cannot be edited directly.` };
             }
-            const workflows = workflowStore.list();
+            const workflows = this._getAllWorkflows();
             const idx = workflows.findIndex(w => w.workflow_id === args.workflow_id);
             if (idx === -1) {
                 return { success: false, error: `Workflow '${args.workflow_id}' not found.` };
             }
-
-            if (args.name !== undefined) workflows[idx].name = args.name;
-            if (args.description !== undefined) workflows[idx].description = args.description;
-            if (args.trigger_event) workflows[idx].trigger_event = args.trigger_event;
-            if (args.trigger_description !== undefined) workflows[idx].trigger_description = args.trigger_description;
-            if (args.steps) workflows[idx].steps = args.steps;
-            workflows[idx].updated_at = TimeAuthorityService.nowIST();
+            const { normalized, validation } = this._validateWorkflowPayload({
+                ...workflows[idx],
+                ...args,
+            }, { existingWorkflow: workflows[idx] });
+            if (!validation.ok) {
+                return { success: false, error: validation.errors.join(' ') };
+            }
+            workflows[idx] = normalized;
 
             workflowStore.saveAll(workflows);
             this._emitSystemEvent('workflow.updated', null, { workflow_id: args.workflow_id });
-            return { success: true, message: `Workflow '${args.workflow_id}' updated successfully.` };
+            return {
+                success: true,
+                message: `Workflow '${args.workflow_id}' updated successfully.`,
+                workflow: normalized,
+                warnings: validation.warnings,
+            };
+        });
+
+        this.registerTool('clone_workflow_for_tenant', 'Clone a protected or shared workflow into the current tenant for customization.', {
+            type: 'object',
+            properties: {
+                workflow_id: { type: 'string' },
+                tenant_id: { type: 'string' }
+            },
+            required: ['workflow_id']
+        }, async (args = {}) => {
+            try {
+                const tenantId = this._getTenantIdFromContext(args);
+                const clone = this._cloneWorkflowForTenant(args.workflow_id, tenantId);
+                this._emitSystemEvent('workflow.cloned', null, {
+                    workflow_id: clone.workflow_id,
+                    clone_of_workflow_id: args.workflow_id,
+                    tenant_id: tenantId,
+                });
+                return { success: true, workflow: clone };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        });
+
+        this.registerTool('activate_workflow', 'Activate a tenant workflow and ensure only one active workflow exists in that family for the tenant.', {
+            type: 'object',
+            properties: {
+                workflow_id: { type: 'string' },
+                tenant_id: { type: 'string' }
+            },
+            required: ['workflow_id']
+        }, async (args = {}) => {
+            try {
+                const tenantId = this._getTenantIdFromContext(args);
+                const workflow = this._setActiveWorkflowForTenant(args.workflow_id, tenantId);
+                this._emitSystemEvent('workflow.activated', null, {
+                    workflow_id: workflow.workflow_id,
+                    workflow_family: workflow.workflow_family,
+                    tenant_id: tenantId,
+                });
+                return { success: true, workflow };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        });
+
+        this.registerTool('deactivate_workflow', 'Deactivate a tenant workflow so the protected template becomes the effective fallback again.', {
+            type: 'object',
+            properties: {
+                workflow_id: { type: 'string' },
+                tenant_id: { type: 'string' }
+            },
+            required: ['workflow_id']
+        }, async (args = {}) => {
+            try {
+                const tenantId = this._getTenantIdFromContext(args);
+                const workflow = this._deactivateTenantWorkflow(args.workflow_id, tenantId);
+                this._emitSystemEvent('workflow.deactivated', null, {
+                    workflow_id: workflow.workflow_id,
+                    workflow_family: workflow.workflow_family,
+                    tenant_id: tenantId,
+                });
+                return { success: true, workflow };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
         });
 
         this.registerTool('list_pending_financial_workflow_requests', 'List all pending CEO authorization requests for financial workflows.', {
@@ -992,6 +1850,7 @@ class MasterAI extends BaseAgent {
             leadContext: leadContext,
             recentSessions: recentSessions,
             messages: [],
+            pendingFinanceDraft: null,
             timeoutId: setTimeout(() => this.flushSession(sessionMapKey), this.SESSION_TIMEOUT_MS)
         };
 
@@ -1305,7 +2164,23 @@ Rules:
             const ownCrmLead = !isCEO
                 ? await this._resolveOwnCrmLead(userContext || {}, tenantId)
                 : null;
-            const identityContext = { role, ownStaffMember, ownCrmLead, tenantId };
+            const identityContext = { role, ownStaffMember, ownCrmLead, tenantId, channel: userContext?.channel || null };
+
+            const workflowIntentReply = this._tryHandleWorkflowChatIntent(history, identityContext);
+            if (workflowIntentReply) {
+                const timestampIST = TimeAuthorityService.nowIST();
+                const display = DateFormatterService.format(
+                    timestampIST,
+                    userContext?.timezone || 'Asia/Kolkata',
+                    userContext?.date_format || 'DD-MM-YYYY'
+                );
+                return {
+                    role: 'assistant',
+                    content: workflowIntentReply,
+                    timestamp_ist: timestampIST,
+                    ...display,
+                };
+            }
 
             // Collect tools from all other agents
             const allTools = [];
@@ -1404,8 +2279,9 @@ Rules:
                 - If the staff member asks for their own HR profile, salary, leaves, compensation, or incentives, you MUST use the available HR self tools and answer only from the retrieved record. Do not guess or infer HR details from persona text.
                 - For CRM, you may use the operational CRM toolset across the tenant, including lead lookup and status/note updates, but you must avoid identity-destructive actions.
                 - For Property, you may use read-only operational property tools only. You must refuse any property mutation request.
+                - For Finance, you may view only current-month collection details for units assigned to this staff member. You may initiate incoming or outgoing finance requests, but these requests must wait for CEO approval before execution.
                 - You must NOT reveal AI architecture, sub-agent names, tool prefixes, or system internals.
-                - You must NOT share individual tenant financial details (specific amounts, payment history) unless the staff member's role requires it.
+                - You must NOT share finance details outside the assigned-unit current-month scope. No strategic totals, full ledger history, or payroll-wide visibility.
                 - You must NOT reveal that you are an AI "Orchestrator" routing tasks to other AI models.
                 - Act as ${publicPersona.name}, the ${publicPersona.role}. Treat this as a professional internal conversation.`;
                 if (ownStaffMember?.id) {
@@ -1419,6 +2295,7 @@ Rules:
                 - You MAY share: available room types, pricing (public rate card), amenities, location details, visit scheduling, their own booking status, their own payment dues, their own CRM status, and their own booking-linked property context.
                 - For CRM, you may only access this user's own CRM profile and timeline.
                 - For Property, you may only access public inventory/rate information and this user's own booking-linked property context.
+                - For Finance, you may only access this user's own dues, own received payments, and their own current-month finance context.
                 - If the user asks about their own CRM record, booking-linked property context, available units, property amenities, or public pricing, you MUST use the allowed CRM/Property tools and answer only from the retrieved data. Do not guess or claim absence without checking the tools first.
                 - You must NOT share any HR information, employee roster data, salary information, or internal staff contact details.
                 - You must NOT share: other tenants' information, internal staff details, occupancy numbers, business revenue, operational costs, or any internal metrics.
@@ -1513,15 +2390,29 @@ Rules:
                             scopedArgs,
                             history
                         );
+                        const enrichedArgs = {
+                            ...args,
+                            requested_by: userContext?.email
+                                || ownStaffMember?.name
+                                || ownCrmLead?.name
+                                || userContext?.phone
+                                || userContext?.lead_id
+                                || null,
+                            requested_by_role: identityContext.role,
+                        };
+                        if (identityContext.role === 'CEO') {
+                            enrichedArgs.ceo_authorized = true;
+                            enrichedArgs.approved_by = userContext?.email || runtimePersona?.ceo_email || null;
+                        }
                         console.log(`[MasterAI] Iteration ${iteration}: Calling ${toolName} on ${agent.name}`);
 
                         let result;
                         try {
                             this._emitSystemEvent('tool.execution_start', null, { tool: toolName, agent: agent.name });
                             if (this._isFinanceMutationTool(agent.name, toolName)) {
-                                result = await this._executeDeterministicFinanceWorkflow(toolName, args, 'chat', executionTenantId);
+                                result = await this._executeDeterministicFinanceWorkflow(toolName, enrichedArgs, 'chat', executionTenantId);
                             } else {
-                                result = await agent.callTool(toolName, args);
+                                result = await agent.callTool(toolName, enrichedArgs);
                             }
                             result = this._sanitizeChatToolResult(agent, toolName, result, identityContext);
                             this._emitSystemEvent('tool.execution_end', null, { tool: toolName, agent: agent.name, result });
@@ -1608,18 +2499,81 @@ Rules:
 
             // 1. Get/Create Session (Manages Context & Timeout)
             const session = await this.getOrCreateSession(from, { ...(event.context || {}), tenant_id: tenantId });
+            const runtimeConfig = this._getRuntimeConfig(tenantId || session.tenantId);
+            const conversationRole = this._getConversationRole(session.leadContext || {}, runtimeConfig?.persona || runtimeConfig);
 
             this._emitSystemEvent('workflow.started', session.leadId || from, { source, from, tenant_id: tenantId || session.tenantId });
 
             // 2. Buffer User Message
             session.messages.push({ role: 'user', content: text, timestamp: TimeAuthorityService.nowIST() });
 
+            if (source === 'whatsapp') {
+                if (session.pendingFinanceDraft && this._isCancelInstruction(text)) {
+                    session.pendingFinanceDraft = null;
+                    const cancelReply = 'Finance workflow draft cancelled. No financial request was created.';
+                    session.messages.push({ role: 'assistant', content: cancelReply, timestamp: TimeAuthorityService.nowIST() });
+                    const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
+                    const normFrom = PhoneNormalizationService.normalizeToE164(from);
+                    if (commsAgent) {
+                        await commsAgent.callTool('send_text_message', {
+                            recipient_phone: normFrom,
+                            content: cancelReply
+                        });
+                    }
+                    this._emitSystemEvent('workflow.ended', session.leadId || from, { source, from, tenant_id: tenantId || session.tenantId });
+                    return;
+                }
+
+                if (session.pendingFinanceDraft && this._isProceedConfirmation(text)) {
+                    const draft = session.pendingFinanceDraft;
+                    const workflowArgs = {
+                        ...draft.args,
+                        tenant_id: tenantId || session.tenantId,
+                    };
+                    if (conversationRole === 'CEO') {
+                        workflowArgs.ceo_authorized = true;
+                        workflowArgs.approved_by = session.leadContext?.email || from;
+                    }
+                    const result = await this._executeDeterministicFinanceWorkflow(draft.toolName, workflowArgs, 'whatsapp', tenantId || session.tenantId);
+                    const reply = this._buildWhatsAppFinanceExecutionReply(result);
+                    session.pendingFinanceDraft = null;
+                    session.messages.push({ role: 'assistant', content: reply, timestamp: TimeAuthorityService.nowIST() });
+                    const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
+                    const normFrom = PhoneNormalizationService.normalizeToE164(from);
+                    if (commsAgent) {
+                        await commsAgent.callTool('send_text_message', {
+                            recipient_phone: normFrom,
+                            content: reply
+                        });
+                    }
+                    this._emitSystemEvent('workflow.ended', session.leadId || from, { source, from, tenant_id: tenantId || session.tenantId });
+                    return;
+                }
+
+                const financeDraft = await this._buildWhatsAppIncomingPaymentDraft(text, session, from, tenantId || session.tenantId);
+                if (financeDraft) {
+                    session.pendingFinanceDraft = financeDraft;
+                    const draftReply = this._buildWhatsAppFinanceDraftReply(financeDraft);
+                    session.messages.push({ role: 'assistant', content: draftReply, timestamp: TimeAuthorityService.nowIST() });
+                    const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
+                    const normFrom = PhoneNormalizationService.normalizeToE164(from);
+                    if (commsAgent) {
+                        await commsAgent.callTool('send_text_message', {
+                            recipient_phone: normFrom,
+                            content: draftReply
+                        });
+                    }
+                    this._emitSystemEvent('workflow.ended', session.leadId || from, { source, from, tenant_id: tenantId || session.tenantId });
+                    return;
+                }
+            }
+
             // 3. Prepare Context for Brain (System + Memory)
             // Flatten session messages for LLM
             const history = session.messages.map(m => ({ role: m.role, content: m.content }));
 
             // 4. Autonomous Decision (Chat) - Pass the CRM Context as User Identity
-            const response = await this.chat(history, { ...(session.leadContext || {}), tenant_id: tenantId || session.tenantId });
+            const response = await this.chat(history, { ...(session.leadContext || {}), tenant_id: tenantId || session.tenantId, channel: source });
 
             // 5. Handle Response
             if (response && response.content) {

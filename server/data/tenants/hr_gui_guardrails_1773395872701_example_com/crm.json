@@ -1,0 +1,205 @@
+{
+    "leads": {
+        "+917695872701": {
+            "lead_id": "+917695872701",
+            "name": "HR Guardrails 1773395872701",
+            "profile_type": "CEO",
+            "email": "hr.gui.guardrails.1773395872701@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+917695872701",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "System",
+                "detail": "ceo.verified"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T15:27:53.268+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918695872701": {
+            "lead_id": "+918695872701",
+            "name": "HR Guardrails 1773395872701",
+            "profile_type": "Staff",
+            "email": "staff.guardrails.1773395872701@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+918695872701",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "HR",
+                "detail": "staff.hired"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T15:27:58.805+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        }
+    },
+    "timelines": {
+        "+917695872701": [
+            {
+                "event_id": "EVT-1773395873269-331",
+                "timestamp": "2026-03-13T15:27:53.269+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T15:27:53.268+05:30"
+            }
+        ],
+        "+918695872701": [
+            {
+                "event_id": "EVT-1773395878805-636",
+                "timestamp": "2026-03-13T15:27:58.805+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T15:27:58.805+05:30"
+            },
+            {
+                "event_id": "EVT-1773396786215-943",
+                "timestamp": "2026-03-13T15:43:06.215+05:30",
+                "type": "SESSION",
+                "lead_id": "+918695872701",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+918695872701",
+                    "MasterAI"
+                ],
+                "summary": "The conversation touches upon HR guardrails, indicating a focus on organizational policies and procedures. There was a mention of a specific ID, possibly for tracking or reference purposes.",
+                "sentiment": "Neutral",
+                "tone": "Formal",
+                "financial_impact": "None",
+                "compliance_impact": "May involve compliance review related to HR policies.",
+                "tenant_id": "hr_gui_guardrails_1773395872701_example_com",
+                "links": {
+                    "artifacts": [],
+                    "related_event_ids": []
+                }
+            }
+        ]
+    },
+    "mergeReviews": {},
+    "lastUpdatedAt": "2026-03-16T12:26:58.465+05:30",
+    "businessConfig": {
+        "tenant_id": "hr_gui_guardrails_1773395872701_example_com",
+        "business_name": "HR Guardrails 1773395872701's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773395872701",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773395872701@example.com",
+            "ceo_phone": "+917695872701",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:27:53.265+05:30"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        },
+        "account_status": "ACTIVE"
+    }
+}

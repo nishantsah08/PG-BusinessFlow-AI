@@ -90,7 +90,7 @@ test.describe('WhatsApp HR role routing', () => {
         await clearThread(request, staffPhone);
         await clearThread(request, customerPhone);
 
-        await sendWhatsApp(request, ceoPhone, 'List the current active staff members with their primary phone numbers.');
+        await sendWhatsApp(request, ceoPhone, `In HR, show the staff member with primary phone ${staffPhone}.`);
         const ceoReply = await waitForOutboundReply(request, ceoPhone);
         expect(ceoReply).toContain(staffName);
         expect(ceoReply).toContain(staffPhone);
