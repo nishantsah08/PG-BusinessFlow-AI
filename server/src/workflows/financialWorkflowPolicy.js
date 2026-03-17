@@ -1,5 +1,6 @@
 const TimeAuthorityService = require('../services/TimeAuthorityService');
 const { normalizeWorkflowDefinition } = require('./workflowGovernance');
+const { attachWhatsAppTemplates } = require('../config/whatsappSopTemplates');
 
 const FINANCIAL_MUTATION_TOOL_TO_WORKFLOW = {
     onboard_tenant_contract: 'finance_onboard_tenant_contract_v1',
@@ -859,11 +860,12 @@ function ensurePredefinedFinancialWorkflows(workflowStore) {
     let changed = false;
 
     for (const canonical of PREDEFINED_FINANCIAL_WORKFLOWS) {
+        const canonicalWithTemplates = attachWhatsAppTemplates(canonical);
         const current = byId.get(canonical.workflow_id);
         if (!current) {
             const normalized = normalizeWorkflowDefinition({
-                ...canonical,
-                sop_document: canonical.sop_document ?? null,
+                ...canonicalWithTemplates,
+                sop_document: canonicalWithTemplates.sop_document ?? null,
                 version_type: 'system_template',
                 created_at: TimeAuthorityService.nowIST(),
             }, { allowIncomplete: false });
@@ -874,8 +876,8 @@ function ensurePredefinedFinancialWorkflows(workflowStore) {
 
         const normalized = normalizeWorkflowDefinition({
             ...current,
-            ...canonical,
-            sop_document: canonical.sop_document ?? null,
+            ...canonicalWithTemplates,
+            sop_document: canonicalWithTemplates.sop_document ?? null,
             version_type: 'system_template',
             created_at: current.created_at || canonical.created_at || TimeAuthorityService.nowIST(),
             updated_at: TimeAuthorityService.nowIST(),

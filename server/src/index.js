@@ -136,9 +136,11 @@ const ADMIN_ADAPTER_POLICY = {
         'get_property_metrics',
     ]),
     CommunicationsAI: new Set([
+        'send_whatsapp_message',
         'send_text_message',
         'send_media_message',
         'send_template_message',
+        'get_whatsapp_conversation_window',
         'send_location_message',
         'send_contact_message',
         'send_interactive_message',
@@ -240,6 +242,7 @@ const ADMIN_ROLE_PERMISSIONS = {
             'get_work_orders',
         ]),
         CommunicationsAI: new Set([
+            'send_whatsapp_message',
             'send_text_message',
             'send_media_message',
             'send_template_message',
@@ -267,6 +270,7 @@ const ADMIN_ROLE_PERMISSIONS = {
             'get_txn_details',
         ]),
         CommunicationsAI: new Set([
+            'send_whatsapp_message',
             'send_text_message',
             'check_contact_status',
         ]),

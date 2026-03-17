@@ -1,5 +1,6 @@
 const CommunicationsAI = require('../../server/src/agents/CommunicationsAI');
 const MockWhatsAppProvider = require('./mocks/MockWhatsAppProvider');
+const WhatsAppConversationWindowService = require('../../server/src/services/WhatsAppConversationWindowService');
 const axios = require('axios');
 
 // Mock axios
@@ -15,6 +16,7 @@ describe('Communications AI Regression Suite', () => {
         process.env.WHATSAPP_TOKEN = 'mock_token';
         commsAI = new CommunicationsAI();
         mockProvider = new MockWhatsAppProvider();
+        WhatsAppConversationWindowService.clearAll();
         jest.clearAllMocks();
     });
 
@@ -81,6 +83,55 @@ describe('Communications AI Regression Suite', () => {
 
         expect(result.status).toBe("error");
         expect(result.error.error.message).toBe("Service Down");
+    });
+
+    test('ID3: Policy send should use free text when customer window is open', async () => {
+        const payload = mockProvider.createIncomingMessage("15550001234", "Hello World", "wamid.window001");
+        await commsAI.callTool('handle_incoming_message', { payload });
+        axios.post.mockResolvedValue({ data: mockProvider.mockSendResponse({ to: "15550001234", body: "Reply in window" }) });
+
+        const result = await commsAI.callTool('send_whatsapp_message', {
+            recipient_phone: "15550001234",
+            content: "Reply in window",
+            fallback_template_name: 'rent_due_cycle_en'
+        });
+
+        expect(result.status).toBe("success");
+        expect(result.dispatch_mode).toBe("free_text");
+        expect(result.conversation_window.window_open).toBe(true);
+        expect(axios.post).toHaveBeenCalledWith(
+            expect.stringContaining("/messages"),
+            expect.objectContaining({
+                type: "text",
+                text: { body: "Reply in window", preview_url: false }
+            }),
+            expect.any(Object)
+        );
+    });
+
+    test('ID4: Policy send should fall back to template when customer window is closed', async () => {
+        axios.post.mockResolvedValue({ data: mockProvider.mockSendResponse({ to: "15550001234" }) });
+
+        const result = await commsAI.callTool('send_whatsapp_message', {
+            recipient_phone: "15550001234",
+            content: "Proactive payment reminder",
+            fallback_template_name: 'rent_due_cycle_en'
+        });
+
+        expect(result.status).toBe("success");
+        expect(result.dispatch_mode).toBe("template_fallback");
+        expect(result.conversation_window.window_open).toBe(false);
+        expect(axios.post).toHaveBeenCalledWith(
+            expect.stringContaining("/messages"),
+            expect.objectContaining({
+                type: "template",
+                template: expect.objectContaining({
+                    name: "rent_due_cycle_en",
+                    language: { code: "en" }
+                })
+            }),
+            expect.any(Object)
+        );
     });
 
     // --- Invariant: IC1 (Unsupported Media - Adapter Logic) ---

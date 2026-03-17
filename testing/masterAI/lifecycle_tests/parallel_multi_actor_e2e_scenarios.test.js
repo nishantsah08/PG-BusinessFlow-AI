@@ -98,7 +98,7 @@ describe('Parallel Multi-Actor E2E Scenario Tests', () => {
         const outbound = await Promise.all([
             comms.callTool('send_template_message', {
                 recipient_phone: '+919100000001',
-                template_name: 'v1_hello_en'
+                template_name: 'rent_due_cycle_en'
             }),
             comms.callTool('send_text_message', {
                 recipient_phone: '+919100000002',
@@ -124,7 +124,7 @@ describe('Parallel Multi-Actor E2E Scenario Tests', () => {
 
         const locationTemplate = await comms.callTool('send_template_message', {
             recipient_phone: tenantPhone,
-            template_name: 'v1_location_en'
+            template_name: 'onboarding_confirmation_en'
         });
         expect(locationTemplate.status).toBe('success');
 

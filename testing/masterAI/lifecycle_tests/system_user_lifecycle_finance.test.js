@@ -21,6 +21,11 @@ describe('System User Life Cycle Test - Deterministic Financial Workflows', () =
         expect(wf.user_view_title).toBeTruthy();
         expect(Array.isArray(wf.user_view_steps)).toBe(true);
         expect(wf.user_view_steps.length).toBeGreaterThan(0);
+        expect(Array.isArray(wf.whatsapp_templates)).toBe(true);
+        expect(wf.whatsapp_templates[0]).toEqual(expect.objectContaining({
+            template_name: 'payment_received_confirmation_en',
+            purpose: 'payment_acknowledgement',
+        }));
     });
 
     test('System User Life Cycle Test: incoming payment is blocked until CEO authorization', async () => {
@@ -59,6 +64,15 @@ describe('System User Life Cycle Test - Deterministic Financial Workflows', () =
         expect(result.status).toBe('SUCCESS');
         expect(result.workflow_id).toBe('finance_record_incoming_txn_v1');
         expect(result.deterministic).toBe(true);
+        expect(result.communication_plan).toEqual(expect.objectContaining({
+            channel: 'whatsapp',
+            templates: expect.arrayContaining([
+                expect.objectContaining({
+                    template_name: 'payment_received_confirmation_en',
+                    purpose: 'payment_acknowledgement',
+                }),
+            ]),
+        }));
         expect(financeAI.transactions.length).toBe(1);
     });
 
@@ -93,7 +107,7 @@ describe('System User Life Cycle Test - Deterministic Financial Workflows', () =
 
             const result = approval.result;
             expect(result.status).toBe('SUCCESS');
-            expect(result.workflow_id).toBe('finance_record_outgoing_txn_v1');
+            expect(String(result.workflow_family || '')).toBe('finance_record_outgoing_txn');
             expect(result.deterministic).toBe(true);
         }
 

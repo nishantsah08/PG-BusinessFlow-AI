@@ -2,6 +2,7 @@ const BaseAgent = require('./BaseAgent');
 const WhatsAppAdapter = require('./WhatsAppAdapter');
 const TimeAuthorityService = require('../services/TimeAuthorityService');
 const { getTemplateByName } = require('../config/whatsappTemplates');
+const WhatsAppConversationWindowService = require('../services/WhatsAppConversationWindowService');
 
 class CommunicationsAI extends BaseAgent {
     constructor() {
@@ -15,9 +16,11 @@ class CommunicationsAI extends BaseAgent {
                 skills: ['WhatsApp Messaging', 'Media Handling', 'Profile Management'],
                 tools: [
                     'handle_portal_message',
+                    'send_whatsapp_message',
                     'send_text_message',
                     'send_media_message',
                     'send_template_message',
+                    'get_whatsapp_conversation_window',
                     'send_location_message',
                     'send_contact_message',
                     'send_interactive_message',
@@ -111,6 +114,60 @@ class CommunicationsAI extends BaseAgent {
 
         // --- Outbound Messaging ---
 
+        this.registerTool('send_whatsapp_message', 'Send WhatsApp outbound with free-text first and template fallback when the customer window is closed', {
+            type: 'object',
+            properties: {
+                recipient_phone: { type: 'string' },
+                content: { type: 'string' },
+                preview_url: { type: 'boolean' },
+                fallback_template_name: { type: 'string' },
+                fallback_language_code: { type: 'string' },
+                fallback_components: { type: 'array', items: { type: 'object' } },
+                correlation_id: { type: 'string' }
+            },
+            required: ['recipient_phone', 'content']
+        }, async (args) => {
+            const windowStatus = WhatsAppConversationWindowService.getWindowStatus(args.recipient_phone);
+            let result = null;
+            let dispatchMode = 'free_text';
+
+            if (windowStatus.window_open) {
+                result = await this.whatsapp.sendTextMessage(args.recipient_phone, args.content, args.preview_url);
+            } else {
+                const templateName = String(args.fallback_template_name || '').trim();
+                if (!templateName) {
+                    return {
+                        status: 'error',
+                        error: 'Free-form WhatsApp window is closed and no approved template fallback was provided.',
+                        conversation_window: windowStatus
+                    };
+                }
+
+                const template = getTemplateByName(templateName);
+                if (!template) {
+                    return {
+                        status: 'error',
+                        error: `Template '${templateName}' not present in local template inventory.`,
+                        conversation_window: windowStatus
+                    };
+                }
+
+                dispatchMode = 'template_fallback';
+                const languageCode = args.fallback_language_code || template.language;
+                result = await this.whatsapp.sendTemplateMessage(
+                    args.recipient_phone,
+                    templateName,
+                    languageCode,
+                    Array.isArray(args.fallback_components) ? args.fallback_components : []
+                );
+            }
+
+            result.dispatch_mode = dispatchMode;
+            result.conversation_window = windowStatus;
+            if (args.correlation_id) result.correlation_id = args.correlation_id;
+            return result;
+        });
+
         this.registerTool('send_text_message', 'Send simple text via WhatsApp', {
             type: 'object',
             properties: {
@@ -168,6 +225,19 @@ class CommunicationsAI extends BaseAgent {
                 languageCode,
                 args.components
             );
+        });
+
+        this.registerTool('get_whatsapp_conversation_window', 'Get internally tracked WhatsApp customer-service window status for a phone', {
+            type: 'object',
+            properties: {
+                recipient_phone: { type: 'string' }
+            },
+            required: ['recipient_phone']
+        }, async (args) => {
+            return {
+                status: 'success',
+                data: WhatsAppConversationWindowService.getWindowStatus(args.recipient_phone)
+            };
         });
 
         this.registerTool('send_location_message', 'Send location pin via WhatsApp', {
@@ -274,6 +344,7 @@ class CommunicationsAI extends BaseAgent {
         }, async (args) => {
             const rawEvent = await this.whatsapp.handleIncomingMessage(args.payload);
             if (!rawEvent) return null;
+            WhatsAppConversationWindowService.recordInboundMessage(rawEvent.from, rawEvent.timestamp);
 
             // Enshrine System Reliability Layer
             const processingTime = TimeAuthorityService.nowIST();

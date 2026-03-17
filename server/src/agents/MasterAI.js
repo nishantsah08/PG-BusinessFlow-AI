@@ -10,6 +10,7 @@ const {
     ensurePredefinedFinancialWorkflows,
     isProtectedPredefinedWorkflow
 } = require('../workflows/financialWorkflowPolicy');
+const { getWhatsAppTemplatesForWorkflowId } = require('../config/whatsappSopTemplates');
 const {
     normalizeWorkflowDefinition,
     validateWorkflowDefinition,
@@ -1453,11 +1454,19 @@ class MasterAI extends BaseAgent {
         }
         const executionResult = await this._executeWorkflowDefinition(workflow, args || {}, source, normalizedTenantId);
         const result = await this._postProcessFinanceWorkflowResult(workflow.workflow_id, executionResult, normalizedTenantId);
+        const whatsappTemplates = getWhatsAppTemplatesForWorkflowId(workflow.workflow_id);
         return {
             ...result,
             workflow_id: workflow.workflow_id,
             workflow_family: workflow.workflow_family,
-            deterministic: true
+            deterministic: true,
+            communication_plan: whatsappTemplates.length > 0
+                ? {
+                    channel: 'whatsapp',
+                    window_policy: 'prefer_free_text_then_template',
+                    templates: whatsappTemplates,
+                }
+                : undefined
         };
     }
 
@@ -2515,7 +2524,7 @@ Rules:
                     const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
                     const normFrom = PhoneNormalizationService.normalizeToE164(from);
                     if (commsAgent) {
-                        await commsAgent.callTool('send_text_message', {
+                        await commsAgent.callTool('send_whatsapp_message', {
                             recipient_phone: normFrom,
                             content: cancelReply
                         });
@@ -2541,7 +2550,7 @@ Rules:
                     const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
                     const normFrom = PhoneNormalizationService.normalizeToE164(from);
                     if (commsAgent) {
-                        await commsAgent.callTool('send_text_message', {
+                        await commsAgent.callTool('send_whatsapp_message', {
                             recipient_phone: normFrom,
                             content: reply
                         });
@@ -2558,7 +2567,7 @@ Rules:
                     const commsAgent = this.subAgents.find(a => a.name === 'CommunicationsAI');
                     const normFrom = PhoneNormalizationService.normalizeToE164(from);
                     if (commsAgent) {
-                        await commsAgent.callTool('send_text_message', {
+                        await commsAgent.callTool('send_whatsapp_message', {
                             recipient_phone: normFrom,
                             content: draftReply
                         });
@@ -2587,7 +2596,7 @@ Rules:
                 const normFrom = PhoneNormalizationService.normalizeToE164(from);
 
                 if (commsAgent && source === 'whatsapp') {
-                    await commsAgent.callTool('send_text_message', {
+                    await commsAgent.callTool('send_whatsapp_message', {
                         recipient_phone: normFrom,
                         content: response.content
                     });
