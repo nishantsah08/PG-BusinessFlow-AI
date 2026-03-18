@@ -1,0 +1,232 @@
+{
+    "leads": {
+        "+917595764317": {
+            "lead_id": "+917595764317",
+            "name": "HR GUI QA 1773395764317",
+            "profile_type": "CEO",
+            "email": "hr.gui.qa.1773395764317@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+917595764317",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "System",
+                "detail": "ceo.verified"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T15:26:04.747+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918895764317": {
+            "lead_id": "+918895764317",
+            "name": "HR QA 1773395764317 Updated",
+            "profile_type": "Staff",
+            "email": "staff.updated.1773395764317@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+918895764317",
+                    "whatsapp": true
+                },
+                "others": [
+                    {
+                        "number": "+917795764317",
+                        "label": "HR Staff Contact",
+                        "whatsapp": false
+                    }
+                ]
+            },
+            "source": {
+                "category": "Operational Update",
+                "detail": "HR GUI QA"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T15:26:10.337+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        }
+    },
+    "timelines": {
+        "+917595764317": [
+            {
+                "event_id": "EVT-1773395764747-967",
+                "timestamp": "2026-03-13T15:26:04.747+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T15:26:04.747+05:30"
+            }
+        ],
+        "+918895764317": [
+            {
+                "event_id": "EVT-1773395770337-926",
+                "timestamp": "2026-03-13T15:26:10.337+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T15:26:10.337+05:30"
+            },
+            {
+                "event_id": "EVT-1773396681974-825",
+                "timestamp": "2026-03-13T15:41:21.974+05:30",
+                "type": "SESSION",
+                "lead_id": "+918895764317",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+918895764317",
+                    "MasterAI"
+                ],
+                "summary": "The conversation involves a ping related to HR GUI quality assurance, possibly referencing a specific task or issue indicated by the number provided.",
+                "sentiment": "Neutral",
+                "tone": "Casual",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "hr_gui_qa_1773395764317_example_com",
+                "links": {
+                    "artifacts": [],
+                    "related_event_ids": []
+                }
+            },
+            {
+                "event_id": "EVT-1773396686784-484",
+                "timestamp": "2026-03-13T15:41:26.784+05:30",
+                "type": "SESSION",
+                "lead_id": "+918895764317",
+                "interaction_type": "WhatsApp Conversation",
+                "participants": [
+                    "+917795764317",
+                    "MasterAI"
+                ],
+                "summary": "The HR GUI QA has been updated, which may affect the quality assurance process within the organization. The discussion appears to revolve around operational protocols associated with Human Resources.",
+                "sentiment": "Neutral",
+                "tone": "Formal",
+                "financial_impact": "None",
+                "compliance_impact": "None",
+                "tenant_id": "hr_gui_qa_1773395764317_example_com",
+                "links": {
+                    "artifacts": [],
+                    "related_event_ids": []
+                }
+            }
+        ]
+    },
+    "mergeReviews": {},
+    "lastUpdatedAt": "2026-03-16T12:26:58.443+05:30",
+    "businessConfig": {
+        "tenant_id": "hr_gui_qa_1773395764317_example_com",
+        "business_name": "HR GUI QA 1773395764317's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773395764317",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773395764317@example.com",
+            "ceo_phone": "+917595764317",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:26:04.741+05:30"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        },
+        "account_status": "ACTIVE"
+    }
+}

@@ -1,0 +1,2682 @@
+{
+    "default": {
+        "tenant_id": "default",
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "nishantsah@outlook.in",
+            "ceo_phone": "+917588498834"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350
+        },
+        "account_status": "ACTIVE"
+    },
+    "sunrise_stays": {
+        "tenant_id": "sunrise_stays",
+        "business_name": "Sunrise Stays",
+        "persona": {
+            "name": "Priya Nair",
+            "role": "CEO",
+            "ceo_email": "priya.nair@sunrisestays.ai"
+        }
+    },
+    "greennest_living": {
+        "tenant_id": "greennest_living",
+        "business_name": "GreenNest Living",
+        "persona": {
+            "name": "Arjun Mehta",
+            "role": "CEO",
+            "ceo_email": "arjun.mehta@greennest.ai"
+        }
+    },
+    "aditi_rao_skyline_example_com": {
+        "business_name": "Aditi Rao's Workspace",
+        "persona": {
+            "name": "Aditi Rao",
+            "role": "CEO",
+            "ceo_email": "aditi.rao.skyline@example.com"
+        },
+        "tenant_id": "aditi_rao_skyline_example_com"
+    },
+    "rohan_mehta_orbit_example_com": {
+        "business_name": "Rohan Mehta's Workspace",
+        "persona": {
+            "name": "Rohan Mehta",
+            "role": "CEO",
+            "ceo_email": "rohan.mehta.orbit@example.com"
+        },
+        "tenant_id": "rohan_mehta_orbit_example_com"
+    },
+    "ceo_aarav_sharma_example_com": {
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.aarav.sharma@example.com"
+        },
+        "tenant_id": "ceo_aarav_sharma_example_com"
+    },
+    "ceo_neha_kapoor_example_com": {
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.neha.kapoor@example.com"
+        },
+        "tenant_id": "ceo_neha_kapoor_example_com"
+    },
+    "ceo_rohan_iyer_example_com": {
+        "business_name": "Rohan Iyer's Workspace",
+        "persona": {
+            "name": "Rohan Iyer",
+            "role": "CEO",
+            "ceo_email": "ceo.rohan.iyer@example.com"
+        },
+        "tenant_id": "ceo_rohan_iyer_example_com"
+    },
+    "ceo_maya_verma_example_com": {
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.maya.verma@example.com"
+        },
+        "tenant_id": "ceo_maya_verma_example_com"
+    },
+    "hr_gui_qa_1773231221503_example_com": {
+        "business_name": "HR GUI QA 1773231221503's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773231221503",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773231221503@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773231221503_example_com"
+    },
+    "hr_gui_qa_1773231262006_example_com": {
+        "business_name": "HR GUI QA 1773231262006's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773231262006",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773231262006@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773231262006_example_com"
+    },
+    "hr_gui_qa_1773232818106_example_com": {
+        "business_name": "HR GUI QA 1773232818106's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773232818106",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773232818106@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773232818106_example_com"
+    },
+    "hr_gui_qa_1773232834980_example_com": {
+        "business_name": "HR GUI QA 1773232834980's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773232834980",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773232834980@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773232834980_example_com"
+    },
+    "hr_gui_qa_1773232857921_example_com": {
+        "business_name": "HR GUI QA 1773232857921's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773232857921",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773232857921@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773232857921_example_com"
+    },
+    "hr_gui_qa_1773302613921_example_com": {
+        "business_name": "HR GUI QA 1773302613921's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773302613921",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773302613921@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773302613921_example_com"
+    },
+    "hr_gui_qa_1773302636378_example_com": {
+        "business_name": "HR GUI QA 1773302636378's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773302636378",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773302636378@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773302636378_example_com"
+    },
+    "hr_gui_qa_1773302707380_example_com": {
+        "business_name": "HR GUI QA 1773302707380's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773302707380",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773302707380@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773302707380_example_com"
+    },
+    "hr_gui_qa_1773303383571_example_com": {
+        "business_name": "HR GUI QA 1773303383571's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773303383571",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773303383571@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773303383571_example_com"
+    },
+    "hr_gui_qa_1773303434772_example_com": {
+        "business_name": "HR GUI QA 1773303434772's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773303434772",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773303434772@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773303434772_example_com"
+    },
+    "hr_gui_qa_1773304184428_example_com": {
+        "business_name": "HR GUI QA 1773304184428's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773304184428",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773304184428@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773304184428_example_com"
+    },
+    "hr_gui_qa_1773304266259_example_com": {
+        "business_name": "HR GUI QA 1773304266259's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773304266259",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773304266259@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773304266259_example_com"
+    },
+    "hr_gui_qa_1773304321419_example_com": {
+        "business_name": "HR GUI QA 1773304321419's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773304321419",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773304321419@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773304321419_example_com"
+    },
+    "hr_gui_qa_1773304400569_example_com": {
+        "business_name": "HR GUI QA 1773304400569's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773304400569",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773304400569@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773304400569_example_com"
+    },
+    "hr_gui_qa_1773304634937_example_com": {
+        "business_name": "HR GUI QA 1773304634937's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773304634937",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773304634937@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773304634937_example_com"
+    },
+    "hr_gui_qa_1773304665986_example_com": {
+        "business_name": "HR GUI QA 1773304665986's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773304665986",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773304665986@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773304665986_example_com"
+    },
+    "hr_gui_qa_1773305102103_example_com": {
+        "business_name": "HR GUI QA 1773305102103's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773305102103",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773305102103@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773305102103_example_com"
+    },
+    "hr_gui_qa_1773305496528_example_com": {
+        "business_name": "HR GUI QA 1773305496528's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773305496528",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773305496528@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773305496528_example_com"
+    },
+    "hr_gui_qa_1773305736922_example_com": {
+        "business_name": "HR GUI QA 1773305736922's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773305736922",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773305736922@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773305736922_example_com"
+    },
+    "hr_gui_guardrails_1773305937568_example_com": {
+        "business_name": "HR Guardrails 1773305937568's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773305937568",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773305937568@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773305937568_example_com"
+    },
+    "hr_gui_qa_1773305937833_example_com": {
+        "business_name": "HR GUI QA 1773305937833's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773305937833",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773305937833@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773305937833_example_com"
+    },
+    "hr_gui_guardrails_1773305986654_example_com": {
+        "business_name": "HR Guardrails 1773305986654's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773305986654",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773305986654@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773305986654_example_com"
+    },
+    "hr_gui_guardrails_1773306011378_example_com": {
+        "business_name": "HR Guardrails 1773306011378's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773306011378",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773306011378@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773306011378_example_com"
+    },
+    "hr_gui_guardrails_1773306157323_example_com": {
+        "business_name": "HR Guardrails 1773306157323's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773306157323",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773306157323@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773306157323_example_com"
+    },
+    "hr_gui_guardrails_1773306200798_example_com": {
+        "business_name": "HR Guardrails 1773306200798's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773306200798",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773306200798@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773306200798_example_com"
+    },
+    "hr_gui_guardrails_1773306238955_example_com": {
+        "business_name": "HR Guardrails 1773306238955's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773306238955",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773306238955@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773306238955_example_com"
+    },
+    "hr_gui_qa_1773306261026_example_com": {
+        "business_name": "HR GUI QA 1773306261026's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773306261026",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773306261026@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773306261026_example_com"
+    },
+    "hr_gui_guardrails_1773306261092_example_com": {
+        "business_name": "HR Guardrails 1773306261092's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773306261092",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773306261092@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773306261092_example_com"
+    },
+    "hr_gui_guardrails_1773307102476_example_com": {
+        "business_name": "HR Guardrails 1773307102476's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773307102476",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773307102476@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773307102476_example_com"
+    },
+    "hr_gui_qa_1773307102492_example_com": {
+        "business_name": "HR GUI QA 1773307102492's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773307102492",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773307102492@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773307102492_example_com"
+    },
+    "hr_gui_guardrails_1773308101735_example_com": {
+        "business_name": "HR Guardrails 1773308101735's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773308101735",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773308101735@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773308101735_example_com"
+    },
+    "hr_gui_qa_1773308101866_example_com": {
+        "business_name": "HR GUI QA 1773308101866's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773308101866",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773308101866@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773308101866_example_com"
+    },
+    "hr_gui_guardrails_1773308300765_example_com": {
+        "business_name": "HR Guardrails 1773308300765's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773308300765",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773308300765@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773308300765_example_com"
+    },
+    "hr_gui_qa_1773308300866_example_com": {
+        "business_name": "HR GUI QA 1773308300866's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773308300866",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773308300866@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773308300866_example_com"
+    },
+    "hr_gui_guardrails_1773308350050_example_com": {
+        "business_name": "HR Guardrails 1773308350050's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773308350050",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773308350050@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773308350050_example_com"
+    },
+    "hr_gui_qa_1773308350148_example_com": {
+        "business_name": "HR GUI QA 1773308350148's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773308350148",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773308350148@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773308350148_example_com"
+    },
+    "hr_gui_guardrails_1773310582184_example_com": {
+        "business_name": "HR Guardrails 1773310582184's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773310582184",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773310582184@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773310582184_example_com"
+    },
+    "hr_gui_qa_1773310582199_example_com": {
+        "business_name": "HR GUI QA 1773310582199's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773310582199",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773310582199@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773310582199_example_com"
+    },
+    "hr_gui_guardrails_1773311323367_example_com": {
+        "business_name": "HR Guardrails 1773311323367's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773311323367",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773311323367@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773311323367_example_com"
+    },
+    "hr_gui_qa_1773311323426_example_com": {
+        "business_name": "HR GUI QA 1773311323426's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773311323426",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773311323426@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773311323426_example_com"
+    },
+    "hr_gui_guardrails_1773312002267_example_com": {
+        "business_name": "HR Guardrails 1773312002267's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773312002267",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773312002267@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773312002267_example_com"
+    },
+    "hr_gui_qa_1773312002297_example_com": {
+        "business_name": "HR GUI QA 1773312002297's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773312002297",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773312002297@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773312002297_example_com"
+    },
+    "crm_gui_qa_1773312790628_example_com": {
+        "business_name": "CRM GUI QA 1773312790628's Workspace",
+        "persona": {
+            "name": "CRM GUI QA 1773312790628",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773312790628@example.com"
+        },
+        "tenant_id": "crm_gui_qa_1773312790628_example_com"
+    },
+    "crm_gui_qa_1773312957229_example_com": {
+        "business_name": "CRM GUI QA 1773312957229's Workspace",
+        "persona": {
+            "name": "CRM GUI QA 1773312957229",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773312957229@example.com"
+        },
+        "tenant_id": "crm_gui_qa_1773312957229_example_com"
+    },
+    "crm_gui_qa_1773313101109_example_com": {
+        "business_name": "CRM GUI QA 1773313101109's Workspace",
+        "persona": {
+            "name": "CRM GUI QA 1773313101109",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773313101109@example.com"
+        },
+        "tenant_id": "crm_gui_qa_1773313101109_example_com"
+    },
+    "crm_gui_qa_1773313255180_example_com": {
+        "business_name": "CRM GUI QA 1773313255180's Workspace",
+        "persona": {
+            "name": "CRM GUI QA 1773313255180",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773313255180@example.com"
+        },
+        "tenant_id": "crm_gui_qa_1773313255180_example_com"
+    },
+    "crm_gui_qa_1773313343903_example_com": {
+        "business_name": "CRM GUI QA 1773313343903's Workspace",
+        "persona": {
+            "name": "CRM GUI QA 1773313343903",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773313343903@example.com"
+        },
+        "tenant_id": "crm_gui_qa_1773313343903_example_com"
+    },
+    "crm_gui_qa_1773313381076_example_com": {
+        "business_name": "CRM GUI QA 1773313381076's Workspace",
+        "persona": {
+            "name": "CRM GUI QA 1773313381076",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773313381076@example.com"
+        },
+        "tenant_id": "crm_gui_qa_1773313381076_example_com"
+    },
+    "finance_gui_qa_1773321534804_example_com": {
+        "business_name": "Finance GUI QA 1773321534804's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773321534804",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773321534804@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773321534804_example_com"
+    },
+    "hr_gui_guardrails_1773321534909_example_com": {
+        "business_name": "HR Guardrails 1773321534909's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773321534909",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773321534909@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773321534909_example_com"
+    },
+    "hr_gui_qa_1773321540937_example_com": {
+        "business_name": "HR GUI QA 1773321540937's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773321540937",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773321540937@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773321540937_example_com"
+    },
+    "finance_wa_qa_1773321560581_example_com": {
+        "business_name": "Finance WA QA 1773321560581's Workspace",
+        "persona": {
+            "name": "Finance WA QA 1773321560581",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773321560581@example.com"
+        },
+        "tenant_id": "finance_wa_qa_1773321560581_example_com"
+    },
+    "finance_gui_qa_1773321721965_example_com": {
+        "business_name": "Finance GUI QA 1773321721965's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773321721965",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773321721965@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773321721965_example_com"
+    },
+    "finance_wa_qa_1773321730029_example_com": {
+        "business_name": "Finance WA QA 1773321730029's Workspace",
+        "persona": {
+            "name": "Finance WA QA 1773321730029",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773321730029@example.com"
+        },
+        "tenant_id": "finance_wa_qa_1773321730029_example_com"
+    },
+    "finance_wa_qa_1773321818471_example_com": {
+        "business_name": "Finance WA QA 1773321818471's Workspace",
+        "persona": {
+            "name": "Finance WA QA 1773321818471",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773321818471@example.com"
+        },
+        "tenant_id": "finance_wa_qa_1773321818471_example_com"
+    },
+    "finance_gui_qa_1773321818723_example_com": {
+        "business_name": "Finance GUI QA 1773321818723's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773321818723",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773321818723@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773321818723_example_com"
+    },
+    "finance_wa_qa_1773321946222_example_com": {
+        "business_name": "Finance WA QA 1773321946222's Workspace",
+        "persona": {
+            "name": "Finance WA QA 1773321946222",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773321946222@example.com"
+        },
+        "tenant_id": "finance_wa_qa_1773321946222_example_com"
+    },
+    "finance_gui_qa_1773321946658_example_com": {
+        "business_name": "Finance GUI QA 1773321946658's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773321946658",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773321946658@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773321946658_example_com"
+    },
+    "finance_wa_qa_1773322022585_example_com": {
+        "business_name": "Finance WA QA 1773322022585's Workspace",
+        "persona": {
+            "name": "Finance WA QA 1773322022585",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773322022585@example.com"
+        },
+        "tenant_id": "finance_wa_qa_1773322022585_example_com"
+    },
+    "finance_gui_qa_1773322068608_example_com": {
+        "business_name": "Finance GUI QA 1773322068608's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773322068608",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773322068608@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773322068608_example_com"
+    },
+    "finance_gui_qa_1773322275114_example_com": {
+        "business_name": "Finance GUI QA 1773322275114's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773322275114",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773322275114@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773322275114_example_com"
+    },
+    "finance_gui_qa_1773322352304_example_com": {
+        "business_name": "Finance GUI QA 1773322352304's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773322352304",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773322352304@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773322352304_example_com"
+    },
+    "finance_gui_qa_1773322757854_example_com": {
+        "business_name": "Finance GUI QA 1773322757854's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773322757854",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773322757854@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773322757854_example_com"
+    },
+    "finance_gui_qa_1773322783633_example_com": {
+        "business_name": "Finance GUI QA 1773322783633's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773322783633",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773322783633@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773322783633_example_com"
+    },
+    "hr_gui_guardrails_1773322871068_example_com": {
+        "business_name": "HR Guardrails 1773322871068's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773322871068",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773322871068@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773322871068_example_com"
+    },
+    "finance_gui_qa_1773322871133_example_com": {
+        "business_name": "Finance GUI QA 1773322871133's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773322871133",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773322871133@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773322871133_example_com"
+    },
+    "hr_gui_qa_1773322886514_example_com": {
+        "business_name": "HR GUI QA 1773322886514's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773322886514",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773322886514@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773322886514_example_com"
+    },
+    "hr_gui_guardrails_1773323032817_example_com": {
+        "business_name": "HR Guardrails 1773323032817's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773323032817",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773323032817@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773323032817_example_com"
+    },
+    "finance_gui_qa_1773323032991_example_com": {
+        "business_name": "Finance GUI QA 1773323032991's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773323032991",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773323032991@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773323032991_example_com"
+    },
+    "hr_gui_qa_1773323047520_example_com": {
+        "business_name": "HR GUI QA 1773323047520's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773323047520",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773323047520@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773323047520_example_com"
+    },
+    "finance_gui_qa_1773323173078_example_com": {
+        "business_name": "Finance GUI QA 1773323173078's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773323173078",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773323173078@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773323173078_example_com"
+    },
+    "hr_gui_guardrails_1773323173214_example_com": {
+        "business_name": "HR Guardrails 1773323173214's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773323173214",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773323173214@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773323173214_example_com"
+    },
+    "hr_gui_qa_1773323189765_example_com": {
+        "business_name": "HR GUI QA 1773323189765's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773323189765",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773323189765@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773323189765_example_com"
+    },
+    "hr_gui_guardrails_1773323338498_example_com": {
+        "business_name": "HR Guardrails 1773323338498's Workspace",
+        "persona": {
+            "name": "HR Guardrails 1773323338498",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773323338498@example.com"
+        },
+        "tenant_id": "hr_gui_guardrails_1773323338498_example_com"
+    },
+    "finance_gui_qa_1773323338505_example_com": {
+        "business_name": "Finance GUI QA 1773323338505's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773323338505",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773323338505@example.com"
+        },
+        "tenant_id": "finance_gui_qa_1773323338505_example_com"
+    },
+    "hr_gui_qa_1773323352435_example_com": {
+        "business_name": "HR GUI QA 1773323352435's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773323352435",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773323352435@example.com"
+        },
+        "tenant_id": "hr_gui_qa_1773323352435_example_com"
+    },
+    "ceo_activation_1773394167369_example_com": {
+        "business_name": "CEO Activation 1773394167369's Workspace",
+        "persona": {
+            "name": "CEO Activation 1773394167369",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394167369@example.com"
+        },
+        "tenant_id": "ceo_activation_1773394167369_example_com"
+    },
+    "ceo_activation_1773394207801_example_com": {
+        "business_name": "CEO Activation 1773394207801's Workspace",
+        "persona": {
+            "name": "CEO Activation 1773394207801",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394207801@example.com"
+        },
+        "tenant_id": "ceo_activation_1773394207801_example_com"
+    },
+    "ceo_activation_1773394361854_example_com": {
+        "business_name": "CEO Activation 1773394361854's Workspace",
+        "persona": {
+            "name": "CEO Activation 1773394361854",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394361854@example.com"
+        },
+        "tenant_id": "ceo_activation_1773394361854_example_com"
+    },
+    "ceo_activation_1773394428007_example_com": {
+        "business_name": "CEO Activation 1773394428007's Workspace",
+        "persona": {
+            "name": "CEO Activation 1773394428007",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394428007@example.com"
+        },
+        "tenant_id": "ceo_activation_1773394428007_example_com"
+    },
+    "ceo_activation_1773394626188_example_com": {
+        "business_name": "CEO Activation 1773394626188's Workspace",
+        "persona": {
+            "name": "CEO Activation 1773394626188",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394626188@example.com"
+        },
+        "tenant_id": "ceo_activation_1773394626188_example_com"
+    },
+    "ceo_activation_1773394675228_example_com": {
+        "business_name": "CEO Activation 1773394675228's Workspace",
+        "persona": {
+            "name": "CEO Activation 1773394675228",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394675228@example.com"
+        },
+        "tenant_id": "ceo_activation_1773394675228_example_com"
+    },
+    "ceo_activation_1773394775934_example_com": {
+        "business_name": "CEO Activation 1773394775934's Workspace",
+        "persona": {
+            "name": "CEO Activation 1773394775934",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394775934@example.com"
+        },
+        "tenant_id": "ceo_activation_1773394775934_example_com"
+    },
+    "ceo_activation_1773394898976_example_com": {
+        "business_name": "CEO Activation 1773394898976's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773394898976",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773394898976@example.com",
+            "ceo_phone": "+917294898976",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:11:41.898+05:30"
+        },
+        "tenant_id": "ceo_activation_1773394898976_example_com"
+    },
+    "ceo_activation_1773395042010_example_com": {
+        "business_name": "CEO Activation 1773395042010's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773395042010",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773395042010@example.com",
+            "ceo_phone": "+917295042010",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:14:05.125+05:30"
+        },
+        "tenant_id": "ceo_activation_1773395042010_example_com"
+    },
+    "ceo_activation_1773395120334_example_com": {
+        "business_name": "CEO Activation 1773395120334's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773395120334",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773395120334@example.com",
+            "ceo_phone": "+917295120334",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:15:23.354+05:30"
+        },
+        "tenant_id": "ceo_activation_1773395120334_example_com"
+    },
+    "crm_gui_qa_1773395166716_example_com": {
+        "business_name": "CRM GUI QA 1773395166716's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773395166716",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773395166716@example.com",
+            "ceo_phone": "+917495166716",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:16:07.226+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773395166716_example_com"
+    },
+    "ceo_activation_1773395166879_example_com": {
+        "business_name": "CEO Activation 1773395166879's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773395166879",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773395166879@example.com",
+            "ceo_phone": "+917295166879",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:16:11.450+05:30"
+        },
+        "tenant_id": "ceo_activation_1773395166879_example_com"
+    },
+    "finance_gui_qa_1773395171519_example_com": {
+        "business_name": "Finance GUI QA 1773395171519's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773395171519",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773395171519@example.com",
+            "ceo_phone": "+917795171519",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:16:11.989+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773395171519_example_com"
+    },
+    "hr_gui_guardrails_1773395176460_example_com": {
+        "business_name": "HR Guardrails 1773395176460's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773395176460",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773395176460@example.com",
+            "ceo_phone": "+917695176460",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:16:16.877+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773395176460_example_com"
+    },
+    "hr_gui_qa_1773395180856_example_com": {
+        "business_name": "HR GUI QA 1773395180856's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773395180856",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773395180856@example.com",
+            "ceo_phone": "+917595180856",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:16:21.303+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773395180856_example_com"
+    },
+    "finance_wa_qa_1773395199166_example_com": {
+        "business_name": "Finance WA QA 1773395199166's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773395199166",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773395199166@example.com",
+            "ceo_phone": "+917395199166",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:16:39.464+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773395199166_example_com"
+    },
+    "finance_gui_qa_1773395357136_example_com": {
+        "business_name": "Finance GUI QA 1773395357136's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773395357136",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773395357136@example.com",
+            "ceo_phone": "+917795357136",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:19:17.528+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773395357136_example_com"
+    },
+    "crm_gui_qa_1773395357137_example_com": {
+        "business_name": "CRM GUI QA 1773395357137's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773395357137",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773395357137@example.com",
+            "ceo_phone": "+917495357137",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:19:17.594+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773395357137_example_com"
+    },
+    "hr_gui_guardrails_1773395360458_example_com": {
+        "business_name": "HR Guardrails 1773395360458's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773395360458",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773395360458@example.com",
+            "ceo_phone": "+917695360458",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:19:20.874+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773395360458_example_com"
+    },
+    "hr_gui_qa_1773395360557_example_com": {
+        "business_name": "HR GUI QA 1773395360557's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773395360557",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773395360557@example.com",
+            "ceo_phone": "+917595360557",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:19:20.940+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773395360557_example_com"
+    },
+    "finance_gui_qa_1773395506853_example_com": {
+        "business_name": "Finance GUI QA 1773395506853's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773395506853",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773395506853@example.com",
+            "ceo_phone": "+917795506853",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:21:47.219+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773395506853_example_com"
+    },
+    "finance_gui_qa_1773395582767_example_com": {
+        "business_name": "Finance GUI QA 1773395582767's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773395582767",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773395582767@example.com",
+            "ceo_phone": "+917795582767",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:23:03.028+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773395582767_example_com"
+    },
+    "finance_gui_qa_1773395644405_example_com": {
+        "business_name": "Finance GUI QA 1773395644405's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773395644405",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773395644405@example.com",
+            "ceo_phone": "+917795644405",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:24:04.702+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773395644405_example_com"
+    },
+    "hr_gui_guardrails_1773395668538_example_com": {
+        "business_name": "HR Guardrails 1773395668538's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773395668538",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773395668538@example.com",
+            "ceo_phone": "+917695668538",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:24:28.936+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773395668538_example_com"
+    },
+    "crm_gui_qa_1773395668570_example_com": {
+        "business_name": "CRM GUI QA 1773395668570's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773395668570",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773395668570@example.com",
+            "ceo_phone": "+917495668570",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:24:29.057+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773395668570_example_com"
+    },
+    "hr_gui_qa_1773395679036_example_com": {
+        "business_name": "HR GUI QA 1773395679036's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773395679036",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773395679036@example.com",
+            "ceo_phone": "+917595679036",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:24:39.315+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773395679036_example_com"
+    },
+    "ceo_activation_1773395740360_example_com": {
+        "business_name": "CEO Activation 1773395740360's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773395740360",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773395740360@example.com",
+            "ceo_phone": "+917295740360",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:25:44.719+05:30"
+        },
+        "tenant_id": "ceo_activation_1773395740360_example_com"
+    },
+    "crm_gui_qa_1773395740378_example_com": {
+        "business_name": "CRM GUI QA 1773395740378's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773395740378",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773395740378@example.com",
+            "ceo_phone": "+917495740378",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:25:40.893+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773395740378_example_com"
+    },
+    "finance_gui_qa_1773395750762_example_com": {
+        "business_name": "Finance GUI QA 1773395750762's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773395750762",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773395750762@example.com",
+            "ceo_phone": "+917795750762",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:25:51.117+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773395750762_example_com"
+    },
+    "hr_gui_guardrails_1773395763028_example_com": {
+        "business_name": "HR Guardrails 1773395763028's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773395763028",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773395763028@example.com",
+            "ceo_phone": "+917695763028",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:26:03.329+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773395763028_example_com"
+    },
+    "hr_gui_qa_1773395764317_example_com": {
+        "business_name": "HR GUI QA 1773395764317's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773395764317",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773395764317@example.com",
+            "ceo_phone": "+917595764317",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:26:04.741+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773395764317_example_com"
+    },
+    "finance_wa_qa_1773395786252_example_com": {
+        "business_name": "Finance WA QA 1773395786252's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773395786252",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773395786252@example.com",
+            "ceo_phone": "+917395786252",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:26:26.501+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773395786252_example_com"
+    },
+    "ceo_activation_1773395856001_example_com": {
+        "business_name": "CEO Activation 1773395856001's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773395856001",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773395856001@example.com",
+            "ceo_phone": "+917295856001",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:27:40.291+05:30"
+        },
+        "tenant_id": "ceo_activation_1773395856001_example_com"
+    },
+    "crm_gui_qa_1773395856088_example_com": {
+        "business_name": "CRM GUI QA 1773395856088's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773395856088",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773395856088@example.com",
+            "ceo_phone": "+917495856088",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:27:36.588+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773395856088_example_com"
+    },
+    "finance_gui_qa_1773395866558_example_com": {
+        "business_name": "Finance GUI QA 1773395866558's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773395866558",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773395866558@example.com",
+            "ceo_phone": "+917795866558",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:27:46.876+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773395866558_example_com"
+    },
+    "hr_gui_guardrails_1773395872701_example_com": {
+        "business_name": "HR Guardrails 1773395872701's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773395872701",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773395872701@example.com",
+            "ceo_phone": "+917695872701",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:27:53.265+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773395872701_example_com"
+    },
+    "hr_gui_qa_1773395880952_example_com": {
+        "business_name": "HR GUI QA 1773395880952's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773395880952",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773395880952@example.com",
+            "ceo_phone": "+917595880952",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:28:01.708+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773395880952_example_com"
+    },
+    "finance_wa_qa_1773395903773_example_com": {
+        "business_name": "Finance WA QA 1773395903773's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773395903773",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773395903773@example.com",
+            "ceo_phone": "+917395903773",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T15:28:24.081+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773395903773_example_com"
+    },
+    "finance_gui_qa_1773403136479_example_com": {
+        "business_name": "Finance GUI QA 1773403136479's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773403136479",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773403136479@example.com",
+            "ceo_phone": "+917703136479",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:28:56.865+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773403136479_example_com"
+    },
+    "finance_gui_qa_1773403500098_example_com": {
+        "business_name": "Finance GUI QA 1773403500098's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773403500098",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773403500098@example.com",
+            "ceo_phone": "+917703500098",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:35:00.452+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773403500098_example_com"
+    },
+    "finance_gui_qa_1773403667819_example_com": {
+        "business_name": "Finance GUI QA 1773403667819's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773403667819",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773403667819@example.com",
+            "ceo_phone": "+917703667819",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:37:48.163+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773403667819_example_com"
+    },
+    "finance_gui_qa_1773403753862_example_com": {
+        "business_name": "Finance GUI QA 1773403753862's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773403753862",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773403753862@example.com",
+            "ceo_phone": "+917703753862",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:39:14.215+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773403753862_example_com"
+    },
+    "finance_gui_qa_1773403801983_example_com": {
+        "business_name": "Finance GUI QA 1773403801983's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773403801983",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773403801983@example.com",
+            "ceo_phone": "+917703801983",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:40:02.370+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773403801983_example_com"
+    },
+    "finance_gui_qa_1773404215928_example_com": {
+        "business_name": "Finance GUI QA 1773404215928's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773404215928",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773404215928@example.com",
+            "ceo_phone": "+917704215928",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:46:56.324+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773404215928_example_com"
+    },
+    "finance_gui_qa_1773404330236_example_com": {
+        "business_name": "Finance GUI QA 1773404330236's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773404330236",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773404330236@example.com",
+            "ceo_phone": "+917704330236",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:48:50.668+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773404330236_example_com"
+    },
+    "finance_gui_qa_1773404422220_example_com": {
+        "business_name": "Finance GUI QA 1773404422220's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773404422220",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773404422220@example.com",
+            "ceo_phone": "+917704422220",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:50:22.601+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773404422220_example_com"
+    },
+    "finance_wa_qa_1773404490255_example_com": {
+        "business_name": "Finance WA QA 1773404490255's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773404490255",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773404490255@example.com",
+            "ceo_phone": "+917304490255",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:51:30.664+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773404490255_example_com"
+    },
+    "finance_wa_qa_1773404809045_example_com": {
+        "business_name": "Finance WA QA 1773404809045's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773404809045",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773404809045@example.com",
+            "ceo_phone": "+917304809045",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:56:49.532+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773404809045_example_com"
+    },
+    "ceo_activation_1773404875407_example_com": {
+        "business_name": "CEO Activation 1773404875407's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773404875407",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773404875407@example.com",
+            "ceo_phone": "+917204875407",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:57:58.396+05:30"
+        },
+        "tenant_id": "ceo_activation_1773404875407_example_com"
+    },
+    "crm_gui_qa_1773404889138_example_com": {
+        "business_name": "CRM GUI QA 1773404889138's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773404889138",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773404889138@example.com",
+            "ceo_phone": "+917404889138",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:58:09.588+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773404889138_example_com"
+    },
+    "finance_gui_qa_1773404897368_example_com": {
+        "business_name": "Finance GUI QA 1773404897368's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773404897368",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773404897368@example.com",
+            "ceo_phone": "+917704897368",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:58:17.822+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773404897368_example_com"
+    },
+    "hr_gui_guardrails_1773404925108_example_com": {
+        "business_name": "HR Guardrails 1773404925108's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773404925108",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773404925108@example.com",
+            "ceo_phone": "+917604925108",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:58:45.550+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773404925108_example_com"
+    },
+    "hr_gui_qa_1773404936467_example_com": {
+        "business_name": "HR GUI QA 1773404936467's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773404936467",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773404936467@example.com",
+            "ceo_phone": "+917504936467",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T17:58:56.902+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773404936467_example_com"
+    },
+    "finance_wa_qa_1773405008116_example_com": {
+        "business_name": "Finance WA QA 1773405008116's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773405008116",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773405008116@example.com",
+            "ceo_phone": "+917305008116",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:00:08.607+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773405008116_example_com"
+    },
+    "ceo_activation_1773407544469_example_com": {
+        "business_name": "CEO Activation 1773407544469's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773407544469",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773407544469@example.com",
+            "ceo_phone": "+917207544469",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:42:27.571+05:30"
+        },
+        "tenant_id": "ceo_activation_1773407544469_example_com"
+    },
+    "finance_gui_qa_1773407556304_example_com": {
+        "business_name": "Finance GUI QA 1773407556304's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773407556304",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773407556304@example.com",
+            "ceo_phone": "+917707556304",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:42:36.750+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773407556304_example_com"
+    },
+    "hr_gui_qa_1773407583321_example_com": {
+        "business_name": "HR GUI QA 1773407583321's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773407583321",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773407583321@example.com",
+            "ceo_phone": "+917507583321",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:43:03.788+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773407583321_example_com"
+    },
+    "finance_wa_qa_1773407615050_example_com": {
+        "business_name": "Finance WA QA 1773407615050's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773407615050",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773407615050@example.com",
+            "ceo_phone": "+917307615050",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:43:35.646+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773407615050_example_com"
+    },
+    "ceo_activation_1773407820908_example_com": {
+        "business_name": "CEO Activation 1773407820908's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773407820908",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773407820908@example.com",
+            "ceo_phone": "+917207820908",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:47:04.237+05:30"
+        },
+        "tenant_id": "ceo_activation_1773407820908_example_com"
+    },
+    "finance_gui_qa_1773407836592_example_com": {
+        "business_name": "Finance GUI QA 1773407836592's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773407836592",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773407836592@example.com",
+            "ceo_phone": "+917707836592",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:47:17.234+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773407836592_example_com"
+    },
+    "hr_gui_qa_1773407867847_example_com": {
+        "business_name": "HR GUI QA 1773407867847's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773407867847",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773407867847@example.com",
+            "ceo_phone": "+917507867847",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:47:48.327+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773407867847_example_com"
+    },
+    "finance_wa_qa_1773407894589_example_com": {
+        "business_name": "Finance WA QA 1773407894589's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773407894589",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773407894589@example.com",
+            "ceo_phone": "+917307894589",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:48:15.120+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773407894589_example_com"
+    },
+    "finance_wa_qa_1773407965380_example_com": {
+        "business_name": "Finance WA QA 1773407965380's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773407965380",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773407965380@example.com",
+            "ceo_phone": "+917307965380",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:49:25.934+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773407965380_example_com"
+    },
+    "hr_gui_qa_1773408406301_example_com": {
+        "business_name": "HR GUI QA 1773408406301's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773408406301",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773408406301@example.com",
+            "ceo_phone": "+917508406301",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:56:48.102+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773408406301_example_com"
+    },
+    "crm_gui_qa_1773408406593_example_com": {
+        "business_name": "CRM GUI QA 1773408406593's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773408406593",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773408406593@example.com",
+            "ceo_phone": "+917408406593",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:56:49.642+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773408406593_example_com"
+    },
+    "finance_gui_qa_1773408406648_example_com": {
+        "business_name": "Finance GUI QA 1773408406648's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773408406648",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773408406648@example.com",
+            "ceo_phone": "+917708406648",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:56:50.682+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773408406648_example_com"
+    },
+    "finance_wa_qa_1773408468687_example_com": {
+        "business_name": "Finance WA QA 1773408468687's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773408468687",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773408468687@example.com",
+            "ceo_phone": "+917308468687",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:57:50.431+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773408468687_example_com"
+    },
+    "crm_gui_qa_1773408686633_example_com": {
+        "business_name": "CRM GUI QA 1773408686633's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773408686633",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773408686633@example.com",
+            "ceo_phone": "+917408686633",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:01:27.235+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773408686633_example_com"
+    },
+    "finance_gui_qa_1773408694377_example_com": {
+        "business_name": "Finance GUI QA 1773408694377's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773408694377",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773408694377@example.com",
+            "ceo_phone": "+917708694377",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:01:34.990+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773408694377_example_com"
+    },
+    "hr_gui_qa_1773408728904_example_com": {
+        "business_name": "HR GUI QA 1773408728904's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773408728904",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773408728904@example.com",
+            "ceo_phone": "+917508728904",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:02:09.477+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773408728904_example_com"
+    },
+    "crm_gui_qa_1773409841831_example_com": {
+        "business_name": "CRM GUI QA 1773409841831's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773409841831",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773409841831@example.com",
+            "ceo_phone": "+917409841831",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:20:42.368+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773409841831_example_com"
+    },
+    "finance_gui_qa_1773409849903_example_com": {
+        "business_name": "Finance GUI QA 1773409849903's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773409849903",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773409849903@example.com",
+            "ceo_phone": "+917709849903",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:20:50.405+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773409849903_example_com"
+    },
+    "hr_gui_qa_1773409870734_example_com": {
+        "business_name": "HR GUI QA 1773409870734's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773409870734",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773409870734@example.com",
+            "ceo_phone": "+917509870734",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:21:11.406+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773409870734_example_com"
+    },
+    "finance_wa_qa_1773409988389_example_com": {
+        "business_name": "Finance WA QA 1773409988389's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773409988389",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773409988389@example.com",
+            "ceo_phone": "+917309988389",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:23:09.030+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773409988389_example_com"
+    },
+    "finance_gui_qa_1773410122256_example_com": {
+        "business_name": "Finance GUI QA 1773410122256's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773410122256",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773410122256@example.com",
+            "ceo_phone": "+917710122256",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:25:22.914+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773410122256_example_com"
+    },
+    "finance_wa_qa_1773410157743_example_com": {
+        "business_name": "Finance WA QA 1773410157743's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773410157743",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773410157743@example.com",
+            "ceo_phone": "+917310157743",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T19:25:58.286+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773410157743_example_com"
+    },
+    "finance_gui_qa_1773473151622_example_com": {
+        "business_name": "Finance GUI QA 1773473151622's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773473151622",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773473151622@example.com",
+            "ceo_phone": "+917773151622",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T12:55:52.231+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773473151622_example_com"
+    },
+    "finance_wa_qa_1773473191102_example_com": {
+        "business_name": "Finance WA QA 1773473191102's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773473191102",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773473191102@example.com",
+            "ceo_phone": "+917373191102",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T12:56:31.754+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773473191102_example_com"
+    },
+    "finance_gui_qa_1773474307838_example_com": {
+        "business_name": "Finance GUI QA 1773474307838's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773474307838",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773474307838@example.com",
+            "ceo_phone": "+917774307838",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:15:08.466+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773474307838_example_com"
+    },
+    "finance_wa_qa_1773474330871_example_com": {
+        "business_name": "Finance WA QA 1773474330871's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773474330871",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773474330871@example.com",
+            "ceo_phone": "+917374330871",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:15:31.603+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773474330871_example_com"
+    },
+    "finance_gui_qa_1773474401158_example_com": {
+        "business_name": "Finance GUI QA 1773474401158's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773474401158",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773474401158@example.com",
+            "ceo_phone": "+917774401158",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:16:41.791+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773474401158_example_com"
+    },
+    "finance_wa_qa_1773474436497_example_com": {
+        "business_name": "Finance WA QA 1773474436497's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773474436497",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773474436497@example.com",
+            "ceo_phone": "+917374436497",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:17:17.025+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773474436497_example_com"
+    },
+    "finance_gui_qa_1773475364856_example_com": {
+        "business_name": "Finance GUI QA 1773475364856's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773475364856",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773475364856@example.com",
+            "ceo_phone": "+917775364856",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:32:45.854+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773475364856_example_com"
+    },
+    "finance_wa_qa_1773475412063_example_com": {
+        "business_name": "Finance WA QA 1773475412063's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773475412063",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773475412063@example.com",
+            "ceo_phone": "+917375412063",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:33:32.731+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773475412063_example_com"
+    },
+    "finance_gui_qa_1773475462659_example_com": {
+        "business_name": "Finance GUI QA 1773475462659's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773475462659",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773475462659@example.com",
+            "ceo_phone": "+917775462659",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:34:23.424+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773475462659_example_com"
+    },
+    "finance_wa_qa_1773475505775_example_com": {
+        "business_name": "Finance WA QA 1773475505775's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773475505775",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773475505775@example.com",
+            "ceo_phone": "+917375505775",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-14T13:35:06.438+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773475505775_example_com"
+    },
+    "sop_gui_qa_1773573650697_example_com": {
+        "business_name": "SOP GUI QA 1773573650697's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573650697",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573650697@example.com",
+            "ceo_phone": "+917873650697",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:50:51.403+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573650697_example_com"
+    },
+    "sop_gui_qa_1773573714375_example_com": {
+        "business_name": "SOP GUI QA 1773573714375's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573714375",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573714375@example.com",
+            "ceo_phone": "+917873714375",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:51:55.118+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573714375_example_com"
+    },
+    "sop_gui_qa_1773573752110_example_com": {
+        "business_name": "SOP GUI QA 1773573752110's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573752110",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573752110@example.com",
+            "ceo_phone": "+917873752110",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:52:32.832+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573752110_example_com"
+    },
+    "sop_gui_qa_1773573793303_example_com": {
+        "business_name": "SOP GUI QA 1773573793303's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573793303",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573793303@example.com",
+            "ceo_phone": "+917873793303",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:53:13.933+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573793303_example_com"
+    },
+    "sop_gui_qa_1773573827136_example_com": {
+        "business_name": "SOP GUI QA 1773573827136's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573827136",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573827136@example.com",
+            "ceo_phone": "+917873827136",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:53:47.763+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573827136_example_com"
+    },
+    "sop_gui_qa_1773573874601_example_com": {
+        "business_name": "SOP GUI QA 1773573874601's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573874601",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573874601@example.com",
+            "ceo_phone": "+917873874601",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:54:35.276+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573874601_example_com"
+    },
+    "sop_gui_qa_1773573928407_example_com": {
+        "business_name": "SOP GUI QA 1773573928407's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573928407",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573928407@example.com",
+            "ceo_phone": "+917873928407",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:55:29.056+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573928407_example_com"
+    },
+    "sop_gui_qa_1773573998473_example_com": {
+        "business_name": "SOP GUI QA 1773573998473's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773573998473",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773573998473@example.com",
+            "ceo_phone": "+917873998473",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:56:39.320+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773573998473_example_com"
+    },
+    "sop_gui_qa_1773574091409_example_com": {
+        "business_name": "SOP GUI QA 1773574091409's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773574091409",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773574091409@example.com",
+            "ceo_phone": "+917874091409",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T16:58:12.104+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773574091409_example_com"
+    },
+    "finance_gui_qa_1773574763854_example_com": {
+        "business_name": "Finance GUI QA 1773574763854's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773574763854",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773574763854@example.com",
+            "ceo_phone": "+917774763854",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:09:24.665+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773574763854_example_com"
+    },
+    "finance_wa_qa_1773574816987_example_com": {
+        "business_name": "Finance WA QA 1773574816987's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773574816987",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773574816987@example.com",
+            "ceo_phone": "+917374816987",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:10:17.670+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773574816987_example_com"
+    },
+    "sop_gui_qa_1773574854623_example_com": {
+        "business_name": "SOP GUI QA 1773574854623's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773574854623",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773574854623@example.com",
+            "ceo_phone": "+917874854623",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:10:55.367+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773574854623_example_com"
+    },
+    "sop_gui_qa_1773574890100_example_com": {
+        "business_name": "SOP GUI QA 1773574890100's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773574890100",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773574890100@example.com",
+            "ceo_phone": "+917874890100",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:11:30.910+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773574890100_example_com"
+    },
+    "finance_gui_qa_1773576106896_example_com": {
+        "business_name": "Finance GUI QA 1773576106896's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773576106896",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773576106896@example.com",
+            "ceo_phone": "+917776106896",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:31:47.681+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773576106896_example_com"
+    },
+    "finance_wa_qa_1773576147471_example_com": {
+        "business_name": "Finance WA QA 1773576147471's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773576147471",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773576147471@example.com",
+            "ceo_phone": "+917376147471",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:32:28.218+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773576147471_example_com"
+    },
+    "sop_gui_qa_1773576184857_example_com": {
+        "business_name": "SOP GUI QA 1773576184857's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773576184857",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773576184857@example.com",
+            "ceo_phone": "+917876184857",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:33:05.570+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773576184857_example_com"
+    },
+    "finance_wa_qa_1773576491443_example_com": {
+        "business_name": "Finance WA QA 1773576491443's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773576491443",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773576491443@example.com",
+            "ceo_phone": "+917376491443",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:38:12.212+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773576491443_example_com"
+    },
+    "finance_gui_qa_1773576805942_example_com": {
+        "business_name": "Finance GUI QA 1773576805942's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773576805942",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773576805942@example.com",
+            "ceo_phone": "+917776805942",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:43:26.889+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773576805942_example_com"
+    },
+    "finance_wa_qa_1773576854098_example_com": {
+        "business_name": "Finance WA QA 1773576854098's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773576854098",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773576854098@example.com",
+            "ceo_phone": "+917376854098",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:44:15.383+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773576854098_example_com"
+    },
+    "sop_gui_qa_1773576891147_example_com": {
+        "business_name": "SOP GUI QA 1773576891147's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773576891147",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773576891147@example.com",
+            "ceo_phone": "+917876891147",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:44:51.875+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773576891147_example_com"
+    },
+    "finance_wa_qa_1773576959990_example_com": {
+        "business_name": "Finance WA QA 1773576959990's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773576959990",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773576959990@example.com",
+            "ceo_phone": "+917376959990",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:46:00.789+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773576959990_example_com"
+    },
+    "finance_gui_qa_1773577007409_example_com": {
+        "business_name": "Finance GUI QA 1773577007409's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773577007409",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773577007409@example.com",
+            "ceo_phone": "+917777007409",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:46:48.203+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773577007409_example_com"
+    },
+    "finance_wa_qa_1773577055076_example_com": {
+        "business_name": "Finance WA QA 1773577055076's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773577055076",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773577055076@example.com",
+            "ceo_phone": "+917377055076",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:47:35.877+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773577055076_example_com"
+    },
+    "sop_gui_qa_1773577092897_example_com": {
+        "business_name": "SOP GUI QA 1773577092897's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773577092897",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773577092897@example.com",
+            "ceo_phone": "+917877092897",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T17:48:13.684+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773577092897_example_com"
+    },
+    "sop_gui_qa_1773579690258_example_com": {
+        "business_name": "SOP GUI QA 1773579690258's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773579690258",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773579690258@example.com",
+            "ceo_phone": "+917879690258",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T18:31:32.030+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773579690258_example_com"
+    },
+    "sop_gui_qa_1773579723403_example_com": {
+        "business_name": "SOP GUI QA 1773579723403's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773579723403",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773579723403@example.com",
+            "ceo_phone": "+917879723403",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-15T18:32:04.545+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773579723403_example_com"
+    },
+    "finance_gui_qa_1773643007861_example_com": {
+        "business_name": "Finance GUI QA 1773643007861's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773643007861",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773643007861@example.com",
+            "ceo_phone": "+917743007861",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:06:48.656+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773643007861_example_com"
+    },
+    "finance_wa_qa_1773643024064_example_com": {
+        "business_name": "Finance WA QA 1773643024064's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773643024064",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773643024064@example.com",
+            "ceo_phone": "+917343024064",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:07:04.828+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773643024064_example_com"
+    },
+    "sop_gui_qa_1773643069020_example_com": {
+        "business_name": "SOP GUI QA 1773643069020's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773643069020",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773643069020@example.com",
+            "ceo_phone": "+917843069020",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:07:49.759+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773643069020_example_com"
+    },
+    "finance_gui_qa_1773643377858_example_com": {
+        "business_name": "Finance GUI QA 1773643377858's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773643377858",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773643377858@example.com",
+            "ceo_phone": "+917743377858",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:12:58.917+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773643377858_example_com"
+    },
+    "sop_gui_qa_1773643392645_example_com": {
+        "business_name": "SOP GUI QA 1773643392645's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773643392645",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773643392645@example.com",
+            "ceo_phone": "+917843392645",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:13:13.630+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773643392645_example_com"
+    },
+    "finance_gui_qa_1773643467868_example_com": {
+        "business_name": "Finance GUI QA 1773643467868's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773643467868",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773643467868@example.com",
+            "ceo_phone": "+917743467868",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:14:28.944+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773643467868_example_com"
+    },
+    "sop_gui_qa_1773643529124_example_com": {
+        "business_name": "SOP GUI QA 1773643529124's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773643529124",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773643529124@example.com",
+            "ceo_phone": "+917843529124",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:15:30.211+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773643529124_example_com"
+    },
+    "finance_gui_qa_1773643610943_example_com": {
+        "business_name": "Finance GUI QA 1773643610943's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773643610943",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773643610943@example.com",
+            "ceo_phone": "+917743610943",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:16:51.937+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773643610943_example_com"
+    },
+    "finance_wa_qa_1773643674624_example_com": {
+        "business_name": "Finance WA QA 1773643674624's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773643674624",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773643674624@example.com",
+            "ceo_phone": "+917343674624",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:17:55.585+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773643674624_example_com"
+    },
+    "sop_gui_qa_1773643730986_example_com": {
+        "business_name": "SOP GUI QA 1773643730986's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773643730986",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773643730986@example.com",
+            "ceo_phone": "+917843730986",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:18:52.028+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773643730986_example_com"
+    },
+    "ceo_activation_1773643881515_example_com": {
+        "business_name": "CEO Activation 1773643881515's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CEO Activation 1773643881515",
+            "role": "CEO",
+            "ceo_email": "ceo.activation.1773643881515@example.com",
+            "ceo_phone": "+917243881515",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:21:33.323+05:30"
+        },
+        "tenant_id": "ceo_activation_1773643881515_example_com"
+    },
+    "crm_gui_qa_1773643903082_example_com": {
+        "business_name": "CRM GUI QA 1773643903082's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773643903082",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773643903082@example.com",
+            "ceo_phone": "+917443903082",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:21:45.092+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773643903082_example_com"
+    },
+    "finance_gui_qa_1773643920989_example_com": {
+        "business_name": "Finance GUI QA 1773643920989's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773643920989",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773643920989@example.com",
+            "ceo_phone": "+917743920989",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:22:02.472+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773643920989_example_com"
+    },
+    "hr_gui_guardrails_1773643933384_example_com": {
+        "business_name": "HR Guardrails 1773643933384's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773643933384",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773643933384@example.com",
+            "ceo_phone": "+917643933384",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:22:18.105+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773643933384_example_com"
+    },
+    "hr_gui_qa_1773643961615_example_com": {
+        "business_name": "HR GUI QA 1773643961615's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR GUI QA 1773643961615",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773643961615@example.com",
+            "ceo_phone": "+917543961615",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:22:43.213+05:30"
+        },
+        "tenant_id": "hr_gui_qa_1773643961615_example_com"
+    },
+    "finance_wa_qa_1773644053192_example_com": {
+        "business_name": "Finance WA QA 1773644053192's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance WA QA 1773644053192",
+            "role": "CEO",
+            "ceo_email": "finance.wa.qa.1773644053192@example.com",
+            "ceo_phone": "+917344053192",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:24:14.155+05:30"
+        },
+        "tenant_id": "finance_wa_qa_1773644053192_example_com"
+    },
+    "sop_gui_qa_1773644100306_example_com": {
+        "business_name": "SOP GUI QA 1773644100306's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "SOP GUI QA 1773644100306",
+            "role": "CEO",
+            "ceo_email": "sop.gui.qa.1773644100306@example.com",
+            "ceo_phone": "+917844100306",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:25:01.371+05:30"
+        },
+        "tenant_id": "sop_gui_qa_1773644100306_example_com"
+    },
+    "crm_gui_qa_1773644163417_example_com": {
+        "business_name": "CRM GUI QA 1773644163417's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "CRM GUI QA 1773644163417",
+            "role": "CEO",
+            "ceo_email": "crm.gui.qa.1773644163417@example.com",
+            "ceo_phone": "+917444163417",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:26:04.417+05:30"
+        },
+        "tenant_id": "crm_gui_qa_1773644163417_example_com"
+    },
+    "finance_gui_qa_1773644176442_example_com": {
+        "business_name": "Finance GUI QA 1773644176442's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773644176442",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773644176442@example.com",
+            "ceo_phone": "+917744176442",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:26:17.514+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773644176442_example_com"
+    },
+    "hr_gui_guardrails_1773644205343_example_com": {
+        "business_name": "HR Guardrails 1773644205343's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "HR Guardrails 1773644205343",
+            "role": "CEO",
+            "ceo_email": "hr.gui.guardrails.1773644205343@example.com",
+            "ceo_phone": "+917644205343",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:26:46.489+05:30"
+        },
+        "tenant_id": "hr_gui_guardrails_1773644205343_example_com"
+    },
+    "finance_gui_qa_1773644279603_example_com": {
+        "business_name": "Finance GUI QA 1773644279603's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773644279603",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773644279603@example.com",
+            "ceo_phone": "+917744279603",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:28:00.698+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773644279603_example_com"
+    },
+    "finance_gui_qa_1773644808772_example_com": {
+        "business_name": "Finance GUI QA 1773644808772's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773644808772",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773644808772@example.com",
+            "ceo_phone": "+917744808772",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:36:49.844+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773644808772_example_com"
+    },
+    "finance_gui_qa_1773645307550_example_com": {
+        "business_name": "Finance GUI QA 1773645307550's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773645307550",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773645307550@example.com",
+            "ceo_phone": "+917745307550",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:45:08.788+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773645307550_example_com"
+    },
+    "finance_linked_unit_1773645633547_example_com": {
+        "business_name": "Linked Unit QA 1773645633547's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Linked Unit QA 1773645633547",
+            "role": "CEO",
+            "ceo_email": "finance.linked.unit.1773645633547@example.com",
+            "ceo_phone": "+917645633547",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T12:50:34.709+05:30"
+        },
+        "tenant_id": "finance_linked_unit_1773645633547_example_com"
+    },
+    "finance_linked_unit_1773657196547_example_com": {
+        "business_name": "Linked Unit QA 1773657196547's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Linked Unit QA 1773657196547",
+            "role": "CEO",
+            "ceo_email": "finance.linked.unit.1773657196547@example.com",
+            "ceo_phone": "+917657196547",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:03:17.512+05:30"
+        },
+        "tenant_id": "finance_linked_unit_1773657196547_example_com"
+    },
+    "finance_gui_qa_1773657264899_example_com": {
+        "business_name": "Finance GUI QA 1773657264899's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773657264899",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773657264899@example.com",
+            "ceo_phone": "+917757264899",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:04:27.861+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773657264899_example_com"
+    },
+    "finance_gui_qa_1773657352516_example_com": {
+        "business_name": "Finance GUI QA 1773657352516's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773657352516",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773657352516@example.com",
+            "ceo_phone": "+917757352516",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:05:53.557+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773657352516_example_com"
+    },
+    "finance_linked_unit_1773658865453_example_com": {
+        "business_name": "Linked Unit QA 1773658865453's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Linked Unit QA 1773658865453",
+            "role": "CEO",
+            "ceo_email": "finance.linked.unit.1773658865453@example.com",
+            "ceo_phone": "+917658865453",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:31:06.709+05:30"
+        },
+        "tenant_id": "finance_linked_unit_1773658865453_example_com"
+    },
+    "finance_linked_unit_1773658916678_example_com": {
+        "business_name": "Linked Unit QA 1773658916678's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Linked Unit QA 1773658916678",
+            "role": "CEO",
+            "ceo_email": "finance.linked.unit.1773658916678@example.com",
+            "ceo_phone": "+917658916678",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:31:57.713+05:30"
+        },
+        "tenant_id": "finance_linked_unit_1773658916678_example_com"
+    },
+    "finance_linked_unit_1773659084399_example_com": {
+        "business_name": "Linked Unit QA 1773659084399's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Linked Unit QA 1773659084399",
+            "role": "CEO",
+            "ceo_email": "finance.linked.unit.1773659084399@example.com",
+            "ceo_phone": "+917659084399",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:34:45.664+05:30"
+        },
+        "tenant_id": "finance_linked_unit_1773659084399_example_com"
+    },
+    "finance_linked_unit_1773659201318_example_com": {
+        "business_name": "Linked Unit QA 1773659201318's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Linked Unit QA 1773659201318",
+            "role": "CEO",
+            "ceo_email": "finance.linked.unit.1773659201318@example.com",
+            "ceo_phone": "+917659201318",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:36:42.878+05:30"
+        },
+        "tenant_id": "finance_linked_unit_1773659201318_example_com"
+    },
+    "finance_linked_unit_1773659246484_example_com": {
+        "business_name": "Linked Unit QA 1773659246484's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Linked Unit QA 1773659246484",
+            "role": "CEO",
+            "ceo_email": "finance.linked.unit.1773659246484@example.com",
+            "ceo_phone": "+917659246484",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:37:27.537+05:30"
+        },
+        "tenant_id": "finance_linked_unit_1773659246484_example_com"
+    },
+    "finance_gui_qa_1773659277273_example_com": {
+        "business_name": "Finance GUI QA 1773659277273's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773659277273",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773659277273@example.com",
+            "ceo_phone": "+917759277273",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:37:58.338+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773659277273_example_com"
+    },
+    "finance_gui_qa_1773659346399_example_com": {
+        "business_name": "Finance GUI QA 1773659346399's Workspace",
+        "account_status": "ACTIVE",
+        "persona": {
+            "name": "Finance GUI QA 1773659346399",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773659346399@example.com",
+            "ceo_phone": "+917759346399",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:39:07.470+05:30"
+        },
+        "tenant_id": "finance_gui_qa_1773659346399_example_com"
+    }
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WhatsApp Simulator</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="layout">
+    <section class="panel controls">
+      <h1>WhatsApp Simulator</h1>
+      <p class="hint">Thin test GUI for local WhatsApp ingress simulation.</p>
+
+      <label>Backend API Base URL</label>
+      <input id="apiBase" type="text" value="http://localhost:3001" />
+
+      <label>CEO Persona</label>
+      <select id="personaSelect">
+        <option value="+919800098000">Maya Verma (+919800098000)</option>
+        <option value="+919800098001">Aarav Sharma (+919800098001)</option>
+        <option value="+919800098002">Neha Kapoor (+919800098002)</option>
+        <option value="+919800098003">Rohan Iyer (+919800098003)</option>
+      </select>
+
+      <label>From (WhatsApp phone)</label>
+      <input id="fromPhone" type="text" value="+919800098000" />
+
+      <label>Message</label>
+      <textarea id="messageBody" rows="6" placeholder="Type inbound WhatsApp message..."></textarea>
+
+      <label>Images (optional)</label>
+      <input id="imageInput" type="file" accept="image/*" multiple />
+
+      <div class="actions">
+        <button id="sendBtn" class="primary">Send Inbound</button>
+        <button id="refreshBtn">Refresh Thread</button>
+        <button id="clearBtn" class="danger">Clear Thread</button>
+      </div>
+
+      <pre id="statusBox" class="status">Ready.</pre>
+    </section>
+
+    <section class="panel thread">
+      <div class="threadHeader">
+        <h2>Conversation Thread</h2>
+        <span id="threadPhone"></span>
+      </div>
+      <div id="threadList" class="threadList"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

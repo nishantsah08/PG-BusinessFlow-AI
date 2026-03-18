@@ -14,3 +14,8 @@
 - Why built this way: Prevents cross-section coupling and keeps refresh/mutation blast radius contained.
 - Alternative considered: Global store for all property/booking entities.
 - Why rejected: Higher complexity and higher stale-state risk without strong synchronization strategy.
+
+## 4. Tenant resolution source-of-truth for Property API calls
+- Why built this way: Tenant identity is resolved from CEO auth email first, then local tenant override, so stale local storage values cannot route calls to the wrong tenant.
+- Alternative considered: Trust `tenant_id` stored in local session as the single source.
+- Why rejected: This can become stale and cause cross-tenant reads (e.g., empty image payloads in edit mode), leading to false validation failures.

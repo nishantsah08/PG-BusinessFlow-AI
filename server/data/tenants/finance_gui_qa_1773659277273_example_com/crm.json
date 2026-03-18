@@ -1,0 +1,258 @@
+{
+    "leads": {
+        "+917759277273": {
+            "lead_id": "+917759277273",
+            "name": "Finance GUI QA 1773659277273",
+            "profile_type": "CEO",
+            "email": "finance.gui.qa.1773659277273@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+917759277273",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "System",
+                "detail": "ceo.verified"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-16T16:37:58.342+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918759277273": {
+            "lead_id": "+918759277273",
+            "name": "Caretaker 1773659277273",
+            "profile_type": "Staff",
+            "email": "caretaker.1773659277273@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+918759277273",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "HR",
+                "detail": "staff.hired"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-16T16:37:58.780+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919459277273": {
+            "lead_id": "+919459277273",
+            "name": "Tenant 1773659277273",
+            "profile_type": "Customer",
+            "email": "tenant.1773659277273@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+919459277273",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Finance QA"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-16T16:37:59.318+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+919559277273": {
+            "lead_id": "+919559277273",
+            "name": "Booking Lead 1773659277273",
+            "profile_type": "Customer",
+            "email": "booking.1773659277273@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+919559277273",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Reference",
+                "detail": "Finance QA"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-16T16:37:59.567+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        }
+    },
+    "timelines": {
+        "+917759277273": [
+            {
+                "event_id": "EVT-1773659278342-77",
+                "timestamp": "2026-03-16T16:37:58.342+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-16T16:37:58.342+05:30"
+            }
+        ],
+        "+918759277273": [
+            {
+                "event_id": "EVT-1773659278780-309",
+                "timestamp": "2026-03-16T16:37:58.780+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-16T16:37:58.780+05:30"
+            }
+        ],
+        "+919459277273": [
+            {
+                "event_id": "EVT-1773659279318-58",
+                "timestamp": "2026-03-16T16:37:59.318+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-16T16:37:59.318+05:30"
+            }
+        ],
+        "+919559277273": [
+            {
+                "event_id": "EVT-1773659279567-479",
+                "timestamp": "2026-03-16T16:37:59.567+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-16T16:37:59.567+05:30"
+            }
+        ]
+    },
+    "mergeReviews": {},
+    "lastUpdatedAt": "2026-03-16T16:38:23.382+05:30",
+    "businessConfig": {
+        "tenant_id": "finance_gui_qa_1773659277273_example_com",
+        "business_name": "Finance GUI QA 1773659277273's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773659277273",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773659277273@example.com",
+            "ceo_phone": "+917759277273",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:37:58.338+05:30"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        },
+        "account_status": "ACTIVE"
+    }
+}

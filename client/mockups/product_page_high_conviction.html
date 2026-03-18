@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High Conviction</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Arial Black", Arial, sans-serif;
+      color: #0f172a;
+      background:
+        linear-gradient(130deg, #ff6d38 0%, #ffb24f 36%, #fff1d6 36%, #fff1d6 100%);
+    }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 22px; }
+    .ribbon {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      background: rgba(255, 244, 224, 0.92); border: 2px solid #0f172a; border-radius: 22px; padding: 14px 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark {
+      width: 46px; height: 46px; border-radius: 12px; background: #0f172a; color: #fff1d6; display: grid; place-items: center; font-size: 22px;
+    }
+    .brand h1, .brand p { margin: 0; }
+    .brand h1 { font-size: 12px; letter-spacing: 0.24em; }
+    .brand p { font-size: 11px; color: #475569; margin-top: 4px; font-family: Arial, sans-serif; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-family: Arial, sans-serif; }
+    .nav a, .nav span {
+      text-decoration: none; color: #0f172a; border: 2px solid #0f172a; background: #fff4e0; border-radius: 999px; padding: 10px 15px; font-size: 13px;
+    }
+    .nav .primary { background: #0f172a; color: white; }
+    .hero {
+      margin-top: 20px; display: grid; grid-template-columns: 1fr 420px; gap: 18px; min-height: 760px;
+    }
+    .left {
+      border: 2px solid #0f172a; border-radius: 36px; background: #fff1d6; padding: 42px; position: relative; overflow: hidden;
+    }
+    .eyebrow {
+      display: inline-block; padding: 8px 12px; border-radius: 999px; border: 2px solid #0f172a;
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; background: white;
+      font-family: Arial, sans-serif;
+    }
+    .headline {
+      margin: 20px 0 16px; font-size: 102px; line-height: 0.9; letter-spacing: -0.08em; max-width: 860px;
+      text-transform: uppercase;
+    }
+    .copy {
+      max-width: 760px; font-size: 23px; line-height: 1.6; font-family: Arial, sans-serif; color: #334155;
+    }
+    .cta { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; font-family: Arial, sans-serif; }
+    .cta a {
+      text-decoration: none; border: 2px solid #0f172a; border-radius: 999px; padding: 14px 18px; color: #0f172a; background: white; font-size: 14px;
+    }
+    .cta .primary { background: #0f172a; color: white; }
+    .slash {
+      position: absolute; right: -120px; bottom: -50px; width: 360px; height: 360px; background: #ff6d38; transform: rotate(38deg);
+      border: 2px solid #0f172a;
+    }
+    .modules {
+      margin-top: 34px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; font-family: Arial, sans-serif;
+    }
+    .module {
+      background: white; border: 2px solid #0f172a; border-radius: 24px; padding: 18px;
+    }
+    .module .e { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #ef5a27; }
+    .module h2 { margin: 10px 0; font-size: 32px; line-height: 1; }
+    .module p { margin: 0; line-height: 1.7; color: #475569; font-size: 14px; }
+    .right {
+      display: grid; gap: 16px;
+    }
+    .box {
+      border: 2px solid #0f172a; border-radius: 28px; padding: 24px; background: #0f172a; color: white; font-family: Arial, sans-serif;
+    }
+    .box h3 { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #ffd48e; }
+    .box p, .box li { color: #d7e0eb; line-height: 1.8; font-size: 15px; }
+    .box ul { margin: 0; padding-left: 18px; }
+    @media (max-width: 1050px) {
+      .hero { grid-template-columns: 1fr; }
+      .modules { grid-template-columns: 1fr; }
+      .headline { font-size: 62px; }
+      .copy { font-size: 19px; }
+      .ribbon { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="mark">P</div>
+        <div>
+          <h1>PG-BUSINESSFLOW.AI</h1>
+          <p>AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="#">Docs</a>
+        <span>Pricing · Coming soon</span>
+        <span>Contact · Coming soon</span>
+        <a href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="left">
+        <div class="eyebrow">High conviction</div>
+        <div class="headline">Stop running your PG business through disconnected tools.</div>
+        <div class="copy">
+          This direction is built for urgency and pressure. The psychology is direct confrontation: show the cost of fragmentation, then present the product as the clear move.
+        </div>
+        <div class="cta">
+          <a class="primary" href="#">Create workspace</a>
+          <a href="#">Read docs</a>
+        </div>
+        <div class="modules">
+          <article class="module">
+            <div class="e">Demand</div>
+            <h2>CRM</h2>
+            <p>Lead capture, visit movement, and onboarding readiness.</p>
+          </article>
+          <article class="module">
+            <div class="e">Execution</div>
+            <h2>Ops</h2>
+            <p>Property, staff, attendance, and task movement.</p>
+          </article>
+          <article class="module">
+            <div class="e">Control</div>
+            <h2>Finance</h2>
+            <p>Collections, expenses, approvals, and review.</p>
+          </article>
+        </div>
+        <div class="slash"></div>
+      </div>
+
+      <div class="right">
+        <div class="box">
+          <h3>What this product gives you</h3>
+          <ul>
+            <li>One operating layer across CRM, property, HR, finance, and workflows</li>
+            <li>Shared business context instead of scattered follow-up</li>
+            <li>AI-ready structure for execution and control</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>Flow</h3>
+          <p>Lead inquiry -> Booking -> Onboarding -> Stay ops -> Collections -> Review</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

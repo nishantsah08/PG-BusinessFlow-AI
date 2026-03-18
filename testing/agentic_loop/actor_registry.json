@@ -1,0 +1,726 @@
+{
+    "version": "1.0",
+    "generated_at": "2026-03-10T12:00:04.613Z",
+    "businesses": [
+        {
+            "tenant_id": "ceo_neha_kapoor_example_com",
+            "business_name": "Neha Kapoor",
+            "ceo": {
+                "name": "Neha Kapoor",
+                "email": "ceo.neha.kapoor@example.com",
+                "phone": "+919800098002",
+                "channel": "application_ui_pg_businessflow_ai"
+            },
+            "caretakers": [
+                {
+                    "staff_id": "STF-CT-01",
+                    "name": "Neha Caretaker 1",
+                    "phone": "+91981010011",
+                    "email": "caretaker.1.ceo_neha_kapoor_example_com@example.com",
+                    "designation": "Caretaker",
+                    "channel": "portal_and_whatsapp"
+                },
+                {
+                    "staff_id": "STF-CT-02",
+                    "name": "Neha Caretaker 2",
+                    "phone": "+91981020021",
+                    "email": "caretaker.2.ceo_neha_kapoor_example_com@example.com",
+                    "designation": "Caretaker",
+                    "channel": "portal_and_whatsapp"
+                }
+            ],
+            "customers": [
+                {
+                    "lead_id": "+918700000001",
+                    "name": "Neha Customer 01",
+                    "phone": "+918700000001",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000002",
+                    "name": "Neha Customer 02",
+                    "phone": "+918700000002",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000003",
+                    "name": "Neha Customer 03",
+                    "phone": "+918700000003",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000004",
+                    "name": "Neha Customer 04",
+                    "phone": "+918700000004",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000005",
+                    "name": "Neha Customer 05",
+                    "phone": "+918700000005",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000006",
+                    "name": "Neha Customer 06",
+                    "phone": "+918700000006",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000007",
+                    "name": "Neha Customer 07",
+                    "phone": "+918700000007",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000008",
+                    "name": "Neha Customer 08",
+                    "phone": "+918700000008",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000009",
+                    "name": "Neha Customer 09",
+                    "phone": "+918700000009",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000010",
+                    "name": "Neha Customer 10",
+                    "phone": "+918700000010",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000011",
+                    "name": "Neha Customer 11",
+                    "phone": "+918700000011",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000012",
+                    "name": "Neha Customer 12",
+                    "phone": "+918700000012",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000013",
+                    "name": "Neha Customer 13",
+                    "phone": "+918700000013",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000014",
+                    "name": "Neha Customer 14",
+                    "phone": "+918700000014",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000015",
+                    "name": "Neha Customer 15",
+                    "phone": "+918700000015",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000016",
+                    "name": "Neha Customer 16",
+                    "phone": "+918700000016",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000017",
+                    "name": "Neha Customer 17",
+                    "phone": "+918700000017",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000018",
+                    "name": "Neha Customer 18",
+                    "phone": "+918700000018",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000019",
+                    "name": "Neha Customer 19",
+                    "phone": "+918700000019",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000020",
+                    "name": "Neha Customer 20",
+                    "phone": "+918700000020",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000021",
+                    "name": "Neha Customer 21",
+                    "phone": "+918700000021",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000022",
+                    "name": "Neha Customer 22",
+                    "phone": "+918700000022",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000023",
+                    "name": "Neha Customer 23",
+                    "phone": "+918700000023",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000024",
+                    "name": "Neha Customer 24",
+                    "phone": "+918700000024",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000025",
+                    "name": "Neha Customer 25",
+                    "phone": "+918700000025",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000026",
+                    "name": "Neha Customer 26",
+                    "phone": "+918700000026",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000027",
+                    "name": "Neha Customer 27",
+                    "phone": "+918700000027",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000028",
+                    "name": "Neha Customer 28",
+                    "phone": "+918700000028",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000029",
+                    "name": "Neha Customer 29",
+                    "phone": "+918700000029",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918700000030",
+                    "name": "Neha Customer 30",
+                    "phone": "+918700000030",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                }
+            ]
+        },
+        {
+            "tenant_id": "ceo_rohan_iyer_example_com",
+            "business_name": "Rohan Iyer",
+            "ceo": {
+                "name": "Rohan Iyer",
+                "email": "ceo.rohan.iyer@example.com",
+                "phone": "+919800098003",
+                "channel": "whatsapp_simulator_chat"
+            },
+            "caretakers": [
+                {
+                    "staff_id": "STF-CT-01",
+                    "name": "Rohan Caretaker 1",
+                    "phone": "+91981110011",
+                    "email": "caretaker.1.ceo_rohan_iyer_example_com@example.com",
+                    "designation": "Caretaker",
+                    "channel": "portal_and_whatsapp"
+                },
+                {
+                    "staff_id": "STF-CT-02",
+                    "name": "Rohan Caretaker 2",
+                    "phone": "+91981120021",
+                    "email": "caretaker.2.ceo_rohan_iyer_example_com@example.com",
+                    "designation": "Caretaker",
+                    "channel": "portal_and_whatsapp"
+                }
+            ],
+            "customers": [
+                {
+                    "lead_id": "+918701000001",
+                    "name": "Rohan Customer 01",
+                    "phone": "+918701000001",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000002",
+                    "name": "Rohan Customer 02",
+                    "phone": "+918701000002",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000003",
+                    "name": "Rohan Customer 03",
+                    "phone": "+918701000003",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000004",
+                    "name": "Rohan Customer 04",
+                    "phone": "+918701000004",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000005",
+                    "name": "Rohan Customer 05",
+                    "phone": "+918701000005",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000006",
+                    "name": "Rohan Customer 06",
+                    "phone": "+918701000006",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000007",
+                    "name": "Rohan Customer 07",
+                    "phone": "+918701000007",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000008",
+                    "name": "Rohan Customer 08",
+                    "phone": "+918701000008",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000009",
+                    "name": "Rohan Customer 09",
+                    "phone": "+918701000009",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000010",
+                    "name": "Rohan Customer 10",
+                    "phone": "+918701000010",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000011",
+                    "name": "Rohan Customer 11",
+                    "phone": "+918701000011",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000012",
+                    "name": "Rohan Customer 12",
+                    "phone": "+918701000012",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000013",
+                    "name": "Rohan Customer 13",
+                    "phone": "+918701000013",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000014",
+                    "name": "Rohan Customer 14",
+                    "phone": "+918701000014",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000015",
+                    "name": "Rohan Customer 15",
+                    "phone": "+918701000015",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000016",
+                    "name": "Rohan Customer 16",
+                    "phone": "+918701000016",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000017",
+                    "name": "Rohan Customer 17",
+                    "phone": "+918701000017",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000018",
+                    "name": "Rohan Customer 18",
+                    "phone": "+918701000018",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000019",
+                    "name": "Rohan Customer 19",
+                    "phone": "+918701000019",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000020",
+                    "name": "Rohan Customer 20",
+                    "phone": "+918701000020",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000021",
+                    "name": "Rohan Customer 21",
+                    "phone": "+918701000021",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000022",
+                    "name": "Rohan Customer 22",
+                    "phone": "+918701000022",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000023",
+                    "name": "Rohan Customer 23",
+                    "phone": "+918701000023",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000024",
+                    "name": "Rohan Customer 24",
+                    "phone": "+918701000024",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000025",
+                    "name": "Rohan Customer 25",
+                    "phone": "+918701000025",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000026",
+                    "name": "Rohan Customer 26",
+                    "phone": "+918701000026",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000027",
+                    "name": "Rohan Customer 27",
+                    "phone": "+918701000027",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000028",
+                    "name": "Rohan Customer 28",
+                    "phone": "+918701000028",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000029",
+                    "name": "Rohan Customer 29",
+                    "phone": "+918701000029",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918701000030",
+                    "name": "Rohan Customer 30",
+                    "phone": "+918701000030",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                }
+            ]
+        },
+        {
+            "tenant_id": "ceo_maya_verma_example_com",
+            "business_name": "Maya Verma",
+            "ceo": {
+                "name": "Maya Verma",
+                "email": "ceo.maya.verma@example.com",
+                "phone": "+919800098000",
+                "channel": "masterai_chat_ui"
+            },
+            "caretakers": [
+                {
+                    "staff_id": "STF-CT-01",
+                    "name": "Maya Caretaker 1",
+                    "phone": "+91981210011",
+                    "email": "caretaker.1.ceo_maya_verma_example_com@example.com",
+                    "designation": "Caretaker",
+                    "channel": "portal_and_whatsapp"
+                },
+                {
+                    "staff_id": "STF-CT-02",
+                    "name": "Maya Caretaker 2",
+                    "phone": "+91981220021",
+                    "email": "caretaker.2.ceo_maya_verma_example_com@example.com",
+                    "designation": "Caretaker",
+                    "channel": "portal_and_whatsapp"
+                }
+            ],
+            "customers": [
+                {
+                    "lead_id": "+918702000001",
+                    "name": "Maya Customer 01",
+                    "phone": "+918702000001",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000002",
+                    "name": "Maya Customer 02",
+                    "phone": "+918702000002",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000003",
+                    "name": "Maya Customer 03",
+                    "phone": "+918702000003",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000004",
+                    "name": "Maya Customer 04",
+                    "phone": "+918702000004",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000005",
+                    "name": "Maya Customer 05",
+                    "phone": "+918702000005",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000006",
+                    "name": "Maya Customer 06",
+                    "phone": "+918702000006",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000007",
+                    "name": "Maya Customer 07",
+                    "phone": "+918702000007",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000008",
+                    "name": "Maya Customer 08",
+                    "phone": "+918702000008",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000009",
+                    "name": "Maya Customer 09",
+                    "phone": "+918702000009",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000010",
+                    "name": "Maya Customer 10",
+                    "phone": "+918702000010",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000011",
+                    "name": "Maya Customer 11",
+                    "phone": "+918702000011",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000012",
+                    "name": "Maya Customer 12",
+                    "phone": "+918702000012",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000013",
+                    "name": "Maya Customer 13",
+                    "phone": "+918702000013",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000014",
+                    "name": "Maya Customer 14",
+                    "phone": "+918702000014",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000015",
+                    "name": "Maya Customer 15",
+                    "phone": "+918702000015",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000016",
+                    "name": "Maya Customer 16",
+                    "phone": "+918702000016",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000017",
+                    "name": "Maya Customer 17",
+                    "phone": "+918702000017",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000018",
+                    "name": "Maya Customer 18",
+                    "phone": "+918702000018",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000019",
+                    "name": "Maya Customer 19",
+                    "phone": "+918702000019",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000020",
+                    "name": "Maya Customer 20",
+                    "phone": "+918702000020",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000021",
+                    "name": "Maya Customer 21",
+                    "phone": "+918702000021",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000022",
+                    "name": "Maya Customer 22",
+                    "phone": "+918702000022",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000023",
+                    "name": "Maya Customer 23",
+                    "phone": "+918702000023",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000024",
+                    "name": "Maya Customer 24",
+                    "phone": "+918702000024",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000025",
+                    "name": "Maya Customer 25",
+                    "phone": "+918702000025",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000026",
+                    "name": "Maya Customer 26",
+                    "phone": "+918702000026",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000027",
+                    "name": "Maya Customer 27",
+                    "phone": "+918702000027",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000028",
+                    "name": "Maya Customer 28",
+                    "phone": "+918702000028",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000029",
+                    "name": "Maya Customer 29",
+                    "phone": "+918702000029",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                },
+                {
+                    "lead_id": "+918702000030",
+                    "name": "Maya Customer 30",
+                    "phone": "+918702000030",
+                    "channel": "whatsapp_only",
+                    "lifecycle_start": "Enquiry"
+                }
+            ]
+        }
+    ]
+}

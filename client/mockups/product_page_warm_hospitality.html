@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warm Hospitality</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      color: #1f2937;
+      background:
+        radial-gradient(circle at top center, rgba(233, 140, 70, 0.16), transparent 22%),
+        linear-gradient(180deg, #fff8ef 0%, #f6eee2 100%);
+    }
+    .shell { max-width: 1380px; margin: 0 auto; padding: 26px; }
+    .ribbon {
+      display: flex; justify-content: space-between; align-items: center; gap: 18px;
+      border-radius: 999px; padding: 16px 20px; background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(31,41,55,0.08); box-shadow: 0 16px 50px rgba(126, 83, 46, 0.08);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .mark {
+      width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, #e69046 0%, #b0572d 100%);
+      color: white; display: grid; place-items: center; font-weight: 800; font-size: 22px;
+    }
+    .brand h1, .brand p { margin: 0; }
+    .brand h1 { font-size: 12px; letter-spacing: 0.22em; }
+    .brand p { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .nav a, .nav span {
+      text-decoration: none; color: #374151; border-radius: 999px; padding: 11px 16px; font-size: 14px;
+      border: 1px solid rgba(31,41,55,0.08); background: rgba(255,255,255,0.8);
+    }
+    .nav .primary { background: #205f56; color: white; border-color: transparent; font-weight: 700; }
+    .hero {
+      margin-top: 22px; padding: 52px; border-radius: 42px;
+      background:
+        radial-gradient(circle at top right, rgba(32,95,86,0.08), transparent 22%),
+        rgba(255,255,255,0.76);
+      border: 1px solid rgba(31,41,55,0.08);
+      box-shadow: 0 28px 80px rgba(104, 71, 42, 0.08);
+    }
+    .kicker {
+      display: inline-block; padding: 10px 16px; border-radius: 999px; background: #fff4e8;
+      color: #b45c2c; border: 1px solid rgba(228, 144, 70, 0.22); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 32px; margin-top: 24px; align-items: center; }
+    .headline { font-size: 84px; line-height: 0.95; letter-spacing: -0.05em; margin: 0; max-width: 820px; }
+    .copy { margin-top: 24px; max-width: 720px; font-size: 23px; line-height: 1.8; color: #4b5563; }
+    .cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px; }
+    .cta a {
+      text-decoration: none; border-radius: 999px; padding: 14px 20px; font-size: 14px; border: 1px solid rgba(31,41,55,0.08);
+    }
+    .cta .primary { background: #205f56; color: white; border-color: transparent; font-weight: 700; }
+    .cta .ghost { background: white; color: #374151; }
+    .circle {
+      width: 100%; aspect-ratio: 1 / 1; border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 34%, rgba(255,255,255,0.84), transparent 18%),
+        radial-gradient(circle at 50% 58%, rgba(32,95,86,0.16), transparent 34%),
+        linear-gradient(180deg, #fff5e7 0%, #e9dcc8 100%);
+      border: 1px solid rgba(31,41,55,0.08);
+      display: grid; place-items: center; padding: 52px;
+    }
+    .circle-card {
+      width: 100%; border-radius: 28px; background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(31,41,55,0.08); padding: 24px;
+    }
+    .circle-card h3 { margin: 0 0 14px; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: #b45c2c; }
+    .circle-card p { margin: 0; line-height: 1.85; color: #4b5563; font-size: 16px; }
+    .cards {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 28px;
+    }
+    .card {
+      background: rgba(255,255,255,0.86); border: 1px solid rgba(31,41,55,0.08); border-radius: 28px; padding: 24px;
+    }
+    .card .e { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #205f56; }
+    .card h2 { margin: 10px 0 12px; font-size: 30px; }
+    .card p { margin: 0; line-height: 1.8; color: #5e6774; font-size: 15px; }
+    .flow {
+      margin-top: 18px; background: rgba(255,255,255,0.86); border-radius: 24px; border: 1px solid rgba(31,41,55,0.08); padding: 22px;
+    }
+    .flow h3 { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #b45c2c; }
+    .flow p { margin: 0; font-size: 17px; line-height: 1.8; color: #4b5563; }
+    @media (max-width: 1050px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr; }
+      .headline { font-size: 58px; }
+      .copy { font-size: 20px; }
+      .ribbon { flex-direction: column; align-items: flex-start; border-radius: 30px; }
+      .hero { padding: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="mark">P</div>
+        <div>
+          <h1>PG-BUSINESSFLOW.AI</h1>
+          <p>AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="#">Docs</a>
+        <span>Pricing · Coming soon</span>
+        <span>Contact · Coming soon</span>
+        <a href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="kicker">Warm hospitality</div>
+      <div class="hero-grid">
+        <div>
+          <h1 class="headline">Run your PG business like one well-run home.</h1>
+          <div class="copy">
+            This direction uses warmth, ease, and human clarity. The psychology is not command or urgency. It is calm confidence: one place where demand, staff, finance, and daily operations stay coordinated.
+          </div>
+          <div class="cta">
+            <a class="primary" href="#">See how it works</a>
+            <a class="ghost" href="#">Read docs</a>
+          </div>
+        </div>
+
+        <div class="circle">
+          <div class="circle-card">
+            <h3>Why this feels different</h3>
+            <p>It presents the product as dependable and human-friendly instead of aggressive or technical. Better if you want the brand to feel welcoming to operators who already carry too much complexity.</p>
+          </div>
+        </div>
+      </div>
+
+      <section class="cards">
+        <article class="card">
+          <div class="e">Leads to move-in</div>
+          <h2>CRM + visits</h2>
+          <p>Track enquiries, visits, and onboarding without the usual handoff confusion.</p>
+        </article>
+        <article class="card">
+          <div class="e">Staff to payroll</div>
+          <h2>HR + attendance</h2>
+          <p>Keep team coordination, attendance, and payroll readiness linked together.</p>
+        </article>
+        <article class="card">
+          <div class="e">Approvals + SOPs</div>
+          <h2>Finance control</h2>
+          <p>Give the owner cleaner visibility into collections, expenses, and process discipline.</p>
+        </article>
+      </section>
+
+      <section class="flow">
+        <h3>How it works</h3>
+        <p>Lead inquiry -> Booking -> Onboarding -> Stay ops -> Collections -> Review</p>
+      </section>
+    </section>
+  </div>
+</body>
+</html>

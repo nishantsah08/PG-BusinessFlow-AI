@@ -1,13 +1,21 @@
 /**
  * BusinessConfig — Single source of truth for all business rules.
- * 
+ *
  * Phase 1: Hardcoded JS object for a single tenant.
- * Phase 2 (Multi-Tenant): Replace with a config store lookup keyed by tenant_id.
- *   e.g., const config = await configStore.getByTenantId(req.tenant_id);
+ * Phase 2 (Multi-Tenant): Keep per-tenant values in a local JSON config file.
  */
+const fs = require('fs');
+const path = require('path');
+const { isGcpBackend, getFirestore, withCollectionPrefix } = require('../storage/GcpResourceClient');
 
-const BusinessConfig = {
-    tenant_id: 'default',
+const DEFAULT_TENANT_ID = 'default';
+const BUSINESS_CONFIG_FILE = path.join(__dirname, '..', '..', 'data', 'tenant_configs.json');
+const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'local';
+let tenantConfigOverridesCache = null;
+let persistQueue = Promise.resolve();
+
+const DEFAULT_BUSINESS_CONFIG = {
+    tenant_id: DEFAULT_TENANT_ID,
     business_name: 'PG-BusinessFlow.ai',
 
     // --- Persona & Identity ---
@@ -62,7 +70,247 @@ const BusinessConfig = {
         // Default salary values (used when HR card is not available)
         default_base_salary: 4000,
         default_incentive_per_unit: 350,
+        staff_compensation_templates: {
+            default: {
+                base_salary: 4000,
+                components: {
+                    compensation_model: 'STANDARD',
+                    salary_advance_limit: 5000,
+                    reimbursements_allowed: true,
+                    incentives: {
+                        logic: 'Role-based performance incentive',
+                        amount_per_unit: 350
+                    },
+                    allowances: {
+                        travel: 0,
+                        phone: 0
+                    }
+                }
+            },
+            caretaker: {
+                base_salary: 4000,
+                components: {
+                    compensation_model: 'CARETAKER_UNIT_BASED',
+                    salary_advance_limit: 5000,
+                    reimbursements_allowed: true,
+                    incentives: {
+                        logic: 'Fully paid occupied units * amount per unit',
+                        amount_per_unit: 250
+                    },
+                    allowances: {
+                        travel: 0,
+                        phone: 0
+                    },
+                    caretaker_rules: {
+                        daily_cleaning_proof_amount: 100,
+                        weekly_parking_cleaning_amount: 100,
+                        maintenance_complaint_deduction: 100
+                    }
+                }
+            }
+        },
+        caretaker_compensation: {
+            fixed_basic_salary: 4000,
+            per_fully_paid_occupied_unit: 250,
+            daily_cleaning_proof_amount: 100,
+            weekly_parking_cleaning_amount: 100,
+            maintenance_complaint_deduction: 100
+        }
     },
 };
 
-module.exports = BusinessConfig;
+function cloneConfig(source) {
+    return JSON.parse(JSON.stringify(source));
+}
+
+function normalizeTenantId(tenantId) {
+    const sanitized = typeof tenantId === 'string' ? tenantId.trim() : '';
+    return sanitized || DEFAULT_TENANT_ID;
+}
+
+function loadTenantConfigFile() {
+    if (tenantConfigOverridesCache && typeof tenantConfigOverridesCache === 'object') {
+        return cloneConfig(tenantConfigOverridesCache);
+    }
+    if (!fs.existsSync(BUSINESS_CONFIG_FILE)) {
+        return {};
+    }
+
+    try {
+        const raw = fs.readFileSync(BUSINESS_CONFIG_FILE, 'utf8');
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_error) {
+        return {};
+    }
+}
+
+function writeTenantConfigFile(nextValue) {
+    tenantConfigOverridesCache = cloneConfig(nextValue);
+    if (isGcpBackend(STORAGE_BACKEND)) {
+        const collection = getFirestore().collection(withCollectionPrefix('tenant_configs'));
+        persistQueue = persistQueue
+            .then(async () => {
+                const snapshot = await collection.get();
+                const batch = getFirestore().batch();
+                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+                Object.entries(nextValue || {}).forEach(([tenantId, value]) => {
+                    batch.set(collection.doc(tenantId), value, { merge: false });
+                });
+                await batch.commit();
+            })
+            .catch((error) => {
+                console.error('[BusinessConfig] Failed to persist tenant configs:', error?.message || error);
+            });
+        return;
+    }
+    const dir = path.dirname(BUSINESS_CONFIG_FILE);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(BUSINESS_CONFIG_FILE, JSON.stringify(nextValue, null, 4), 'utf8');
+}
+
+function getTenantConfigOverrides() {
+    const raw = loadTenantConfigFile();
+    const overrides = raw && typeof raw === 'object' ? raw : {};
+    if (!overrides || typeof overrides !== 'object') {
+        return {};
+    }
+    return overrides;
+}
+
+function buildMergedConfig(tenantId) {
+    const tenantOverrides = getTenantConfigOverrides();
+    const defaultCfg = cloneConfig(DEFAULT_BUSINESS_CONFIG);
+
+    const tenantCfg = tenantOverrides[tenantId];
+    if (!tenantCfg || typeof tenantCfg !== 'object') {
+        defaultCfg.tenant_id = tenantId;
+        return defaultCfg;
+    }
+
+    const basePersona = tenantId === DEFAULT_TENANT_ID
+        ? defaultCfg.persona
+        : {
+            ...defaultCfg.persona,
+            ceo_email: null,
+            ceo_phone: null,
+            name: null,
+        };
+
+    const merged = {
+        ...defaultCfg,
+        ...tenantCfg,
+        tenant_id: tenantId,
+        property: {
+            ...defaultCfg.property,
+            ...(tenantCfg.property || {})
+        },
+        rates: {
+            ...defaultCfg.rates,
+            ...(tenantCfg.rates || {})
+        },
+        finance: {
+            ...defaultCfg.finance,
+            ...(tenantCfg.finance || {})
+        },
+        persona: {
+            ...basePersona,
+            ...(tenantCfg.persona || {})
+        }
+    };
+
+    return merged;
+}
+
+function getAllTenantConfigs() {
+    if (!tenantConfigOverridesCache && !isGcpBackend(STORAGE_BACKEND)) {
+        tenantConfigOverridesCache = loadTenantConfigFile();
+        ensureDefaultTenantConfig();
+    }
+    const overrides = getTenantConfigOverrides();
+    const tenantIds = new Set([DEFAULT_TENANT_ID, ...Object.keys(overrides || {})]);
+    const all = {};
+    tenantIds.forEach((tenantId) => {
+        all[tenantId] = buildMergedConfig(tenantId);
+    });
+    return all;
+}
+
+function getBusinessConfig(tenantId = DEFAULT_TENANT_ID) {
+    if (!tenantConfigOverridesCache && !isGcpBackend(STORAGE_BACKEND)) {
+        tenantConfigOverridesCache = loadTenantConfigFile();
+        ensureDefaultTenantConfig();
+    }
+    const normalizedTenantId = normalizeTenantId(tenantId);
+    return buildMergedConfig(normalizedTenantId);
+}
+
+function saveTenantConfig(tenantId, partialConfig = {}) {
+    const normalizedTenantId = normalizeTenantId(tenantId);
+    const overrides = getTenantConfigOverrides();
+    overrides[normalizedTenantId] = {
+        ...(overrides[normalizedTenantId] || {}),
+        ...partialConfig,
+        tenant_id: normalizedTenantId,
+    };
+    writeTenantConfigFile(overrides);
+    return getBusinessConfig(normalizedTenantId);
+}
+
+function ensureDefaultTenantConfig() {
+    const all = getTenantConfigOverrides();
+    if (!all[DEFAULT_TENANT_ID]) {
+        const defaultPersona = isGcpBackend(STORAGE_BACKEND)
+            ? {
+                ...DEFAULT_BUSINESS_CONFIG.persona,
+                ceo_email: null,
+                ceo_phone: null,
+                ceo_phone_verified_at: null,
+                name: null,
+            }
+            : DEFAULT_BUSINESS_CONFIG.persona;
+        saveTenantConfig(DEFAULT_TENANT_ID, {
+            tenant_id: DEFAULT_TENANT_ID,
+            business_name: DEFAULT_BUSINESS_CONFIG.business_name,
+            persona: defaultPersona,
+            property: DEFAULT_BUSINESS_CONFIG.property,
+            rates: DEFAULT_BUSINESS_CONFIG.rates,
+            finance: DEFAULT_BUSINESS_CONFIG.finance,
+        });
+    }
+}
+
+async function initialize() {
+    if (tenantConfigOverridesCache && typeof tenantConfigOverridesCache === 'object') {
+        return;
+    }
+
+    if (!isGcpBackend(STORAGE_BACKEND)) {
+        tenantConfigOverridesCache = loadTenantConfigFile();
+        ensureDefaultTenantConfig();
+        return;
+    }
+
+    const collection = getFirestore().collection(withCollectionPrefix('tenant_configs'));
+    const snapshot = await collection.get();
+    const loaded = {};
+    snapshot.docs.forEach((doc) => {
+        loaded[doc.id] = doc.data();
+    });
+    tenantConfigOverridesCache = loaded;
+    ensureDefaultTenantConfig();
+}
+
+const BusinessConfig = cloneConfig(DEFAULT_BUSINESS_CONFIG);
+
+module.exports = {
+    ...DEFAULT_BUSINESS_CONFIG,
+    initialize,
+    getBusinessConfig,
+    getAllTenantConfigs,
+    saveTenantConfig,
+    DEFAULT_TENANT_ID,
+    BUSINESS_CONFIG_FILE
+};

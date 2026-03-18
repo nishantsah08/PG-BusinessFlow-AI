@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Maturity</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #111827;
+      background: #faf7f1;
+    }
+    .shell { max-width: 1360px; margin: 0 auto; padding: 30px; }
+    .ribbon {
+      display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;
+      padding-bottom: 18px; border-bottom: 1px solid rgba(17,24,39,0.12);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: #8b6740; color: white; font-weight: 800; }
+    .brand h1, .brand p { margin: 0; }
+    .brand h1 { font-size: 12px; letter-spacing: 0.24em; }
+    .brand p { margin-top: 4px; font-size: 12px; color: #6b7280; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .nav a, .nav span {
+      text-decoration: none; color: #111827; border-radius: 999px; padding: 10px 15px; border: 1px solid rgba(17,24,39,0.12); background: white; font-size: 13px;
+    }
+    .nav .primary { background: #183b63; color: white; border-color: transparent; }
+    .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; margin-top: 34px; }
+    .eyebrow {
+      font-family: Arial, Helvetica, sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #8b6740; margin-bottom: 18px;
+    }
+    .headline { margin: 0; font-size: 80px; line-height: 0.98; letter-spacing: -0.05em; max-width: 760px; }
+    .subheadline { margin-top: 24px; font-size: 28px; line-height: 1.7; color: #374151; max-width: 720px; }
+    .support { margin-top: 16px; font-size: 20px; line-height: 1.9; color: #6b7280; max-width: 720px; }
+    .cta { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; font-family: Arial, Helvetica, sans-serif; }
+    .cta a {
+      text-decoration: none; border-radius: 999px; padding: 13px 18px; font-size: 14px; border: 1px solid rgba(17,24,39,0.12); color: #111827; background: white;
+    }
+    .cta .primary { background: #183b63; color: white; border-color: transparent; }
+    .right {
+      border-left: 1px solid rgba(17,24,39,0.1); padding-left: 34px; display: grid; gap: 18px;
+    }
+    .title {
+      font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #8b6740; margin-bottom: 8px;
+    }
+    .statement {
+      padding: 0 0 18px; border-bottom: 1px solid rgba(17,24,39,0.1); font-size: 30px; line-height: 1.45; color: #273444;
+    }
+    .grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 32px; border-top: 1px solid rgba(17,24,39,0.1); border-bottom: 1px solid rgba(17,24,39,0.1);
+    }
+    .cell { padding: 22px 16px 26px 0; border-right: 1px solid rgba(17,24,39,0.1); }
+    .cell:last-child { border-right: 0; }
+    .cell .e {
+      font-family: Arial, Helvetica, sans-serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8b6740;
+    }
+    .cell h2 { margin: 10px 0; font-size: 34px; }
+    .cell p { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #697383; font-size: 14px; line-height: 1.8; }
+    @media (max-width: 1050px) {
+      .hero { grid-template-columns: 1fr; }
+      .right { border-left: 0; padding-left: 0; border-top: 1px solid rgba(17,24,39,0.1); padding-top: 26px; }
+      .grid { grid-template-columns: 1fr; }
+      .cell { border-right: 0; border-bottom: 1px solid rgba(17,24,39,0.1); padding-right: 0; }
+      .cell:last-child { border-bottom: 0; }
+      .headline { font-size: 56px; }
+      .subheadline { font-size: 21px; }
+      .ribbon { grid-template-columns: 1fr; }
+      .nav { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="mark">P</div>
+        <div>
+          <h1>PG-BUSINESSFLOW.AI</h1>
+          <p>AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="#">Docs</a>
+        <span>Pricing · Coming soon</span>
+        <span>Contact · Coming soon</span>
+        <a href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Premium maturity</div>
+        <h1 class="headline">A more organized way to run your PG business.</h1>
+        <div class="subheadline">One connected system across demand, operations, staff, and finance.</div>
+        <div class="support">Designed for operators who want clarity, discipline, and better business visibility.</div>
+        <div class="cta">
+          <a class="primary" href="#">See how it works</a>
+          <a href="#">Read docs</a>
+        </div>
+
+        <section class="grid">
+          <article class="cell">
+            <div class="e">Leads to move-in</div>
+            <h2>CRM + visits</h2>
+            <p>Track enquiries, visits, and onboarding with cleaner structure.</p>
+          </article>
+          <article class="cell">
+            <div class="e">Staff to payroll</div>
+            <h2>HR + attendance</h2>
+            <p>Give teams one operating picture for execution and attendance.</p>
+          </article>
+          <article class="cell">
+            <div class="e">Approvals + SOPs</div>
+            <h2>Finance control</h2>
+            <p>Collections, expenses, approvals, and process discipline remain visible.</p>
+          </article>
+        </section>
+      </div>
+
+      <aside class="right">
+        <div>
+          <div class="title">Positioning</div>
+          <div class="statement">This copy is calmer and more mature. It avoids hype and leans into seriousness.</div>
+        </div>
+        <div>
+          <div class="title">What this says emotionally</div>
+          <div class="statement">This is for operators who want confidence, control, and cleaner business structure.</div>
+        </div>
+        <div>
+          <div class="title">How it works</div>
+          <div class="statement">Lead inquiry -> Booking -> Onboarding -> Stay ops -> Collections -> Review</div>
+        </div>
+      </aside>
+    </section>
+  </div>
+</body>
+</html>

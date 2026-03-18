@@ -34,6 +34,85 @@ const isImageSource = (src) => {
     return /^https?:\/\/.+/i.test(src) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(src);
 };
 
+const renderWorkflowTextBlock = (content) => {
+    if (typeof content !== 'string') return null;
+    const text = content.trim();
+    if (!text) return null;
+
+    if (text.startsWith('Visible workflows:')) {
+        const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+        const title = lines[0];
+        const items = lines.filter((line) => line.startsWith('- '));
+        const helper = lines.find((line) => line.toLowerCase().startsWith('say "show details on'));
+        return (
+            <div className="space-y-2">
+                <div className="text-sm font-semibold text-indigo-700">{title}</div>
+                <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-2">
+                    {items.map((item) => (
+                        <div key={item} className="font-mono text-xs text-indigo-900">{item}</div>
+                    ))}
+                </div>
+                {helper ? <div className="text-xs text-indigo-700">{helper}</div> : null}
+            </div>
+        );
+    }
+
+    if (!text.startsWith('Workflow:')) return null;
+
+    const lines = text.split('\n');
+    const metaRows = [];
+    const steps = [];
+    const notes = [];
+    let inSteps = false;
+
+    lines.forEach((lineRaw) => {
+        const line = lineRaw.trim();
+        if (!line) return;
+        if (line === 'Steps in plain English:') {
+            inSteps = true;
+            return;
+        }
+        if (/^\d+\.\s+/.test(line)) {
+            steps.push(line);
+            return;
+        }
+        if (line.startsWith('Approval:') || line.startsWith('Failure rule:') || line.startsWith('Workflow:') || line.startsWith('ID:') || line.startsWith('When it runs:')) {
+            metaRows.push(line);
+            return;
+        }
+        if (inSteps) notes.push(line);
+        else metaRows.push(line);
+    });
+
+    return (
+        <div className="space-y-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-2">
+                {metaRows.map((row) => {
+                    const [label, ...rest] = row.split(':');
+                    if (rest.length === 0) return <div key={row} className="text-xs text-slate-800">{row}</div>;
+                    return (
+                        <div key={row} className="text-xs">
+                            <span className="font-semibold uppercase tracking-wide text-slate-600">{label}:</span>{' '}
+                            <span className="text-slate-900">{rest.join(':').trim()}</span>
+                        </div>
+                    );
+                })}
+            </div>
+            {steps.length > 0 ? (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-2">
+                    <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-800">Steps In Plain English</div>
+                    {steps.map((step) => (
+                        <div key={step} className="text-xs text-emerald-900">{step}</div>
+                    ))}
+                </div>
+            ) : null}
+            {notes.map((line) => (
+                <div key={line} className="text-xs text-slate-700">{line}</div>
+            ))}
+        </div>
+    );
+};
+
 const renderMessageContent = (msg, onOpenImage) => {
     if (typeof msg.content !== 'string') {
         return <div className="text-sm whitespace-pre-wrap">{msg.content}</div>;
@@ -41,6 +120,11 @@ const renderMessageContent = (msg, onOpenImage) => {
 
     if (msg.role !== 'assistant') {
         return <div className="text-sm whitespace-pre-wrap">{msg.content}</div>;
+    }
+
+    const workflowBlock = renderWorkflowTextBlock(msg.content);
+    if (workflowBlock) {
+        return workflowBlock;
     }
 
     const blocks = [];

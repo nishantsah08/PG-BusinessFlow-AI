@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, X, Plus, Trash2, ChevronUp, ChevronDown, Code } from 'lucide-react';
+import { Save, X, Trash2, ChevronUp, ChevronDown, Code } from 'lucide-react';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
 
 /**
@@ -16,9 +16,29 @@ const EMPTY_STEP = { step_id: '', description: '', agent: '', tool: '', params: 
 
 const FAILURE_OPTIONS = ['retry', 'compensate', 'abort'];
 
+const prettifyValue = (value) => {
+    if (Array.isArray(value)) return value.join(', ');
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    return String(value || '').trim() || 'Not specified';
+};
+
+const summarizeSchedule = (schedule = {}) => {
+    if (!schedule || typeof schedule !== 'object') return 'No schedule configured';
+    const parts = [
+        schedule.frequency,
+        schedule.run_rule,
+        schedule.run_time,
+        schedule.timezone,
+    ].filter(Boolean);
+    return parts.length ? parts.join(' • ') : 'Schedule configured';
+};
+
+const infoCardClasses = 'rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3';
+
 const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
     const { isDeveloperMode } = useDeveloperMode();
     const isEditMode = !!workflow;
+    const isProtectedTemplate = Boolean(workflow?.protected);
 
     const [workflowId, setWorkflowId] = useState('');
     const [name, setName] = useState('');
@@ -30,6 +50,7 @@ const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
 
     const [showTriggerDevMode, setShowTriggerDevMode] = useState(false);
     const [openSteps, setOpenSteps] = useState({});
+    const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
     const toggleStepDevMode = (idx) => {
         setOpenSteps(prev => ({ ...prev, [idx]: !prev[idx] }));
     };
@@ -55,6 +76,7 @@ const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
                 }))
             );
             setShowTriggerDevMode(false);
+            setShowAdvancedDetails(false);
         } else {
             setWorkflowId('');
             setName('');
@@ -63,9 +85,29 @@ const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
             setTriggerDescription('');
             setSteps([{ ...EMPTY_STEP }]);
             setShowTriggerDevMode(false);
+            setShowAdvancedDetails(false);
         }
         setErrors({});
     }, [workflow]);
+
+    const approvalSummary = workflow?.approval
+        ? [
+            workflow.approval.required ? 'CEO approval required' : 'No approval required',
+            Array.isArray(workflow.approval.initiators) && workflow.approval.initiators.length > 0
+                ? `Initiators: ${workflow.approval.initiators.join(', ')}`
+                : null,
+            Array.isArray(workflow.approval.approvers) && workflow.approval.approvers.length > 0
+                ? `Approvers: ${workflow.approval.approvers.join(', ')}`
+                : null,
+            Array.isArray(workflow.approval.surfaces) && workflow.approval.surfaces.length > 0
+                ? `Surfaces: ${workflow.approval.surfaces.join(', ')}`
+                : null,
+        ].filter(Boolean).join(' • ')
+        : '';
+
+    const triggerSummary = workflow?.trigger_type === 'schedule'
+        ? summarizeSchedule(workflow?.schedule)
+        : (workflow?.intent_rule || workflow?.intent_description || workflow?.trigger_description || '');
 
     const validate = () => {
         const newErrors = {};
@@ -188,6 +230,86 @@ const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
 
                     {/* Description */}
                     <div>
+                        {workflow ? (
+                            <div className="mb-5 space-y-4">
+                                {isProtectedTemplate ? (
+                                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                        This is a protected default workflow. If you save changes, the system will clone it for this tenant first.
+                                    </div>
+                                ) : null}
+
+                                <div className={infoCardClasses}>
+                                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">What This Workflow Does</div>
+                                    <div className="mt-2 text-base font-semibold text-slate-900">{workflow.name || workflow.workflow_id}</div>
+                                    <div className="mt-2 text-sm text-slate-700">{workflow.description || 'No summary available.'}</div>
+                                </div>
+
+                                <div className={infoCardClasses}>
+                                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">When It Runs</div>
+                                    <div className="mt-2 text-sm text-slate-800">{triggerSummary || 'Not specified'}</div>
+                                </div>
+
+                                {Array.isArray(workflow?.user_view_steps) && workflow.user_view_steps.length > 0 ? (
+                                    <div className={infoCardClasses}>
+                                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Steps In Plain English</div>
+                                        <ol className="mt-3 space-y-2 text-sm text-slate-700">
+                                            {workflow.user_view_steps.map((step, idx) => (
+                                                <li key={`${idx}-${step}`} className="flex gap-3">
+                                                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-700">
+                                                        {idx + 1}
+                                                    </span>
+                                                    <span>{step}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                ) : null}
+
+                                <div className={infoCardClasses}>
+                                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Approval And Failure Rules</div>
+                                    <div className="mt-2 text-sm text-slate-800">{approvalSummary || 'Not specified'}</div>
+                                    <div className="mt-2 text-sm text-slate-700">{workflow?.rollback_policy?.rule || 'Not specified'}</div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAdvancedDetails((current) => !current)}
+                                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 hover:bg-slate-50"
+                                >
+                                    {showAdvancedDetails ? 'Hide Advanced Details' : 'Show Advanced Details'}
+                                </button>
+
+                                {showAdvancedDetails ? (
+                                    <div className="grid gap-4 xl:grid-cols-2">
+                                        <div className={infoCardClasses}>
+                                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Workflow ID</div>
+                                            <div className="mt-2 text-sm font-semibold text-slate-900">{workflow.workflow_id || 'Not set'}</div>
+                                        </div>
+                                        <div className={infoCardClasses}>
+                                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Trigger Type</div>
+                                            <div className="mt-2 text-sm font-semibold text-slate-900">{prettifyValue(workflow.trigger_type)}</div>
+                                        </div>
+                                        <div className={infoCardClasses}>
+                                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Module Owner</div>
+                                            <div className="mt-2 text-sm font-semibold text-slate-900">{prettifyValue(workflow.module_owner || workflow.domain)}</div>
+                                        </div>
+                                        <div className={infoCardClasses}>
+                                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Template State</div>
+                                            <div className="mt-2 text-sm font-semibold text-slate-900">
+                                                {workflow.template_state === 'ACTIVE_DEFAULT'
+                                                    ? 'Default active'
+                                                    : workflow.template_state === 'OVERRIDDEN_BY_TENANT'
+                                                        ? 'Tenant override active'
+                                                        : isProtectedTemplate
+                                                            ? 'Protected template'
+                                                            : (workflow.tenant_state || 'Tenant workflow')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </div>
+                        ) : null}
+
                         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
                             Description
                         </label>
@@ -361,7 +483,7 @@ const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
                     className="flex-1 flex items-center justify-center space-x-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
                 >
                     <Save className="w-4 h-4" />
-                    <span>{isEditMode ? 'Save Workflow' : 'Create Workflow'}</span>
+                    <span>{isProtectedTemplate ? 'Clone For Tenant' : isEditMode ? 'Save Workflow' : 'Create Workflow'}</span>
                 </button>
                 <button
                     type="button"

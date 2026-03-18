@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import WorkflowList from './WorkflowList';
+import { renderWithSettings } from '../../test/renderWithSettings';
 
 const MOCK_WORKFLOWS = [
     {
@@ -25,7 +26,7 @@ describe('WorkflowList Component', () => {
         const onDelete = jest.fn();
         const onCreateNew = jest.fn();
 
-        render(
+        renderWithSettings(
             <WorkflowList
                 workflows={MOCK_WORKFLOWS}
                 selectedId={null}
@@ -45,7 +46,7 @@ describe('WorkflowList Component', () => {
     });
 
     it('shows empty state when no workflows provided', () => {
-        render(
+        renderWithSettings(
             <WorkflowList
                 workflows={[]}
                 selectedId={null}
@@ -60,7 +61,7 @@ describe('WorkflowList Component', () => {
 
     it('calls onSelect when a workflow card is clicked', () => {
         const onSelect = jest.fn();
-        render(
+        renderWithSettings(
             <WorkflowList
                 workflows={MOCK_WORKFLOWS}
                 selectedId={null}
@@ -76,7 +77,7 @@ describe('WorkflowList Component', () => {
 
     it('calls onCreateNew when New Workflow button is clicked', () => {
         const onCreateNew = jest.fn();
-        render(
+        renderWithSettings(
             <WorkflowList
                 workflows={MOCK_WORKFLOWS}
                 selectedId={null}
@@ -91,7 +92,7 @@ describe('WorkflowList Component', () => {
     });
 
     it('shows the workflow count badge', () => {
-        render(
+        renderWithSettings(
             <WorkflowList
                 workflows={MOCK_WORKFLOWS}
                 selectedId={null}

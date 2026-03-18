@@ -1,111 +1,703 @@
 [
     {
-        "workflow_id": "payment_acknowledgement",
-        "name": "Payment Acknowledgement",
-        "description": "Record the incoming transaction in the finance ledger and send a confirmation message to the payer via WhatsApp.",
-        "trigger_description": "When a payment is received from a tenant or lead",
-        "trigger_event": "payment.received",
+        "workflow_id": "finance_add_vendor_v1",
+        "workflow_family": "finance_add_vendor",
+        "name": "Finance Vendor Registration",
+        "description": "Deterministic workflow for creating or reusing a vendor in the finance register before expense posting.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when CEO or Staff needs to register a vendor in the finance register for controlled outgoing tracking.",
+        "user_view_title": "Register Vendor (Plain English)",
+        "user_view_steps": [
+            "Capture the vendor profile needed for expense tracking.",
+            "Reuse an existing vendor when the same payee is already registered.",
+            "Return the vendor record for later outgoing workflows."
+        ],
+        "trigger_event": "finance.vendor.add.requested",
+        "trigger_description": "When the business needs a tracked vendor record for finance operations.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "high",
+            "rule": "Vendor registration requires a clear vendor name and enough identity fields to avoid accidental duplicates."
+        },
+        "rollback_policy": {
+            "rule": "Abort if vendor identity is too ambiguous. Do not create duplicate vendor records when an existing one clearly matches.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
+        "ui_hidden": true,
         "steps": [
             {
-                "step_id": "record_payment",
-                "description": "Log the payment amount and details into the finance ledger.",
+                "step_id": "finance_add_vendor",
+                "description": "Create or reuse a vendor in FinanceAI.",
                 "agent": "FinanceAI",
-                "tool": "record_incoming_txn",
+                "tool": "add_vendor",
                 "params": {
-                    "amount": "{{context.amount}}",
+                    "vendor_name": "{{context.vendor_name}}",
+                    "category": "{{context.category}}",
+                    "primary_phone": "{{context.primary_phone}}",
+                    "email": "{{context.email}}",
+                    "upi_id": "{{context.upi_id}}",
+                    "bank_details": "{{context.bank_details}}",
+                    "notes": "{{context.notes}}"
+                },
+                "on_failure": "abort"
+            }
+        ],
+        "whatsapp_templates": [],
+        "sop_document": {
+            "title": "Finance Vendor Registration",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Create or reuse a vendor in the finance register so outgoing payments and expenses can be tracked against the right payee."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when the business needs a vendor record before expense posting or settlement.\n- This SOP should run only when the vendor identity is clear enough to avoid duplicates."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm the vendor identity.\n   Capture the vendor name, contact details, payment details, and business category needed for finance tracking.\n2. Check whether the vendor already exists.\n   Look for a clear existing match so the business does not create duplicate vendor records.\n3. Create or reuse the vendor record.\n   Register the vendor if needed or reuse the existing one when the payee is already on file.\n4. Return the vendor result.\n   Share the vendor record that should be used by later outgoing-payment procedures."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Vendor identity is clear.\n- Enough contact or payment details are available to avoid duplicates."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If vendor identity is too ambiguous, stop before creating the record.\n- Do not create duplicate vendor records when an existing one clearly matches."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_add_vendor_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.775+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.941+05:30",
+        "validation_status": "validated",
+        "is_active": false
+    },
+    {
+        "workflow_id": "finance_record_booking_hold_v1",
+        "workflow_family": "finance_record_booking_hold",
+        "name": "Record Booking Hold",
+        "description": "Deterministic workflow for recording a pre-onboarding booking hold payment.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when the business receives booking money before final onboarding or unit allocation is complete.",
+        "user_view_title": "Record Booking Hold (Plain English)",
+        "user_view_steps": [
+            "Capture booking money against the payer account.",
+            "Hold the amount without treating it as active rent collection yet.",
+            "Start the 10-day validity window for onboarding completion."
+        ],
+        "trigger_event": "finance.booking.hold.record.requested",
+        "trigger_description": "When booking money is received before onboarding is completed.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Booking hold recording requires unambiguous payer, amount, and received date before execution."
+        },
+        "rollback_policy": {
+            "rule": "Abort if booking hold context is incomplete. Do not convert booking money into live rent collection implicitly.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
+        "ui_hidden": false,
+        "steps": [
+            {
+                "step_id": "finance_record_booking_hold",
+                "description": "Record booking-hold money in FinanceAI.",
+                "agent": "FinanceAI",
+                "tool": "record_booking_hold",
+                "params": {
                     "payer_id": "{{context.payer_id}}",
-                    "payment_mode": "{{context.payment_mode}}",
-                    "date": "{{context.date}}"
+                    "amount": "{{context.amount}}",
+                    "received_at": "{{context.received_at}}",
+                    "linked_property_id": "{{context.linked_property_id}}",
+                    "linked_unit_id": "{{context.linked_unit_id}}",
+                    "evidence_link": "{{context.evidence_link}}",
+                    "notes": "{{context.notes}}",
+                    "payment_mode": "{{context.payment_mode}}"
                 },
                 "on_failure": "abort"
-            },
-            {
-                "step_id": "notify_payer",
-                "description": "Send a thank-you WhatsApp message to the payer confirming receipt.",
-                "agent": "CommunicationsAI",
-                "tool": "send_text_message",
-                "params": {
-                    "recipient_phone": "{{context.payer_phone}}",
-                    "content": "Payment of ₹{{context.amount}} received. Thank you!"
-                },
-                "on_failure": "retry"
             }
         ],
-        "created_at": "2026-02-20T10:30:00+05:30"
+        "whatsapp_templates": [
+            {
+                "audience": "customer",
+                "purpose": "booking_hold_confirmation",
+                "template_name": "booking_hold_confirmation_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "customer_name",
+                    "booking_amount",
+                    "property_or_unit",
+                    "received_date",
+                    "hold_valid_till",
+                    "caretaker_phone"
+                ]
+            }
+        ],
+        "sop_document": {
+            "title": "Record Booking Hold",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Use this SOP when booking money is received before onboarding is complete and the business needs to hold that money safely without treating it as normal rent collection."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when booking money is received before onboarding or final room allocation is complete.\n- This SOP should run only when payer, amount, received date, and supporting proof are clear."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm what money has been received.\n   Check who paid, how much was paid, when it was paid, and why it was collected. Make sure this is booking money and not normal rent.\n2. Confirm that onboarding is still incomplete.\n   Check that the resident has not fully onboarded yet. If onboarding is already complete, stop and move the case to the correct finance process.\n3. Review the payment proof.\n   Make sure the receipt, transfer reference, or collection proof is available and clear enough for later audit.\n4. Record the booking hold correctly in Finance.\n   Enter the amount as booking-hold money. Keep it separate from live rent collection so the business does not treat it as monthly revenue too early.\n5. Start the booking validity period.\n   Record the validity window linked to this hold so the business knows how long the hold remains valid and when follow-up is required.\n6. Send customer confirmation.\n   Thank the customer, confirm booking amount received and recorded, and tell them they can come directly for onboarding by calling the caretaker."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Payer name is known.\n- Amount and received date are known.\n- Payment proof is available.\n- The payment is being treated as booking money, not active rent."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If payment proof or booking context is unclear, stop before any finance record is written.\n- Do not automatically convert booking money into live rent collection."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_record_booking_hold_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.776+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.941+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
-        "workflow_id": "visit_followup",
-        "name": "Visit Follow-Up",
-        "description": "Update their CRM status to Visited, log the visit session with details, and send a follow-up courtesy message via WhatsApp.",
-        "trigger_description": "After a prospective tenant completes a site visit",
-        "trigger_event": "visit.completed",
+        "workflow_id": "finance_expire_booking_hold_v1",
+        "workflow_family": "finance_expire_booking_hold",
+        "name": "Expire Booking Hold",
+        "description": "Deterministic workflow for expiring booking holds that were not converted into onboarding within ten days.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "schedule",
+        "schedule": {
+            "timezone": "Asia/Kolkata",
+            "frequency": "daily",
+            "run_time": "21:00",
+            "scope": "active booking holds"
+        },
+        "user_view_title": "Expire Booking Hold (Plain English)",
+        "user_view_steps": [
+            "Check all active booking holds.",
+            "Expire those whose ten-day onboarding window has ended.",
+            "Mark them forfeited without refund."
+        ],
+        "trigger_event": "finance.booking.hold.expiry.requested",
+        "trigger_description": "When the booking hold validity window ends without onboarding.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "System"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Booking hold expiry requires an active hold that has exceeded the ten-day validity window."
+        },
+        "rollback_policy": {
+            "rule": "Abort if the booking hold is already closed or cannot be resolved deterministically.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
         "steps": [
             {
-                "step_id": "update_status",
-                "description": "Update the prospective tenant's status to 'Visited' in the CRM.",
-                "agent": "CRMAgent",
-                "tool": "change_status",
+                "step_id": "finance_expire_booking_hold",
+                "description": "Expire the booking hold and mark it forfeited.",
+                "agent": "FinanceAI",
+                "tool": "expire_booking_hold",
                 "params": {
-                    "lead_id": "{{context.lead_id}}",
-                    "to_status": "Visited",
-                    "reason": "Site visit completed"
+                    "booking_hold_id": "{{context.booking_hold_id}}"
                 },
                 "on_failure": "abort"
-            },
-            {
-                "step_id": "log_visit_session",
-                "description": "Record the site visit summary and notes in the CRM.",
-                "agent": "CRMAgent",
-                "tool": "log_session",
-                "params": {
-                    "lead_id": "{{context.lead_id}}",
-                    "interaction_type": "Visit",
-                    "summary": "{{context.visit_summary}}"
-                },
-                "on_failure": "retry"
-            },
-            {
-                "step_id": "send_followup",
-                "description": "Send a courteous follow-up WhatsApp message to the prospect.",
-                "agent": "CommunicationsAI",
-                "tool": "send_text_message",
-                "params": {
-                    "recipient_phone": "{{context.lead_phone}}",
-                    "content": "Thank you for visiting! Let us know if you have any questions."
-                },
-                "on_failure": "retry"
             }
         ],
-        "created_at": "2026-02-21T09:15:00+05:30"
+        "whatsapp_templates": [],
+        "sop_document": {
+            "title": "Expire Booking Hold",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "System-run SOP that closes booking holds whose onboarding validity window ended without onboarding completion, while preserving booking amount audit visibility."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Scheduled run: every day at 9:00 PM IST.\n- System run checks active holds and expires only eligible ones."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Started by: System\n- Approval: governed by approved live SOP policy"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Review active booking holds.\n   Check all booking holds that are still open and identify which ones may have crossed the allowed validity window.\n2. Confirm expiry eligibility.\n   Make sure the hold is still active and was not already converted into onboarding or closed in another process.\n3. Record the expiry result in Finance.\n   Mark the booking hold as expired according to the business rule and keep the finance record auditable for later review.\n4. Preserve amount visibility and status.\n   Keep the original booking receipt visible to business while moving hold status from active to expired/forfeited.\n5. Return the expiry outcome.\n   Show which holds were closed, which were skipped, and what follow-up is required next."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- A booking hold exists and is still active.\n- The validity window has actually ended.\n- The hold is not already closed or converted."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If a hold is already closed or cannot be resolved deterministically, stop.\n- Do not expire a hold that has already been converted into onboarding."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: active booking holds\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_expire_booking_hold_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.777+05:30",
+        "intent_rule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "ui_hidden": false,
+        "updated_at": "2026-03-16T19:18:03.942+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
-        "workflow_id": "property_enquiry",
-        "name": "Property Enquiry",
-        "description": "Create a lead in the CRM system and send a confirmation template message to the enquirer acknowledging their interest.",
-        "trigger_description": "When a new property enquiry is received from any channel",
-        "trigger_event": "property.enquiry.received",
+        "workflow_id": "finance_complete_onboarding_from_booking_v1",
+        "workflow_family": "finance_complete_onboarding_from_booking",
+        "name": "Finance Complete Onboarding From Booking",
+        "description": "Deterministic workflow for converting a booking hold into an onboarded tenant contract and applying the held money commercially from the onboarding date.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when CEO finalizes onboarding from an existing booking hold and may backdate the onboarding date.",
+        "user_view_title": "Complete Onboarding From Booking (Plain English)",
+        "user_view_steps": [
+            "Take the active booking hold and the CEO-entered onboarding date.",
+            "Assign the final unit if required.",
+            "Create the tenant contract and apply the held money from onboarding date."
+        ],
+        "trigger_event": "finance.booking.hold.onboarding.requested",
+        "trigger_description": "When CEO completes onboarding from booking hold.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Onboarding completion requires a valid booking hold, onboarding date, rent terms, and final unit context before execution."
+        },
+        "rollback_policy": {
+            "rule": "Abort if unit assignment or contract creation cannot be completed cleanly.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
+        "ui_hidden": true,
         "steps": [
             {
-                "step_id": "log_lead",
-                "description": "Create a new lead entry in the CRM system for this enquiry.",
-                "agent": "CRMAgent",
-                "tool": "CRMAgent_add_lead",
-                "on_failure": "retry"
+                "step_id": "property_assign_tenant",
+                "description": "Assign the final unit to the tenant when the onboarding workflow includes unit context.",
+                "agent": "PropertyAI",
+                "tool": "assign_tenant",
+                "params": {
+                    "unit_id": "{{context.unit_id}}",
+                    "lead_id": "{{context.lead_id}}",
+                    "start_date": "{{context.onboarding_date}}",
+                    "monthly_rent": "{{context.negotiated_rent}}",
+                    "security_deposit": "{{context.security_deposit}}"
+                },
+                "on_failure": "abort"
             },
             {
-                "step_id": "send_confirmation",
-                "description": "Send a welcome and confirmation message to the enquirer acknowledging their interest.",
-                "agent": "CommunicationsAI",
-                "tool": "CommunicationsAI_send_template_message",
+                "step_id": "finance_complete_onboarding_from_booking",
+                "description": "Create the finance contract version and apply booking hold commercially.",
+                "agent": "FinanceAI",
+                "tool": "complete_onboarding_from_booking",
+                "params": {
+                    "booking_hold_id": "{{context.booking_hold_id}}",
+                    "lead_id": "{{context.lead_id}}",
+                    "unit_id": "{{context.unit_id}}",
+                    "property_id": "{{context.property_id}}",
+                    "onboarding_date": "{{context.onboarding_date}}",
+                    "negotiated_rent": "{{context.negotiated_rent}}",
+                    "security_deposit": "{{context.security_deposit}}",
+                    "rent_payment_timing": "{{context.rent_payment_timing}}",
+                    "utility_payment_timing": "{{context.utility_payment_timing}}"
+                },
                 "on_failure": "abort"
             }
         ],
-        "created_at": "2026-02-26T16:24:07.216+05:30"
+        "whatsapp_templates": [
+            {
+                "audience": "customer",
+                "purpose": "onboarding_confirmation",
+                "template_name": "onboarding_confirmation_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "tenant_name",
+                    "property_name",
+                    "onboarding_date",
+                    "unit_name",
+                    "monthly_rent",
+                    "security_deposit",
+                    "caretaker_phone"
+                ]
+            },
+            {
+                "audience": "customer",
+                "purpose": "police_verification_request",
+                "template_name": "police_verification_request_en",
+                "window_policy": "template_allowed_anytime",
+                "variable_keys": [],
+                "notes": "Static approved police verification message."
+            }
+        ],
+        "sop_document": {
+            "title": "Finance Complete Onboarding From Booking",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Take an active booking hold, complete onboarding from the approved start date, and apply the held money correctly into the final resident contract setup."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when the CEO finalizes onboarding from an existing booking hold.\n- This SOP should run only when the booking hold, onboarding date, final unit, and commercial terms are confirmed."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm the booking hold that will be converted.\n   Check the active booking hold, the resident, the amount held, and the business decision to move ahead with onboarding.\n2. Confirm the final onboarding details.\n   Capture the final unit, onboarding date, rent, deposit, and any timing rules that apply from the onboarding date.\n3. Apply the held money to the onboarding decision.\n   Use the booking hold in the approved commercial manner so it is reflected correctly once onboarding is completed.\n4. Create the live contract outcome.\n   Store the tenant contract and return the onboarding result, including the unit, date, and commercial setup now in effect."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- A valid active booking hold exists.\n- Onboarding date is approved.\n- Final unit and commercial terms are complete."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If unit assignment or contract creation cannot be completed cleanly, stop before recording the final onboarding result.\n- Do not partially complete onboarding."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_complete_onboarding_from_booking_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.777+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.942+05:30",
+        "validation_status": "validated",
+        "is_active": false
+    },
+    {
+        "workflow_id": "finance_onboard_tenant_v1",
+        "workflow_family": "finance_onboard_tenant",
+        "name": "Onboard Tenant",
+        "description": "Business-facing SOP for onboarding a tenant through either direct onboarding or onboarding from booking after rate card lock.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when onboarding must be completed after final rate card lock, with direct or booking path decided by CEO.",
+        "user_view_title": "Onboard Tenant (Plain English)",
+        "user_view_steps": [
+            "Lock the negotiated rate card in the system first.",
+            "Decide onboarding path: direct onboarding or from booking.",
+            "Collect or apply onboarding dues and activate the tenant setup.",
+            "Send final onboarding WhatsApp and separate police-verification template message."
+        ],
+        "trigger_event": "finance.onboard.tenant.requested",
+        "trigger_description": "When the business finalizes onboarding for a tenant.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Onboarding requires locked rate card, final onboarding date, and clear direct-vs-booking path context before execution."
+        },
+        "rollback_policy": {
+            "rule": "Abort if onboarding path or commercial terms are incomplete. Do not partially activate tenant contracts.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
+        "steps": [
+            {
+                "step_id": "finance_onboard_contract",
+                "description": "Store negotiated contract terms in FinanceAI as the onboarding commercial base.",
+                "agent": "FinanceAI",
+                "tool": "onboard_tenant_contract",
+                "params": {
+                    "lead_id": "{{context.lead_id}}",
+                    "unit_id": "{{context.unit_id}}",
+                    "property_id": "{{context.property_id}}",
+                    "negotiated_rent": "{{context.negotiated_rent}}",
+                    "security_deposit": "{{context.security_deposit}}",
+                    "rent_payment_timing": "{{context.rent_payment_timing}}",
+                    "utility_payment_timing": "{{context.utility_payment_timing}}",
+                    "effective_from": "{{context.effective_from}}",
+                    "effective_to": "{{context.effective_to}}"
+                },
+                "on_failure": "abort"
+            }
+        ],
+        "whatsapp_templates": [
+            {
+                "audience": "customer",
+                "purpose": "onboarding_confirmation",
+                "template_name": "onboarding_confirmation_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "tenant_name",
+                    "property_name",
+                    "onboarding_date",
+                    "unit_name",
+                    "monthly_rent",
+                    "security_deposit",
+                    "caretaker_phone"
+                ]
+            },
+            {
+                "audience": "customer",
+                "purpose": "police_verification_request",
+                "template_name": "police_verification_request_en",
+                "window_policy": "template_allowed_anytime",
+                "variable_keys": [],
+                "notes": "Static approved police verification message."
+            }
+        ],
+        "sop_document": {
+            "title": "Onboard Tenant",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Complete tenant onboarding by first locking the negotiated rate card, then handling direct or booking path, collecting/applying onboarding dues, and activating the tenant for live operations."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when tenant onboarding is being finalized by the business.\n- This SOP starts with negotiated rate-card lock before money application."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Negotiate and lock the final rate card.\n   Finalize rent, deposit, payment timing, and onboarding-effective commercial terms.\n2. Confirm onboarding path.\n   Decide direct onboarding or onboarding from booking hold.\n3. Confirm room, onboarding date, and move-in details.\n   Finalize unit assignment and onboarding date before payment application.\n4. Calculate onboarding dues from locked rate card.\n   Compute what is payable or adjustable at onboarding, including prorata where applicable.\n5. Apply correct money path.\n   For booking path, apply held amount first. For direct path, collect onboarding dues as per negotiated card.\n6. Activate tenant commercially.\n   Finalize contract setup so live monthly operations can start.\n7. Send final onboarding communication.\n   Send WhatsApp onboarding confirmation with house rules and send police verification using separate approved template."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Tenant is identified and move-in decision is active.\n- Final rate card is agreed and lockable.\n- Onboarding path and date are clear."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If rate card or path is unclear, stop before activation.\n- Do not partially activate onboarding state."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_onboard_tenant_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.778+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "ui_hidden": false,
+        "updated_at": "2026-03-16T19:18:03.942+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
         "workflow_id": "finance_onboard_tenant_contract_v1",
+        "workflow_family": "finance_onboard_tenant_contract",
         "name": "Finance Contract Onboarding",
         "description": "Deterministic workflow for registering negotiated tenant contract terms.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when CEO or an approved workflow needs to lock negotiated tenant commercial terms into Finance.",
         "user_view_title": "Onboard Tenant Contract (Plain English)",
         "user_view_steps": [
             "Take the approved tenant commercial terms.",
@@ -114,9 +706,33 @@
         ],
         "trigger_event": "finance.contract.onboard.requested",
         "trigger_description": "When finance contract terms are approved and must be locked.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "The system must know the tenant, negotiated amounts, and effective date with no ambiguity before execution."
+        },
+        "rollback_policy": {
+            "rule": "Abort if contract terms are incomplete. Do not partially write finance contract state.",
+            "mode": "abort"
+        },
         "deterministic": true,
         "protected": true,
         "domain": "finance",
+        "ui_hidden": true,
         "steps": [
             {
                 "step_id": "finance_onboard_contract",
@@ -125,30 +741,135 @@
                 "tool": "onboard_tenant_contract",
                 "params": {
                     "lead_id": "{{context.lead_id}}",
+                    "unit_id": "{{context.unit_id}}",
+                    "property_id": "{{context.property_id}}",
                     "negotiated_rent": "{{context.negotiated_rent}}",
                     "security_deposit": "{{context.security_deposit}}",
                     "rent_payment_timing": "{{context.rent_payment_timing}}",
                     "utility_payment_timing": "{{context.utility_payment_timing}}",
-                    "effective_from": "{{context.effective_from}}"
+                    "effective_from": "{{context.effective_from}}",
+                    "effective_to": "{{context.effective_to}}"
                 },
                 "on_failure": "abort"
             }
         ],
-        "created_at": "2026-03-03T16:44:37.176+05:30",
-        "updated_at": "2026-03-04T10:38:33.444+05:30"
+        "whatsapp_templates": [],
+        "sop_document": {
+            "title": "Finance Contract Onboarding",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Take the approved tenant commercial terms and store them in Finance as the contract the business will bill against."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when CEO or an approved SOP needs to lock negotiated tenant terms into Finance.\n- This SOP should run only when the tenant, effective date, rent, and deposit terms are confirmed."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm the contract scope.\n   Identify the tenant, the property or unit, the commercial terms, and the date from which those terms should become effective.\n2. Review the approved terms.\n   Make sure the negotiated rent, deposit, utility timing, and contract window are complete and approved before anything is stored.\n3. Record the contract in Finance.\n   Save the approved terms as the finance contract for this tenant so monthly billing and dues can rely on one commercial truth.\n4. Return the contract outcome.\n   Confirm which contract was stored, from which date it applies, and what the business can do next with it."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Tenant is identified.\n- Effective date is known.\n- Commercial terms are approved and complete."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If contract terms are incomplete, stop before storing anything.\n- Do not partially write contract state."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_onboard_tenant_contract_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.778+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.943+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
         "workflow_id": "finance_generate_monthly_bills_v1",
-        "name": "Finance Monthly Billing",
+        "workflow_family": "finance_generate_monthly_bills",
+        "name": "Generate Monthly Bills",
         "description": "Deterministic workflow for generating monthly rent/dues.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "schedule",
+        "schedule": {
+            "timezone": "Asia/Kolkata",
+            "frequency": "monthly",
+            "run_rule": "last_day_of_month",
+            "run_time": "22:00",
+            "scope": "all active tenant contracts",
+            "reruns": [
+                {
+                    "day_of_month": 5,
+                    "purpose": "late cycle tenants not sent in primary run"
+                },
+                {
+                    "day_of_month": 10,
+                    "purpose": "late cycle tenants not sent in prior cycles"
+                }
+            ]
+        },
         "user_view_title": "Generate Monthly Bills (Plain English)",
         "user_view_steps": [
             "Read the tenant contract already stored in finance.",
             "Generate monthly bill entries for the target month.",
-            "Return the bill output and generated ledger entry IDs."
+            "On 5th and 10th, rerun only for late-cycle tenants.",
+            "Do not send duplicate bill output for the same tenant and month."
         ],
         "trigger_event": "finance.billing.monthly.requested",
         "trigger_description": "When scheduled or manual monthly billing must be generated.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "System"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Billing requires an active contract, target month, and unambiguous payer scope before execution."
+        },
+        "rollback_policy": {
+            "rule": "Abort before ledger writes when contract or billing month is missing. If communication fails after finance truth write, preserve finance truth and retry communication separately. Do not re-send bills already sent in prior cycle for the same tenant-month.",
+            "mode": "abort"
+        },
         "deterministic": true,
         "protected": true,
         "domain": "finance",
@@ -166,13 +887,91 @@
                 "on_failure": "abort"
             }
         ],
-        "created_at": "2026-03-03T16:44:37.179+05:30",
-        "updated_at": "2026-03-04T10:38:33.445+05:30"
+        "whatsapp_templates": [
+            {
+                "audience": "customer",
+                "purpose": "monthly_bill_delivery",
+                "template_name": "rent_due_cycle_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "tenant_name",
+                    "billing_month",
+                    "property_or_unit",
+                    "amount_due",
+                    "due_date",
+                    "bill_link"
+                ]
+            }
+        ],
+        "sop_document": {
+            "title": "Generate Monthly Bills",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "For the target month, create each tenant's bill using approved contract terms, record the final billing entries in Finance, and prepare the bill output that can be sent to the customer."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Scheduled run: last day of every month at 10:00 PM IST.\n- Rerun cycle: 5th and 10th of every month for late-cycle tenants.\n- Manual run: when the CEO asks for monthly billing."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, System\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm who needs to be billed.\n   Identify the target month and the tenants included in this cycle. Make sure the billing scope is clear before calculations begin.\n2. Load the contract details.\n   Read the active contract details for each tenant and bring in rent terms, utility timing, deposits, and any dues context that changes the bill.\n3. Calculate each bill.\n   Calculate rent, charges, discounts, and approved adjustments. Apply prorated billing where the contract started or changed during the month.\n4. Record the final billing entries.\n   Save the billing result in Finance as the official monthly bill and create stable bill references so the result can be traced later.\n5. Run late-cycle bill windows on 5th and 10th.\n   Pick only eligible late-cycle tenants for the same billing month and avoid rebilling tenants already sent in prior cycles.\n6. Send bills through approved WhatsApp templates with variables.\n   Use template delivery fields such as tenant name, property, billing month, amount due, due date, and bill link.\n7. Keep finance truth safe if communication fails.\n   If communication fails after Finance is updated, do not remove bill entries. Handle communication retry separately."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- An active tenant contract exists.\n- The billing month is clearly known.\n- The tenant list for billing is clear."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If contract details or billing month are missing, stop before billing entries are written.\n- Do not send duplicate bills for the same tenant and billing month.\n- If communication fails after Finance is updated, do not remove the bill. Treat communication failure as follow-up work."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: all active tenant contracts\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_generate_monthly_bills_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.779+05:30",
+        "intent_rule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "ui_hidden": false,
+        "updated_at": "2026-03-16T19:18:03.947+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
         "workflow_id": "finance_add_ledger_entry_v1",
+        "workflow_family": "finance_add_ledger_entry",
         "name": "Finance Manual Ledger Debit",
         "description": "Deterministic workflow for append-only debit entries.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run only when a CEO-approved manual debit needs to be added as a new append-only ledger entry.",
         "user_view_title": "Add Ledger Debit (Plain English)",
         "user_view_steps": [
             "Receive approved debit details for a tenant/payer.",
@@ -181,9 +980,33 @@
         ],
         "trigger_event": "finance.ledger.debit.requested",
         "trigger_description": "When an approved manual debit must be added to ledger.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Ledger debit creation requires a resolved payer, category, amount, and month context before execution."
+        },
+        "rollback_policy": {
+            "rule": "Abort if target payer or amount is ambiguous. Never edit prior ledger state to compensate.",
+            "mode": "abort"
+        },
         "deterministic": true,
         "protected": true,
         "domain": "finance",
+        "ui_hidden": true,
         "steps": [
             {
                 "step_id": "finance_add_ledger_entry",
@@ -200,13 +1023,252 @@
                 "on_failure": "abort"
             }
         ],
-        "created_at": "2026-03-03T16:44:37.179+05:30",
-        "updated_at": "2026-03-04T10:38:33.445+05:30"
+        "whatsapp_templates": [],
+        "sop_document": {
+            "title": "Finance Manual Ledger Debit",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Add one approved manual debit entry to the ledger without changing prior ledger history."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when an approved debit must be added for a tenant or payer.\n- This SOP should run only when payer, category, amount, and month context are clear."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm the debit request.\n   Identify the payer, amount, billing month, category, and the approved reason for the debit.\n2. Check that the debit is safe to record.\n   Make sure the debit belongs to the correct payer and month so it does not distort another account.\n3. Add the ledger entry.\n   Create one new debit entry and preserve the ledger as append-only history.\n4. Return the ledger outcome.\n   Confirm the new entry and the payer account it now affects."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Payer is identified.\n- Category, amount, and month are known.\n- Approval context is complete."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If payer or amount is ambiguous, stop before writing the entry.\n- Never edit prior ledger state to compensate for a bad debit."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_add_ledger_entry_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.779+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.947+05:30",
+        "validation_status": "validated",
+        "is_active": false
+    },
+    {
+        "workflow_id": "finance_rent_collection_v1",
+        "workflow_family": "finance_rent_collection",
+        "name": "Rent Collection",
+        "description": "Business-facing SOP for rent due communication, approved incoming posting, remainder handling, and next-cycle carry rules.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "schedule",
+        "schedule": {
+            "timezone": "Asia/Kolkata",
+            "frequency": "monthly",
+            "run_rule": "monthly_collection_cycle",
+            "milestones": [
+                "4th reminder",
+                "9th reminder",
+                "15th stop_and_escalate"
+            ],
+            "scope": "active billed tenants"
+        },
+        "user_view_title": "Rent Collection (Plain English)",
+        "user_view_steps": [
+            "Send due communication and remainder templates on 4th and 9th.",
+            "Post payment only after CEO approval, even if customer reports payment on WhatsApp or GUI.",
+            "On 15th, stop remainder messages and send likely-unpaid summary to CEO.",
+            "Carry pending and applicable fine into next month as per rate card and CEO decision."
+        ],
+        "trigger_event": "finance.rent.collection.requested",
+        "trigger_description": "When rent collection cycle is running for a billed tenant-month.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff",
+                "Customer",
+                "System"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Collection posting requires payer, amount, month context, and CEO approval before finance write."
+        },
+        "rollback_policy": {
+            "rule": "Abort posting when payer, amount, or month is ambiguous. Do not post customer-reported payment without CEO approval.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
+        "steps": [
+            {
+                "step_id": "finance_record_incoming",
+                "description": "Record incoming payment after approval and apply waterfall.",
+                "agent": "FinanceAI",
+                "tool": "record_incoming_txn",
+                "params": {
+                    "payer_id": "{{context.payer_id}}",
+                    "amount": "{{context.amount}}",
+                    "payment_mode": "{{context.payment_mode}}",
+                    "date": "{{context.date}}",
+                    "attachment_url": "{{context.attachment_url}}",
+                    "txn_id": "{{context.txn_id}}",
+                    "linked_unit_id": "{{context.linked_unit_id}}",
+                    "linked_property_id": "{{context.linked_property_id}}",
+                    "context_type": "{{context.context_type}}",
+                    "note": "{{context.note}}"
+                },
+                "on_failure": "abort"
+            }
+        ],
+        "whatsapp_templates": [
+            {
+                "audience": "customer",
+                "purpose": "rent_due_and_reminder",
+                "template_name": "rent_due_cycle_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "tenant_name",
+                    "billing_month",
+                    "property_or_unit",
+                    "amount_due",
+                    "due_date",
+                    "bill_link"
+                ]
+            },
+            {
+                "audience": "customer",
+                "purpose": "payment_acknowledgement",
+                "template_name": "payment_received_confirmation_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "tenant_name",
+                    "amount",
+                    "billing_month_or_reason",
+                    "payment_reference",
+                    "posted_status"
+                ]
+            },
+            {
+                "audience": "ceo",
+                "purpose": "likely_unpaid_summary",
+                "template_name": "likely_unpaid_summary_ceo_en",
+                "window_policy": "template_allowed_anytime",
+                "variable_keys": [
+                    "billing_month",
+                    "business_date",
+                    "summary_block"
+                ]
+            }
+        ],
+        "sop_document": {
+            "title": "Rent Collection",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Run monthly rent collection cycle with reminder windows, CEO-approved posting, and controlled carry to next month when dues remain."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Collection cycle runs after bill generation for target month.\n- Reminder windows: 4th and 9th.\n- On 15th, stop remainders and send likely-unpaid summary to CEO."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Payment report can come from: Customer, Staff, CEO\n- Posting approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Read due position for tenant-month.\n   Confirm billed amount, pending dues, and current cycle status.\n2. Send due and remainder communication by template.\n   Use approved templates with variables on due cycle and on 4th and 9th.\n3. Wait for payment report through GUI or WhatsApp.\n   The system does not auto-assume payment; it waits for reported payment signal.\n4. Post payment only after CEO approval.\n   Even if customer reports payment, finance posting must wait for CEO approval.\n5. Recompute due after waterfall allocation.\n   Update settled, partial, or carry-forward status for the cycle.\n6. On 15th, close reminder cycle and escalate.\n   Stop remainders and send likely-unpaid tenant summary to CEO.\n7. Carry pending and late fine to next month.\n   Add applicable late fine in next month cycle per rate card and carry unresolved pending as approved."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Bill exists for the target month.\n- Payer and month context are clear.\n- CEO approval path is available."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- Do not post payment without CEO approval.\n- If payer or month is ambiguous, stop before posting."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: active billed tenants\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_rent_collection_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.780+05:30",
+        "intent_rule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "ui_hidden": false,
+        "updated_at": "2026-03-16T19:18:03.948+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
         "workflow_id": "finance_record_incoming_txn_v1",
-        "name": "Finance Incoming Payment Posting",
+        "workflow_family": "finance_record_incoming_txn",
+        "name": "Record Incoming Payment",
         "description": "Deterministic workflow for posting incoming payment after CEO confirmation.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when a CEO or staff member requests payment posting and the system reaches very high confidence on payer, amount, and month context.",
         "user_view_title": "Post Incoming Payment (Plain English)",
         "user_view_steps": [
             "Wait for CEO confirmation that payment is visible in bank statement.",
@@ -215,9 +1277,33 @@
         ],
         "trigger_event": "finance.payment.incoming.confirmed",
         "trigger_description": "When CEO confirms payment is visible in bank statement.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Incoming payment posting requires payer, amount, mode, and approval context to be unambiguous. Back-and-forth is allowed until certainty is high."
+        },
+        "rollback_policy": {
+            "rule": "Abort if the payment cannot be posted cleanly. Corrections must happen through a new compensating workflow, never by editing the original transaction.",
+            "mode": "abort"
+        },
         "deterministic": true,
         "protected": true,
         "domain": "finance",
+        "ui_hidden": true,
         "steps": [
             {
                 "step_id": "finance_record_incoming",
@@ -230,26 +1316,130 @@
                     "payment_mode": "{{context.payment_mode}}",
                     "date": "{{context.date}}",
                     "attachment_url": "{{context.attachment_url}}",
-                    "txn_id": "{{context.txn_id}}"
+                    "txn_id": "{{context.txn_id}}",
+                    "linked_unit_id": "{{context.linked_unit_id}}",
+                    "linked_property_id": "{{context.linked_property_id}}",
+                    "context_type": "{{context.context_type}}",
+                    "note": "{{context.note}}"
                 },
                 "on_failure": "abort"
             }
         ],
-        "created_at": "2026-03-03T16:44:37.180+05:30",
-        "updated_at": "2026-03-04T10:38:33.445+05:30"
+        "whatsapp_templates": [
+            {
+                "audience": "customer",
+                "purpose": "payment_acknowledgement",
+                "template_name": "payment_received_confirmation_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "tenant_name",
+                    "amount",
+                    "billing_month_or_reason",
+                    "payment_reference",
+                    "posted_status"
+                ]
+            }
+        ],
+        "sop_document": {
+            "title": "Record Incoming Payment",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Record a confirmed incoming payment, classify it correctly, and apply guarded allocation without changing the original transaction truth later."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when finance has confirmed the payer, amount, date, and payment mode.\n- This SOP should run only when the system has enough confidence to post the money safely."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Resolve the payer and payment context.\n   Match the payer to the right resident, booking, or account and confirm the amount, received date, payment mode, and collection source.\n2. Decide what type of money has arrived.\n   Classify whether the payment is rent, booking money, deposit, fee recovery, or another approved finance category before any posting happens.\n3. Check allocation confidence.\n   Confirm the system has enough evidence to allocate the money safely. If the source or intent is unclear, stop and request clarification.\n4. Record the incoming transaction in Finance.\n   Create the immutable incoming-payment record with the original facts so later corrections never overwrite the source transaction.\n5. Apply guarded allocation.\n   Allocate the payment only to the approved target bucket, using the finance rules that protect deposits, booking holds, and rent from being mixed incorrectly.\n6. Return the posting result.\n   Provide finance and operations with the final outcome, including how the money was classified, where it was allocated, and whether any follow-up is still pending."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- The payer is identified clearly.\n- Amount, date, and payment mode are known.\n- Approval context is complete.\n- Allocation target is clear enough to avoid accidental misposting."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If the payment cannot be posted cleanly, stop before recording the transaction.\n- If a mistake is discovered later, correct it through a new compensating workflow and never by editing the original transaction."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_record_incoming_txn_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.780+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.950+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
         "workflow_id": "finance_record_outgoing_txn_v1",
-        "name": "Finance Outgoing Expense Posting",
-        "description": "Deterministic workflow for recording approved outgoing transactions.",
-        "user_view_title": "Record Outgoing Expense (Plain English)",
+        "workflow_family": "finance_record_outgoing_txn",
+        "name": "Record Outgoing Transaction",
+        "description": "Deterministic workflow for recording outgoing business spending while FinanceAI resolves work context safely and handles caretaker reimbursement gating.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when a CEO or staff member needs to record a real-world outgoing payment and the system has enough context to place it safely.",
+        "user_view_title": "Record Outgoing Transaction (Plain English)",
         "user_view_steps": [
-            "Receive approved outgoing payment request.",
-            "Record one outgoing finance transaction with full context.",
-            "Return transaction ID and posting status."
+            "Capture outgoing request from CEO, staff, or caretaker.",
+            "Ask follow-up questions if the work placement is unclear instead of guessing.",
+            "For caretaker spending, keep reimbursement pending until CEO approval.",
+            "Record the outgoing transaction and link it to the correct work context underneath."
         ],
         "trigger_event": "finance.payment.outgoing.requested",
-        "trigger_description": "When approved outgoing payment must be posted.",
+        "trigger_description": "When a business outgoing payment must be recorded safely with the correct work and vendor context.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Outgoing transaction posting requires explicit property, payee/vendor, payment details, and enough work context to avoid accidental misplacement."
+        },
+        "rollback_policy": {
+            "rule": "Abort on ambiguity. Ask follow-up questions instead of guessing. Any later correction must be recorded through a new compensating workflow.",
+            "mode": "abort"
+        },
         "deterministic": true,
         "protected": true,
         "domain": "finance",
@@ -262,24 +1452,241 @@
                 "params": {
                     "category": "{{context.category}}",
                     "sub_category": "{{context.sub_category}}",
+                    "work_title": "{{context.work_title}}",
+                    "work_order_id": "{{context.work_order_id}}",
                     "work_done": "{{context.work_done}}",
                     "property_id": "{{context.property_id}}",
+                    "unit_id": "{{context.unit_id}}",
                     "amount": "{{context.amount}}",
+                    "expense_total": "{{context.expense_total}}",
+                    "line_items": "{{context.line_items}}",
+                    "date": "{{context.date}}",
+                    "vendor_id": "{{context.vendor_id}}",
                     "payee": "{{context.payee}}",
                     "payment_mode": "{{context.payment_mode}}",
                     "approved_by": "{{context.approved_by}}",
-                    "remarks": "{{context.remarks}}"
+                    "remarks": "{{context.remarks}}",
+                    "attachment_urls": "{{context.attachment_urls}}"
                 },
                 "on_failure": "abort"
             }
         ],
-        "created_at": "2026-03-03T16:44:37.180+05:30",
-        "updated_at": "2026-03-04T10:38:33.446+05:30"
+        "whatsapp_templates": [],
+        "sop_document": {
+            "title": "Record Outgoing Transaction",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Record outgoing business payments by placing them under the correct work context, with follow-up questions when context is incomplete."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when the business needs to record a real outgoing payment.\n- This SOP should run only when property, payee, amount, and enough work context are available."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff, Caretaker\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Capture outgoing request context.\n   Record who is raising the outgoing request, payment reason, amount, mode, and date.\n2. Validate work placement.\n   Check that the outgoing payment can be attached to the correct work or expense context safely. Ask follow-up questions instead of guessing when more than one interpretation is possible.\n3. Record the outgoing transaction in Finance.\n   Create the outgoing transaction with the approved payment details and preserve it as the final money-movement truth.\n4. Handle caretaker reimbursement safely.\n   If caretaker raises business spend, keep it pending reimbursement until CEO approval for next reimbursement cycle.\n5. Link the internal work structure.\n   Reuse or create the internal work context underneath the transaction so vendor linkage, purchases, payments, and settlement history stay connected over time.\n6. Return the placement outcome.\n   Return the recorded outgoing transaction and where it was placed internally so the business can review it later."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Property is identified.\n- Vendor or payee is clear.\n- Payment details are complete.\n- Work context is clear enough to avoid accidental misplacement."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If the context is ambiguous, stop and ask follow-up questions before recording the transaction.\n- Do not reimburse caretaker spending without CEO approval.\n- Later corrections must be captured through new compensating records, never by editing the original transaction."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_record_outgoing_txn_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.781+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "ui_hidden": false,
+        "updated_at": "2026-03-16T19:18:03.954+05:30",
+        "validation_status": "validated",
+        "is_active": false
+    },
+    {
+        "workflow_id": "finance_offboard_tenant_v1",
+        "workflow_family": "finance_offboard_tenant",
+        "name": "Offboard Tenant",
+        "description": "Business-facing SOP for final tenant settlement, money movement, closure comment, and mandatory customer closure message.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when tenant offboarding is initiated and final settlement must be calculated and closed under CEO control.",
+        "user_view_title": "Offboard Tenant (Plain English)",
+        "user_view_steps": [
+            "Calculate final settlement from rate card, notice period, and minimum-stay rules.",
+            "Let CEO decide and execute final money movement (receive or send).",
+            "Update accounts inside the same SOP, capture CEO comment, and close offboarding.",
+            "Send mandatory final customer message with settlement details."
+        ],
+        "trigger_event": "finance.offboard.tenant.requested",
+        "trigger_description": "When tenant move-out is being settled and closed.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Offboarding requires tenant identity, move-out date, settlement direction, settlement amount, and CEO closure context."
+        },
+        "rollback_policy": {
+            "rule": "Do not close offboarding before settlement movement is completed unless final balance is zero.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
+        "steps": [
+            {
+                "step_id": "finance_offboard_tenant",
+                "description": "Execute settlement movement and close offboarding with mandatory communication.",
+                "agent": "FinanceAI",
+                "tool": "offboard_tenant",
+                "params": {
+                    "payer_id": "{{context.payer_id}}",
+                    "move_out_date": "{{context.move_out_date}}",
+                    "settlement_direction": "{{context.settlement_direction}}",
+                    "settlement_amount": "{{context.settlement_amount}}",
+                    "settlement_payment_mode": "{{context.settlement_payment_mode}}",
+                    "ceo_comment": "{{context.ceo_comment}}",
+                    "customer_message": "{{context.customer_message}}",
+                    "notice_days_given": "{{context.notice_days_given}}",
+                    "min_stay_status": "{{context.min_stay_status}}"
+                },
+                "on_failure": "abort"
+            }
+        ],
+        "whatsapp_templates": [
+            {
+                "audience": "customer",
+                "purpose": "offboarding_settlement",
+                "template_name": "offboarding_settlement_en",
+                "window_policy": "prefer_free_text_then_template",
+                "variable_keys": [
+                    "tenant_name",
+                    "property_or_unit",
+                    "move_out_date",
+                    "settlement_status_line",
+                    "settlement_amount",
+                    "payment_mode"
+                ]
+            }
+        ],
+        "sop_document": {
+            "title": "Offboard Tenant",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Close tenant offboarding only after final settlement is calculated, money movement is completed, CEO comment is captured, and final customer message is sent."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when tenant move-out settlement is being closed.\n- This SOP enforces notice/min-stay rule checks from rate card before closure."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff\n- Final closure approval: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm move-out request and tenant context.\n   Identify tenant, move-out date, and property/unit details for settlement.\n2. Apply notice and minimum-stay rules.\n   Evaluate rate-card notice and min-stay impact in final calculation.\n3. Calculate final settlement position.\n   Determine surplus, deficit, or zero outcome with all final adjustments.\n4. Execute settlement money movement.\n   CEO receives or sends money as applicable, and accounts are updated inside this SOP.\n5. Capture CEO closure comment and close offboarding.\n   Record closure rationale and close only after settlement movement is complete.\n6. Send mandatory final customer message.\n   Share final settlement details with the customer as required completion communication."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Tenant and move-out date are identified.\n- Rate-card notice/min-stay context is available.\n- Settlement direction and amount are clear."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- Do not close offboarding before settlement movement is completed unless balance is zero.\n- Keep full audit trail; do not erase prior billing or payment history."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_offboard_tenant_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.781+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "ui_hidden": false,
+        "updated_at": "2026-03-16T19:18:03.954+05:30",
+        "validation_status": "validated",
+        "is_active": false
     },
     {
         "workflow_id": "finance_process_salary_payout_v1",
+        "workflow_family": "finance_process_salary_payout",
         "name": "Finance Salary Payout",
         "description": "Deterministic workflow for salary payout posting.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "schedule",
+        "schedule": {
+            "timezone": "Asia/Kolkata",
+            "frequency": "monthly",
+            "run_rule": "configured_salary_date",
+            "run_time": "11:00",
+            "scope": "approved payroll cycle"
+        },
         "user_view_title": "Process Salary Payout (Plain English)",
         "user_view_steps": [
             "Receive approved payroll staff and month context.",
@@ -288,9 +1695,34 @@
         ],
         "trigger_event": "finance.salary.payout.requested",
         "trigger_description": "When salary payout cycle is approved.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO",
+                "Staff",
+                "System"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Salary payout requires an active salary card, bank details, payout month, and explicit approval before execution."
+        },
+        "rollback_policy": {
+            "rule": "Abort before payout posting if salary inputs are incomplete. Do not mark salary as paid on partial failure.",
+            "mode": "abort"
+        },
         "deterministic": true,
         "protected": true,
         "domain": "finance",
+        "ui_hidden": true,
         "steps": [
             {
                 "step_id": "finance_salary_payout",
@@ -305,7 +1737,185 @@
                 "on_failure": "abort"
             }
         ],
-        "created_at": "2026-03-03T16:44:37.180+05:30",
-        "updated_at": "2026-03-04T10:38:33.446+05:30"
+        "whatsapp_templates": [],
+        "sop_document": {
+            "title": "Finance Salary Payout",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Process an approved salary payout cycle so the finance record shows which staff payments were completed for the target payroll month."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Scheduled run: on the configured salary date for the payroll cycle.\n- Manual run: when the business needs to complete an approved payroll payout."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO, Staff, System\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Confirm the payroll scope.\n   Identify the staff members, the payroll month, and the approved salary values that should be paid in this cycle.\n2. Review payout readiness.\n   Check that bank details, salary cards, and approval context are complete before any payout posting begins.\n3. Record the salary payout.\n   Process the payout in Finance so the business can see who has been paid and for which month.\n4. Return the payroll outcome.\n   Confirm the payout result, including which payment records were created and what follow-up is still pending."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Payroll month is known.\n- Active salary card exists.\n- Bank details and approval are complete."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- If salary inputs are incomplete, stop before payout posting.\n- Do not mark salary as paid on partial failure."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: approved payroll cycle\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_process_salary_payout_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.782+05:30",
+        "intent_rule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.955+05:30",
+        "validation_status": "validated",
+        "is_active": false
+    },
+    {
+        "workflow_id": "finance_record_correction_txn_v1",
+        "workflow_family": "finance_record_correction_txn",
+        "name": "Correct Finance Entry",
+        "description": "Deterministic workflow for correcting prior finance outcomes without editing original records.",
+        "version": "v1",
+        "module_owner": "Finance",
+        "trigger_type": "intent",
+        "intent_rule": "Run when a prior finance transaction is wrong and a new compensating transaction must be added instead of editing the original record.",
+        "user_view_title": "Correct Finance Entry (Plain English)",
+        "user_view_steps": [
+            "Identify the original finance transaction that needs correction.",
+            "Create a new compensating finance transaction with the correction reason.",
+            "Link the correction to the original transaction and preserve full audit history."
+        ],
+        "trigger_event": "finance.correction.requested",
+        "trigger_description": "When a CEO-approved finance correction must be recorded as a new transaction.",
+        "approval": {
+            "required": true,
+            "initiators": [
+                "CEO"
+            ],
+            "approvers": [
+                "CEO"
+            ],
+            "surfaces": [
+                "SOP Workspace",
+                "Finance Overview"
+            ],
+            "response_format": "yes_no_optional_note"
+        },
+        "confidence": {
+            "level": "very_high",
+            "rule": "Correction requires an identified original transaction, correction direction, amount, and reason with no ambiguity."
+        },
+        "rollback_policy": {
+            "rule": "Never edit the original transaction. Abort if the original record cannot be resolved or the correction payload is incomplete.",
+            "mode": "abort"
+        },
+        "deterministic": true,
+        "protected": true,
+        "domain": "finance",
+        "ui_hidden": false,
+        "steps": [
+            {
+                "step_id": "finance_record_correction",
+                "description": "Create a compensating transaction that corrects a prior finance record without editing the original.",
+                "agent": "FinanceAI",
+                "tool": "record_correction_txn",
+                "params": {
+                    "original_txn_id": "{{context.original_txn_id}}",
+                    "correction_type": "{{context.correction_type}}",
+                    "payer_id": "{{context.payer_id}}",
+                    "amount": "{{context.amount}}",
+                    "reason": "{{context.reason}}",
+                    "category": "{{context.category}}",
+                    "month_year": "{{context.month_year}}"
+                },
+                "on_failure": "abort"
+            }
+        ],
+        "whatsapp_templates": [],
+        "sop_document": {
+            "title": "Correct Finance Entry",
+            "sections": [
+                {
+                    "key": "business_outcome",
+                    "title": "Business outcome",
+                    "content": "Correct a prior finance result by creating a new compensating transaction instead of editing the original record."
+                },
+                {
+                    "key": "when_this_runs",
+                    "title": "When this runs",
+                    "content": "- Manual run: when a previous finance transaction is wrong and must be corrected without changing the original record.\n- This SOP should run only when the original transaction and the correction reason are fully known."
+                },
+                {
+                    "key": "who_can_initiate_and_approve",
+                    "title": "Who can initiate and approve",
+                    "content": "- Can start: CEO\n- Approval needed: CEO"
+                },
+                {
+                    "key": "detailed_flow",
+                    "title": "Detailed flow",
+                    "content": "1. Identify the original transaction.\n   Confirm which finance transaction is wrong and why the business believes a correction is needed.\n2. Confirm the correction direction.\n   Decide how much should be corrected, in which direction, and for what approved reason.\n3. Create the compensating transaction.\n   Add a new correction transaction that offsets or adjusts the original result without editing past records.\n4. Link the correction for audit.\n   Connect the correction to the original transaction so the finance trail remains complete and reviewable.\n5. Send confirmation to CEO.\n   Share correction reference, applied effect, and updated position with CEO."
+                },
+                {
+                    "key": "preconditions",
+                    "title": "Preconditions",
+                    "content": "- Original transaction is identified.\n- Correction amount and reason are clear.\n- Approval context is complete."
+                },
+                {
+                    "key": "failure_and_rollback_policy",
+                    "title": "Failure and rollback policy",
+                    "content": "- Never edit the original transaction.\n- Stop if the original record cannot be resolved or the correction payload is incomplete."
+                },
+                {
+                    "key": "scope_and_ownership",
+                    "title": "Scope and ownership",
+                    "content": "- Scope: Business scope defined by this SOP.\n- Owner: Finance"
+                }
+            ],
+            "advanced": {
+                "workflow_id": "finance_record_correction_txn_v1",
+                "module_owner": "Finance",
+                "version": "v1",
+                "system_default": true
+            }
+        },
+        "version_type": "system_template",
+        "created_at": "2026-03-16T19:18:03.782+05:30",
+        "schedule": null,
+        "intent_description": null,
+        "tenant_id": null,
+        "clone_of_workflow_id": null,
+        "published_at": null,
+        "archived_at": null,
+        "replaced_workflow_id": null,
+        "updated_at": "2026-03-16T19:18:03.955+05:30",
+        "validation_status": "validated",
+        "is_active": false
     }
 ]

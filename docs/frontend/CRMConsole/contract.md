@@ -21,12 +21,21 @@ None.
 
 ### Read Tools
 - `get_dashboard_stats`
+- `get_merge_candidates`
 - `get_recent_leads`
 - `search_leads`
 - `get_lead`
+- `get_lead_artifacts`
+
+### Dashboard Data Contract
+- `get_dashboard_stats` returns lifecycle counts plus `pending_follow_up`.
+
+### Merge Review Contract
+- `get_merge_candidates` returns backend-flagged candidate pairs for CEO review in the overview queue.
+- Each candidate includes compare-ready `source`, `target`, `confidence`, and `reasons`.
 
 ### Allowed Mutation Tools (UI)
 - `update_lead_snapshot`
 - `change_status` (must include non-empty `reason`)
-- `add_manual_note`
 - `add_secondary_phone`
+- `merge_leads` (CEO-capable roles only)

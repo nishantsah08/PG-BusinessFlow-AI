@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Trust</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #111827;
+      background: #faf7f1;
+    }
+    .shell { max-width: 1380px; margin: 0 auto; padding: 30px; }
+    .ribbon {
+      display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;
+      border-bottom: 1px solid rgba(17,24,39,0.12); padding-bottom: 18px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-family: Arial, sans-serif;
+    }
+    .mark {
+      width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+      background: #85643a; color: white; font-weight: 800;
+    }
+    .brand h1, .brand p { margin: 0; }
+    .brand h1 { font-size: 12px; letter-spacing: 0.24em; }
+    .brand p { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; font-family: Arial, sans-serif; }
+    .nav a, .nav span {
+      text-decoration: none; color: #111827; border: 1px solid rgba(17,24,39,0.12); border-radius: 999px; padding: 10px 15px; font-size: 13px; background: white;
+    }
+    .nav .primary { background: #183b63; color: white; border-color: transparent; }
+    .hero {
+      display: grid; grid-template-columns: 1.12fr 0.88fr; gap: 38px; margin-top: 36px;
+    }
+    .left {
+      padding-right: 28px;
+    }
+    .eyebrow {
+      font-family: Arial, sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #85643a;
+      margin-bottom: 18px;
+    }
+    .headline {
+      margin: 0; font-size: 82px; line-height: 0.98; letter-spacing: -0.05em; max-width: 760px;
+    }
+    .copy {
+      margin-top: 24px; max-width: 720px; font-size: 25px; line-height: 1.8; color: #374151;
+    }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; font-family: Arial, sans-serif; }
+    .cta a {
+      text-decoration: none; border-radius: 999px; padding: 13px 18px; font-size: 14px; border: 1px solid rgba(17,24,39,0.12);
+      background: white; color: #111827;
+    }
+    .cta .primary { background: #183b63; color: white; border-color: transparent; }
+    .right {
+      display: grid; gap: 18px;
+      border-left: 1px solid rgba(17,24,39,0.1);
+      padding-left: 38px;
+    }
+    .section-title {
+      font-family: Arial, sans-serif; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #85643a;
+      margin-bottom: 12px;
+    }
+    .statement {
+      padding: 0 0 18px; border-bottom: 1px solid rgba(17,24,39,0.1);
+      font-size: 28px; line-height: 1.45;
+      color: #273444;
+    }
+    .flow {
+      font-family: Arial, sans-serif;
+      color: #5b6472;
+      line-height: 2;
+      font-size: 15px;
+    }
+    .grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 34px; border-top: 1px solid rgba(17,24,39,0.1);
+      border-bottom: 1px solid rgba(17,24,39,0.1);
+    }
+    .cell {
+      padding: 24px 18px 28px 0; border-right: 1px solid rgba(17,24,39,0.1);
+    }
+    .cell:last-child { border-right: 0; }
+    .cell .e {
+      font-family: Arial, sans-serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #85643a;
+    }
+    .cell h2 { margin: 12px 0 10px; font-size: 34px; }
+    .cell p { margin: 0; font-family: Arial, sans-serif; color: #5f6977; line-height: 1.8; font-size: 14px; }
+    @media (max-width: 1050px) {
+      .hero { grid-template-columns: 1fr; }
+      .right { border-left: 0; padding-left: 0; border-top: 1px solid rgba(17,24,39,0.1); padding-top: 28px; }
+      .grid { grid-template-columns: 1fr; }
+      .cell { border-right: 0; border-bottom: 1px solid rgba(17,24,39,0.1); padding-right: 0; }
+      .cell:last-child { border-bottom: 0; }
+      .headline { font-size: 58px; }
+      .copy { font-size: 21px; }
+      .ribbon { grid-template-columns: 1fr; }
+      .nav { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="mark">P</div>
+        <div>
+          <h1>PG-BUSINESSFLOW.AI</h1>
+          <p>AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="#">Docs</a>
+        <span>Pricing · Coming soon</span>
+        <span>Contact · Coming soon</span>
+        <a href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="left">
+        <div class="eyebrow">Premium trust</div>
+        <h1 class="headline">Run your PG business from one AI operating system.</h1>
+        <div class="copy">
+          This direction is built on restraint, trust, and maturity. The psychology is not urgency. It is product seriousness: fewer claims, more confidence, more space, more editorial weight.
+        </div>
+        <div class="cta">
+          <a class="primary" href="#">See how it works</a>
+          <a href="#">Read docs</a>
+        </div>
+
+        <section class="grid">
+          <article class="cell">
+            <div class="e">Leads to move-in</div>
+            <h2>CRM + visits</h2>
+            <p>Track enquiries, scheduling, and onboarding without fragmented handoff.</p>
+          </article>
+          <article class="cell">
+            <div class="e">Staff to payroll</div>
+            <h2>HR + attendance</h2>
+            <p>Give the team one clear operating picture for attendance and execution.</p>
+          </article>
+          <article class="cell">
+            <div class="e">Approvals + SOPs</div>
+            <h2>Finance control</h2>
+            <p>Collections, expenses, approvals, and process discipline remain visible.</p>
+          </article>
+        </section>
+      </div>
+
+      <aside class="right">
+        <div>
+          <div class="section-title">What this product gives you</div>
+          <div class="statement">One workspace for CRM, property, HR, finance, and workflows.</div>
+        </div>
+        <div>
+          <div class="statement">Shared operating context across owners, staff, and approvals.</div>
+        </div>
+        <div>
+          <div class="statement">A foundation for AI-led execution without losing business control.</div>
+        </div>
+        <div>
+          <div class="section-title">How it works</div>
+          <div class="flow">Lead inquiry -> Booking -> Onboarding -> Stay ops -> Collections -> Review</div>
+        </div>
+      </aside>
+    </section>
+  </div>
+</body>
+</html>

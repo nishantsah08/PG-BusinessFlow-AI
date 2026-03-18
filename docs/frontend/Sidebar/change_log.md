@@ -19,3 +19,8 @@
 - Date: 2026-03-04
 - Change: Added CRM route link (`/crm`) to primary navigation.
 - Reason: Expose Lead 360 console as a first-class operational surface in the authenticated shell.
+
+**Version 1.4.0**
+- Date: 2026-03-04
+- Change: Added first-class HR (`/hr`) and Finance (`/finance`) navigation links; removed Communications from top-level sidebar surface.
+- Reason: Align left navigation with current business operating modules.

@@ -6,15 +6,20 @@ const CommunicationsAI = require('./agents/CommunicationsAI');
 
 // 1. Mock CommsAI
 const commsAI = new CommunicationsAI();
+const sent = [];
 commsAI.callTool = async (name, args) => {
+    sent.push({ name, args });
     console.log(`[MOCK] CommsAI.${name} called with:`, JSON.stringify(args, null, 2));
     return { status: "Message Sent (Mock)" };
 };
 
 // 2. Mock CRMAgent (with In-Memory Store for verification)
 const crmAgent = new CRMAgent();
-crmAgent.leads = new Map(); // Reset leads correctly
-crmAgent.timelines = new Map();
+crmAgent._tenantStores = new Map();
+crmAgent._saveState = () => {};
+crmAgent.leads.clear();
+crmAgent.timelines.clear();
+crmAgent.mergeReviews.clear();
 
 // Instantiate MasterAI
 const masterAI = new MasterAI([commsAI, crmAgent]);
@@ -29,11 +34,38 @@ masterAI.chat = async (history) => {
     if (lastMsg.includes('2BHK')) return { role: 'assistant', content: 'Sure, we have 2BHKs available.' };
     return { role: 'assistant', content: 'I am a dummy brain.' };
 };
+masterAI.openai = {
+    chat: {
+        completions: {
+            create: async () => ({
+                choices: [{
+                    message: {
+                        content: JSON.stringify({
+                            is_business_relevant: true,
+                            reason: 'WhatsApp PG enquiry',
+                            extracted_name: 'Arjun QA',
+                            summary: 'User asked for accommodation options and continued the same enquiry within the session.',
+                            sentiment: 'Positive',
+                            tone: 'Practical',
+                            financial_impact: 'Budget discussion ongoing',
+                            compliance_impact: 'None',
+                            source: { category: 'WhatsApp', detail: 'Manual flow test' },
+                            unit_type_required: '2BHK',
+                            preferences: ['Near office'],
+                            ai_notes: { test_flow: true },
+                            merge_review: { should_flag: false }
+                        })
+                    }
+                }]
+            })
+        }
+    }
+};
 
 async function runTest() {
     console.log("--- Starting Universal Message Flow Test (With Session) ---");
 
-    const TEST_PHONE = 'WHATSAPP_TEST_User';
+    const TEST_PHONE = '+919811111111';
 
     // Step 1: Session Start (New User)
     console.log("\n[Step 1] User sends 'Hi' (New Session)");
@@ -43,10 +75,9 @@ async function runTest() {
         payload: { from: TEST_PHONE, body: 'Hi, I am looking for a flat.', raw: { type: 'text' } }
     });
 
-    // Check if Lead Created
-    const lead = crmAgent.leads.get(TEST_PHONE);
-    if (lead) console.log(`✓ Lead Created: ${lead.lead_id}`);
-    else console.error("✗ Lead NOT Created");
+    const preFlushLead = crmAgent.leads.get(TEST_PHONE);
+    if (!preFlushLead) console.log("✓ No CRM lead created before flush (expected)");
+    else console.error("✗ Lead should not be created before flush");
 
     // Step 2: In-Session Chat (Memory Check)
     console.log("\n[Step 2] User sends '2BHK please' (Same Session)");
@@ -77,13 +108,12 @@ async function runTest() {
     const timeline = crmAgent.timelines.get(TEST_PHONE);
 
     if (updatedLead && timeline) {
-        const sessionLog = timeline.find(h => h.type === 'SESSION');
+        const sessionLog = [...timeline].reverse().find(h => h.type === 'SESSION');
         if (sessionLog) {
             console.log("✓ Session Log Found in CRM Timeline:");
             console.log(JSON.stringify(sessionLog, null, 2));
 
-            // Verify content (log_session receives summary not full messages in updated version)
-            if (sessionLog.summary && sessionLog.summary.includes('messages')) {
+            if (sessionLog.summary === 'User asked for accommodation options and continued the same enquiry within the session.') {
                 console.log("✓ Session summary is correct");
             } else {
                 console.error("✗ Session summary mismatch");
@@ -94,6 +124,12 @@ async function runTest() {
         }
     } else {
         console.error("✗ Lead Missing or Timeline Empty");
+    }
+
+    if (sent.length >= 2) {
+        console.log(`✓ Outbound replies sent during session: ${sent.length}`);
+    } else {
+        console.error(`✗ Expected at least 2 outbound replies, got ${sent.length}`);
     }
 
     console.log("\n--- Test Complete ---");

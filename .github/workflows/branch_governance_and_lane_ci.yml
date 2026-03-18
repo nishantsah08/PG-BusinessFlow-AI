@@ -41,7 +41,7 @@ jobs:
 
           body_lower="$(printf '%s' "${PR_BODY}" | tr '[:upper:]' '[:lower:]')"
           for item in "${required_items[@]}"; do
-            if ! grep -Fq "${item}" <<< "${body_lower}"; then
+            if ! grep -Fq -- "${item}" <<< "${body_lower}"; then
               echo "Missing required PR checklist item: ${item}"
               exit 1
             fi
@@ -71,7 +71,7 @@ jobs:
           run_server=false
           run_client=false
 
-          if grep -Eq '^(server/|testing/)' <<< "${changed_files}"; then
+          if grep -Eq '^(server/|testing/|infra/gcp/|reset_preprod\.sh$|RESET_PREPROD\.md$)' <<< "${changed_files}"; then
             run_server=true
           fi
 
@@ -94,7 +94,7 @@ jobs:
           set -euo pipefail
           cd server
           npm ci
-          npm test
+          npm run test:ci:v1
 
       - name: Client tests
         if: steps.changes.outputs.run_client == 'true'
@@ -102,7 +102,7 @@ jobs:
           set -euo pipefail
           cd client
           npm ci
-          npm test
+          npm run test:ci:v1
 
       - name: No test-impact changes
         if: steps.changes.outputs.run_server != 'true' && steps.changes.outputs.run_client != 'true'

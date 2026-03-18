@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { X, ChevronDown, ChevronRight, Globe, Calendar, Clock, Monitor } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
+import { isProductionApp } from '../../lib/runtimeEnv';
 
 const SettingsModal = ({ isOpen, onClose }) => {
     const { settings, updateSettings } = useSettings();
     const { isDeveloperMode, toggleDeveloperMode } = useDeveloperMode();
-    const isProd = (import.meta.env.VITE_APP_ENV || 'development') === 'production';
+    const isProd = isProductionApp();
     const [expandedGroups, setExpandedGroups] = useState(['time']);
 
     if (!isOpen) return null;
@@ -32,8 +33,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
     ];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/40 backdrop-blur-sm animate-in fade-in duration-200 px-4 pb-6 pt-24">
+            <div className="mx-auto flex min-h-full items-start justify-center">
+                <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[calc(100dvh-6.5rem)] animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <h2 className="text-xl font-bold text-gray-900 tracking-tight">Settings</h2>
@@ -165,6 +167,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                     >
                         Save Changes
                     </button>
+                </div>
                 </div>
             </div>
         </div>

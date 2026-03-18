@@ -1,20 +1,36 @@
 # WorkflowsPage Specification
 
 ## Purpose
-Top-level page for defining, viewing, editing, and deleting business-process workflow definitions. Accessible at `/workflows`.
+
+Route-level SOP control plane hosted at `/workflows`.
+
+This page is the only governance surface for business procedure drafting, validation, publish, and archive actions.
 
 ## Scope
-- Two-panel layout: left = WorkflowList, right = WorkflowBuilder.
-- Fetch workflow definitions from `GET /api/workflows`.
-- CRUD operations via `apiClient` (create, update, delete).
-- Adhere to 5-state rendering via `StateWrapper`.
-- Toast notifications for success/error via `useUI`.
+
+- Present a full-width SOP list with filters:
+  - `Active`
+  - `Draft`
+  - `Archived`
+  - `All`
+- Present a full-screen SOP workspace when one SOP is opened.
+- Left side shows a business-readable SOP document.
+- Right side shows a normal LLM chat window scoped to the selected SOP only.
+- Top actions support:
+  - `Save Draft`
+  - `Validate`
+  - `Publish`
+- New SOP creation starts with:
+  - blank SOP text
+  - blank SOP chat thread
+- Governance actions do not happen through WhatsApp or free-floating MasterAI chat.
 
 ## Inputs
-None directly. Data fetched from `/api/workflows`. User input via child components.
+
+None directly. Data is loaded from the workflow governance API.
 
 ## Dependencies
-- `apiClient` for all data operations.
-- `StateWrapper` for loading/error/empty states.
-- `useUI` context for toast notifications.
-- `WorkflowList` and `WorkflowBuilder` child components.
+
+- `apiClient` for SOP/workflow governance operations
+- `useUI` for success and error notices
+- SOP list and SOP workspace child surfaces

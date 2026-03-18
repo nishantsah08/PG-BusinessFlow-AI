@@ -1,0 +1,4094 @@
+{
+    "staff": [
+        {
+            "id": "STF-01",
+            "name": "Parveen",
+            "designation": "Caretaker",
+            "job_description": "sdf",
+            "contact": {
+                "primary": "+915686589988",
+                "email": "sd@sdf.com"
+            },
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-11T12:19:25.989Z",
+            "updated_at": "2026-03-11T12:19:25.989Z"
+        },
+        {
+            "id": "STF-02",
+            "name": "sdf",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "job_description": "sdf",
+            "contact": {
+                "primary": "+917584985564",
+                "email": "sdf@kjld.com"
+            },
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "TERMINATED",
+            "created_at": "2026-03-12T08:09:04.908Z",
+            "updated_at": "2026-03-12T08:49:04.586Z",
+            "reason_for_termination": "ffg",
+            "last_working_day": "2026-03-13"
+        },
+        {
+            "id": "STF-03",
+            "name": "WA CEO Persona 1773306806640",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "job_description": "WhatsApp CEO role persona",
+            "contact": {
+                "primary": "+918106806640",
+                "email": "wa.ceo.persona.1773306806640@example.com"
+            },
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T09:13:26.676Z",
+            "updated_at": "2026-03-12T09:13:26.676Z"
+        },
+        {
+            "id": "STF-04",
+            "name": "WA Staff Persona 1773306806640",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "job_description": "WhatsApp staff role persona",
+            "contact": {
+                "primary": "+918206806640",
+                "email": "wa.staff.persona.1773306806640@example.com"
+            },
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T09:13:26.712Z",
+            "updated_at": "2026-03-12T09:13:26.712Z"
+        },
+        {
+            "id": "STF-05",
+            "name": "WA CEO Persona 1773307011649",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "job_description": "WhatsApp CEO role persona",
+            "contact": {
+                "primary": "+918107011649",
+                "email": "wa.ceo.persona.1773307011649@example.com"
+            },
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T09:16:51.692Z",
+            "updated_at": "2026-03-12T09:16:51.692Z"
+        },
+        {
+            "id": "STF-06",
+            "name": "WA Staff Persona 1773307011649",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "job_description": "WhatsApp staff role persona",
+            "contact": {
+                "primary": "+918207011649",
+                "email": "wa.staff.persona.1773307011649@example.com"
+            },
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T09:16:51.729Z",
+            "updated_at": "2026-03-12T09:16:51.729Z"
+        },
+        {
+            "id": "STF-07",
+            "name": "WA Staff 1773308212904",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202212904",
+                "email": "wa.staff.1773308212904@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773308212904",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T09:36:52.983Z",
+            "updated_at": "2026-03-12T09:36:52.983Z"
+        },
+        {
+            "id": "STF-08",
+            "name": "WA Staff 1773308303717",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202303717",
+                "email": "wa.staff.1773308303717@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773308303717",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T09:38:23.849Z",
+            "updated_at": "2026-03-12T09:38:23.849Z"
+        },
+        {
+            "id": "STF-09",
+            "name": "WA Staff 1773308366051",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202366051",
+                "email": "wa.staff.1773308366051@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773308366051",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T09:39:26.155Z",
+            "updated_at": "2026-03-12T09:39:26.155Z"
+        },
+        {
+            "id": "STF-10",
+            "name": "Ops Staff 1773310595745",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404595745",
+                "email": "ops.staff.1773310595745@example.com"
+            },
+            "job_description": "Policy test staff 1773310595745",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:16:35.849Z",
+            "updated_at": "2026-03-12T10:16:35.849Z"
+        },
+        {
+            "id": "STF-11",
+            "name": "WA Staff 1773310600804",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202600804",
+                "email": "wa.staff.1773310600804@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773310600804",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:16:40.924Z",
+            "updated_at": "2026-03-12T10:16:40.924Z"
+        },
+        {
+            "id": "STF-12",
+            "name": "Ops Staff 1773310672365",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404672365",
+                "email": "ops.staff.1773310672365@example.com"
+            },
+            "job_description": "Policy test staff 1773310672365",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:17:52.461Z",
+            "updated_at": "2026-03-12T10:17:52.462Z"
+        },
+        {
+            "id": "STF-13",
+            "name": "Ops Staff 1773310720859",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404720859",
+                "email": "ops.staff.1773310720859@example.com"
+            },
+            "job_description": "Policy test staff 1773310720859",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:18:40.947Z",
+            "updated_at": "2026-03-12T10:18:40.947Z"
+        },
+        {
+            "id": "STF-14",
+            "name": "Ops Staff 1773310762058",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404762058",
+                "email": "ops.staff.1773310762058@example.com"
+            },
+            "job_description": "Policy test staff 1773310762058",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:19:22.160Z",
+            "updated_at": "2026-03-12T10:19:22.160Z"
+        },
+        {
+            "id": "STF-15",
+            "name": "Ops Staff 1773310816195",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404816195",
+                "email": "ops.staff.1773310816195@example.com"
+            },
+            "job_description": "Policy test staff 1773310816195",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:20:16.276Z",
+            "updated_at": "2026-03-12T10:20:16.276Z"
+        },
+        {
+            "id": "STF-16",
+            "name": "Ops Staff 1773310880177",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404880177",
+                "email": "ops.staff.1773310880177@example.com"
+            },
+            "job_description": "Policy test staff 1773310880177",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:21:20.269Z",
+            "updated_at": "2026-03-12T10:21:20.269Z"
+        },
+        {
+            "id": "STF-17",
+            "name": "Ops Staff 1773310918951",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404918951",
+                "email": "ops.staff.1773310918951@example.com"
+            },
+            "job_description": "Policy test staff 1773310918951",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:21:59.043Z",
+            "updated_at": "2026-03-12T10:21:59.043Z"
+        },
+        {
+            "id": "STF-18",
+            "name": "Ops Staff 1773310965691",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404965691",
+                "email": "ops.staff.1773310965691@example.com"
+            },
+            "job_description": "Policy test staff 1773310965691",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:22:45.783Z",
+            "updated_at": "2026-03-12T10:22:45.783Z"
+        },
+        {
+            "id": "STF-19",
+            "name": "Ops Staff 1773311056601",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404056601",
+                "email": "ops.staff.1773311056601@example.com"
+            },
+            "job_description": "Policy test staff 1773311056601",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:24:16.685Z",
+            "updated_at": "2026-03-12T10:24:16.685Z"
+        },
+        {
+            "id": "STF-20",
+            "name": "Ops Staff 1773311154632",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404154632",
+                "email": "ops.staff.1773311154632@example.com"
+            },
+            "job_description": "Policy test staff 1773311154632",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:25:54.731Z",
+            "updated_at": "2026-03-12T10:25:54.731Z"
+        },
+        {
+            "id": "STF-21",
+            "name": "Ops Staff 1773311266543",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404266543",
+                "email": "ops.staff.1773311266543@example.com"
+            },
+            "job_description": "Policy test staff 1773311266543",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:27:46.624Z",
+            "updated_at": "2026-03-12T10:27:46.624Z"
+        },
+        {
+            "id": "STF-22",
+            "name": "Ops Staff 1773311337283",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404337283",
+                "email": "ops.staff.1773311337283@example.com"
+            },
+            "job_description": "Policy test staff 1773311337283",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:28:57.425Z",
+            "updated_at": "2026-03-12T10:28:57.425Z"
+        },
+        {
+            "id": "STF-23",
+            "name": "WA Staff 1773311344241",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202344241",
+                "email": "wa.staff.1773311344241@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773311344241",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T10:29:04.297Z",
+            "updated_at": "2026-03-12T10:29:04.297Z"
+        },
+        {
+            "id": "STF-24",
+            "name": "Ops Staff 1773321553892",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404553892",
+                "email": "ops.staff.1773321553892@example.com"
+            },
+            "job_description": "Policy test staff 1773321553892",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:19:14.159Z",
+            "updated_at": "2026-03-12T13:19:14.159Z"
+        },
+        {
+            "id": "STF-25",
+            "name": "WA Staff 1773321562815",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202562815",
+                "email": "wa.staff.1773321562815@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773321562815",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:19:22.925Z",
+            "updated_at": "2026-03-12T13:19:22.925Z"
+        },
+        {
+            "id": "STF-26",
+            "name": "Ops Staff 1773321727818",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404727818",
+                "email": "ops.staff.1773321727818@example.com"
+            },
+            "job_description": "Policy test staff 1773321727818",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:22:07.960Z",
+            "updated_at": "2026-03-12T13:22:07.960Z"
+        },
+        {
+            "id": "STF-27",
+            "name": "Caretaker 1773322274396",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422274396",
+                "email": "caretaker.1773322274396@example.com"
+            },
+            "job_description": "Caretaker 1773322274396",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:31:14.458Z",
+            "updated_at": "2026-03-12T13:31:14.458Z"
+        },
+        {
+            "id": "STF-28",
+            "name": "Caretaker 1773322351928",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422351928",
+                "email": "caretaker.1773322351928@example.com"
+            },
+            "job_description": "Caretaker 1773322351928",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:32:32.091Z",
+            "updated_at": "2026-03-12T13:32:32.091Z"
+        },
+        {
+            "id": "STF-29",
+            "name": "Caretaker 1773322455820",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422455820",
+                "email": "caretaker.1773322455820@example.com"
+            },
+            "job_description": "Caretaker 1773322455820",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:34:15.887Z",
+            "updated_at": "2026-03-12T13:34:15.887Z"
+        },
+        {
+            "id": "STF-30",
+            "name": "Caretaker 1773322507974",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422507974",
+                "email": "caretaker.1773322507974@example.com"
+            },
+            "job_description": "Caretaker 1773322507974",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:35:08.023Z",
+            "updated_at": "2026-03-12T13:35:08.023Z"
+        },
+        {
+            "id": "STF-31",
+            "name": "Caretaker 1773322573192",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422573192",
+                "email": "caretaker.1773322573192@example.com"
+            },
+            "job_description": "Caretaker 1773322573192",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:36:13.248Z",
+            "updated_at": "2026-03-12T13:36:13.248Z"
+        },
+        {
+            "id": "STF-32",
+            "name": "Caretaker 1773322608444",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422608444",
+                "email": "caretaker.1773322608444@example.com"
+            },
+            "job_description": "Caretaker 1773322608444",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:36:48.500Z",
+            "updated_at": "2026-03-12T13:36:48.500Z"
+        },
+        {
+            "id": "STF-33",
+            "name": "Caretaker 1773322675856",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422675856",
+                "email": "caretaker.1773322675856@example.com"
+            },
+            "job_description": "Caretaker 1773322675856",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:37:55.924Z",
+            "updated_at": "2026-03-12T13:37:55.924Z"
+        },
+        {
+            "id": "STF-34",
+            "name": "Caretaker 1773322715614",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422715614",
+                "email": "caretaker.1773322715614@example.com"
+            },
+            "job_description": "Caretaker 1773322715614",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:38:35.678Z",
+            "updated_at": "2026-03-12T13:38:35.678Z"
+        },
+        {
+            "id": "STF-35",
+            "name": "Ops Staff 1773322896534",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404896534",
+                "email": "ops.staff.1773322896534@example.com"
+            },
+            "job_description": "Policy test staff 1773322896534",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:41:36.678Z",
+            "updated_at": "2026-03-12T13:41:36.678Z"
+        },
+        {
+            "id": "STF-36",
+            "name": "Caretaker 1773322913281",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918422913281",
+                "email": "caretaker.1773322913281@example.com"
+            },
+            "job_description": "Caretaker 1773322913281",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:41:53.339Z",
+            "updated_at": "2026-03-12T13:41:53.339Z"
+        },
+        {
+            "id": "STF-37",
+            "name": "WA Staff 1773322917449",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202917449",
+                "email": "wa.staff.1773322917449@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773322917449",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:41:57.594Z",
+            "updated_at": "2026-03-12T13:41:57.594Z"
+        },
+        {
+            "id": "STF-38",
+            "name": "Ops Staff 1773322961003",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404961003",
+                "email": "ops.staff.1773322961003@example.com"
+            },
+            "job_description": "Policy test staff 1773322961003",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:42:41.139Z",
+            "updated_at": "2026-03-12T13:42:41.139Z"
+        },
+        {
+            "id": "STF-39",
+            "name": "Ops Staff 1773323032592",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404032592",
+                "email": "ops.staff.1773323032592@example.com"
+            },
+            "job_description": "Policy test staff 1773323032592",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:43:52.831Z",
+            "updated_at": "2026-03-12T13:43:52.831Z"
+        },
+        {
+            "id": "STF-40",
+            "name": "Ops Staff 1773323055187",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404055187",
+                "email": "ops.staff.1773323055187@example.com"
+            },
+            "job_description": "Policy test staff 1773323055187",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:44:15.288Z",
+            "updated_at": "2026-03-12T13:44:15.288Z"
+        },
+        {
+            "id": "STF-41",
+            "name": "Caretaker 1773323065686",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918423065686",
+                "email": "caretaker.1773323065686@example.com"
+            },
+            "job_description": "Caretaker 1773323065686",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:44:25.715Z",
+            "updated_at": "2026-03-12T13:44:25.715Z"
+        },
+        {
+            "id": "STF-42",
+            "name": "WA Staff 1773323096372",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202096372",
+                "email": "wa.staff.1773323096372@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773323096372",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:44:56.459Z",
+            "updated_at": "2026-03-12T13:44:56.459Z"
+        },
+        {
+            "id": "STF-43",
+            "name": "WA Staff 1773323172762",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202172762",
+                "email": "wa.staff.1773323172762@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773323172762",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:46:13.091Z",
+            "updated_at": "2026-03-12T13:46:13.091Z"
+        },
+        {
+            "id": "STF-44",
+            "name": "Ops Staff 1773323198957",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404198957",
+                "email": "ops.staff.1773323198957@example.com"
+            },
+            "job_description": "Policy test staff 1773323198957",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:46:39.074Z",
+            "updated_at": "2026-03-12T13:46:39.074Z"
+        },
+        {
+            "id": "STF-45",
+            "name": "Caretaker 1773323207008",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918423207008",
+                "email": "caretaker.1773323207008@example.com"
+            },
+            "job_description": "Caretaker 1773323207008",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:46:47.041Z",
+            "updated_at": "2026-03-12T13:46:47.041Z"
+        },
+        {
+            "id": "STF-46",
+            "name": "WA Staff 1773323232988",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202232988",
+                "email": "wa.staff.1773323232988@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773323232988",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:47:13.109Z",
+            "updated_at": "2026-03-12T13:47:13.109Z"
+        },
+        {
+            "id": "STF-47",
+            "name": "WA Staff 1773323301969",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202301969",
+                "email": "wa.staff.1773323301969@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773323301969",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:48:22.099Z",
+            "updated_at": "2026-03-12T13:48:22.099Z"
+        },
+        {
+            "id": "STF-48",
+            "name": "Ops Staff 1773323360289",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404360289",
+                "email": "ops.staff.1773323360289@example.com"
+            },
+            "job_description": "Policy test staff 1773323360289",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:49:20.456Z",
+            "updated_at": "2026-03-12T13:49:20.456Z"
+        },
+        {
+            "id": "STF-49",
+            "name": "Caretaker 1773323373744",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918423373744",
+                "email": "caretaker.1773323373744@example.com"
+            },
+            "job_description": "Caretaker 1773323373744",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:49:33.795Z",
+            "updated_at": "2026-03-12T13:49:33.795Z"
+        },
+        {
+            "id": "STF-50",
+            "name": "WA Staff 1773323405822",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202405822",
+                "email": "wa.staff.1773323405822@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773323405822",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-12T13:50:05.941Z",
+            "updated_at": "2026-03-12T13:50:05.941Z"
+        },
+        {
+            "id": "STF-51",
+            "name": "Ops Staff 1773395189856",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404189856",
+                "email": "ops.staff.1773395189856@example.com"
+            },
+            "job_description": "Policy test staff 1773395189856",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T09:46:30.035Z",
+            "updated_at": "2026-03-13T09:46:30.035Z"
+        },
+        {
+            "id": "STF-52",
+            "name": "WA Staff 1773395201369",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202201369",
+                "email": "wa.staff.1773395201369@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773395201369",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T09:46:41.564Z",
+            "updated_at": "2026-03-13T09:46:41.564Z"
+        },
+        {
+            "id": "STF-53",
+            "name": "Ops Staff 1773395779703",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404779703",
+                "email": "ops.staff.1773395779703@example.com"
+            },
+            "job_description": "Policy test staff 1773395779703",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T09:56:19.992Z",
+            "updated_at": "2026-03-13T09:56:19.992Z"
+        },
+        {
+            "id": "STF-54",
+            "name": "WA Staff 1773395804407",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202804407",
+                "email": "wa.staff.1773395804407@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773395804407",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T09:56:44.598Z",
+            "updated_at": "2026-03-13T09:56:44.598Z"
+        },
+        {
+            "id": "STF-55",
+            "name": "Ops Staff 1773395893423",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404893423",
+                "email": "ops.staff.1773395893423@example.com"
+            },
+            "job_description": "Policy test staff 1773395893423",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T09:58:13.824Z",
+            "updated_at": "2026-03-13T09:58:13.824Z"
+        },
+        {
+            "id": "STF-56",
+            "name": "WA Staff 1773395932022",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202932022",
+                "email": "wa.staff.1773395932022@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773395932022",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T09:58:52.210Z",
+            "updated_at": "2026-03-13T09:58:52.210Z"
+        },
+        {
+            "id": "STF-57",
+            "name": "Ops Staff 1773404958727",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404958727",
+                "email": "ops.staff.1773404958727@example.com"
+            },
+            "job_description": "Policy test staff 1773404958727",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T12:29:19.011Z",
+            "updated_at": "2026-03-13T12:29:19.011Z"
+        },
+        {
+            "id": "STF-58",
+            "name": "WA Staff 1773405034261",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202034261",
+                "email": "wa.staff.1773405034261@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773405034261",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T12:30:34.474Z",
+            "updated_at": "2026-03-13T12:30:34.474Z"
+        },
+        {
+            "id": "STF-59",
+            "name": "Ops Staff 1773408464622",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404464622",
+                "email": "ops.staff.1773408464622@example.com"
+            },
+            "job_description": "Policy test staff 1773408464622",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T13:27:45.368Z",
+            "updated_at": "2026-03-13T13:27:45.368Z"
+        },
+        {
+            "id": "STF-60",
+            "name": "WA Staff 1773408468909",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202468909",
+                "email": "wa.staff.1773408468909@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773408468909",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T13:27:50.271Z",
+            "updated_at": "2026-03-13T13:27:50.271Z"
+        },
+        {
+            "id": "STF-61",
+            "name": "WA Staff 1773408751774",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202751774",
+                "email": "wa.staff.1773408751774@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773408751774",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T13:32:32.016Z",
+            "updated_at": "2026-03-13T13:32:32.016Z"
+        },
+        {
+            "id": "STF-62",
+            "name": "Ops Staff 1773409950908",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404950908",
+                "email": "ops.staff.1773409950908@example.com"
+            },
+            "job_description": "Policy test staff 1773409950908",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T13:52:31.290Z",
+            "updated_at": "2026-03-13T13:52:31.290Z"
+        },
+        {
+            "id": "STF-63",
+            "name": "WA Staff 1773410024502",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202024502",
+                "email": "wa.staff.1773410024502@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773410024502",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T13:53:44.821Z",
+            "updated_at": "2026-03-13T13:53:44.821Z"
+        },
+        {
+            "id": "STF-64",
+            "name": "Ops Staff 1773644048106",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404048106",
+                "email": "ops.staff.1773644048106@example.com"
+            },
+            "job_description": "Policy test staff 1773644048106",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-16T06:54:09.695Z",
+            "updated_at": "2026-03-16T06:54:09.695Z"
+        },
+        {
+            "id": "STF-65",
+            "name": "WA Staff 1773644078877",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918202078877",
+                "email": "wa.staff.1773644078877@example.com"
+            },
+            "job_description": "WhatsApp HR role-path staff 1773644078877",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-16T06:54:39.432Z",
+            "updated_at": "2026-03-16T06:54:39.432Z"
+        },
+        {
+            "id": "STF-66",
+            "name": "Ops Staff 1773644225655",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404225655",
+                "email": "ops.staff.1773644225655@example.com"
+            },
+            "job_description": "Policy test staff 1773644225655",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-16T06:57:06.178Z",
+            "updated_at": "2026-03-16T06:57:06.178Z"
+        },
+        {
+            "id": "STF-67",
+            "name": "Ops Staff 1773644875227",
+            "designation": "Caretaker",
+            "compensation_profile": "caretaker",
+            "contact": {
+                "primary": "+918404875227",
+                "email": "ops.staff.1773644875227@example.com"
+            },
+            "job_description": "Policy test staff 1773644875227",
+            "tenant_id": "default",
+            "requested_by": "nishantsah@outlook.in",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "nishantsah@outlook.in",
+            "status": "ACTIVE",
+            "created_at": "2026-03-16T07:07:55.827Z",
+            "updated_at": "2026-03-16T07:07:55.827Z"
+        }
+    ],
+    "salary_cards": [
+        {
+            "staff_id": "STF-01",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Parveen",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-11",
+            "created_at": "2026-03-11T12:19:25.989Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-02",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "sdf",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 200
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T08:09:04.908Z",
+            "history": [
+                {
+                    "date": "2026-03-12T08:48:43.168Z",
+                    "base_salary": 4000,
+                    "bank_details": {
+                        "account_holder": "sdf",
+                        "account_number": "",
+                        "ifsc": "",
+                        "bank_name": "",
+                        "upi_id": ""
+                    },
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    },
+                    "reason": "Reviewed from HR panel"
+                }
+            ],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": false,
+                "manual_override": true,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker",
+                "last_manual_update_at": "2026-03-12T08:48:43.168Z"
+            }
+        },
+        {
+            "staff_id": "STF-03",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA CEO Persona 1773306806640",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T09:13:26.677Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-04",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff Persona 1773306806640",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T09:13:26.712Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-05",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA CEO Persona 1773307011649",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T09:16:51.692Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-06",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff Persona 1773307011649",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T09:16:51.729Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-07",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773308212904",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T09:36:52.983Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-08",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773308303717",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T09:38:23.850Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-09",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773308366051",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T09:39:26.156Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-10",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310595745",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:16:35.849Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-11",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773310600804",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:16:40.924Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-12",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310672365",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:17:52.462Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-13",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310720859",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:18:40.948Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-14",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310762058",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:19:22.160Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-15",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310816195",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:20:16.276Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-16",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310880177",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:21:20.270Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-17",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310918951",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:21:59.043Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-18",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773310965691",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:22:45.783Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-19",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773311056601",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:24:16.686Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-20",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773311154632",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:25:54.732Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-21",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773311266543",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:27:46.624Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-22",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773311337283",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:28:57.426Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-23",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773311344241",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T10:29:04.298Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-24",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773321553892",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:19:14.160Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-25",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773321562815",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:19:22.925Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-26",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773321727818",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:22:07.960Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-27",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322274396",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:31:14.459Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-28",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322351928",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:32:32.092Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-29",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322455820",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:34:15.887Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-30",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322507974",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:35:08.023Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-31",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322573192",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:36:13.249Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-32",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322608444",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:36:48.501Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-33",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322675856",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:37:55.925Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-34",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322715614",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:38:35.679Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-35",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773322896534",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:41:36.679Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-36",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773322913281",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:41:53.340Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-37",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773322917449",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:41:57.594Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-38",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773322961003",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:42:41.139Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-39",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773323032592",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:43:52.832Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-40",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773323055187",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:44:15.289Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-41",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773323065686",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:44:25.715Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-42",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773323096372",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:44:56.459Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-43",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773323172762",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:46:13.091Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-44",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773323198957",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:46:39.075Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-45",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773323207008",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:46:47.042Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-46",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773323232988",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:47:13.109Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-47",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773323301969",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:48:22.100Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-48",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773323360289",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:49:20.457Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-49",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Caretaker 1773323373744",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:49:33.795Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-50",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773323405822",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:50:05.942Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-51",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773395189856",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T09:46:30.036Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-52",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773395201369",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T09:46:41.565Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-53",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773395779703",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T09:56:19.993Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-54",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773395804407",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T09:56:44.599Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-55",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773395893423",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T09:58:13.824Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-56",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773395932022",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T09:58:52.211Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-57",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773404958727",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T12:29:19.011Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-58",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773405034261",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T12:30:34.475Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-59",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773408464622",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T13:27:45.370Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-60",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773408468909",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T13:27:50.272Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-61",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773408751774",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T13:32:32.016Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-62",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773409950908",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T13:52:31.291Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-63",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773410024502",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-13",
+            "created_at": "2026-03-13T13:53:44.822Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-64",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773644048106",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-16",
+            "created_at": "2026-03-16T06:54:09.696Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-65",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "WA Staff 1773644078877",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-16",
+            "created_at": "2026-03-16T06:54:39.433Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-66",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773644225655",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-16",
+            "created_at": "2026-03-16T06:57:06.179Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        },
+        {
+            "staff_id": "STF-67",
+            "base_salary": 4000,
+            "bank_details": {
+                "account_holder": "Ops Staff 1773644875227",
+                "account_number": "",
+                "ifsc": "",
+                "bank_name": "",
+                "upi_id": ""
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 250
+                },
+                "allowances": {
+                    "travel": 0,
+                    "phone": 0
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 100,
+                    "weekly_parking_cleaning_amount": 100,
+                    "maintenance_complaint_deduction": 100
+                }
+            },
+            "effective_from": "2026-03-16",
+            "created_at": "2026-03-16T07:07:55.828Z",
+            "history": [],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": true,
+                "manual_override": false,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker"
+            }
+        }
+    ],
+    "leaves": [],
+    "lastUpdatedAt": "2026-03-16T10:35:13.809Z",
+    "businessConfig": {
+        "tenant_id": "default",
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "nishantsah@outlook.in",
+            "ceo_phone": "+917588498834",
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        },
+        "account_status": "ACTIVE"
+    }
+}

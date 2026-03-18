@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PG BusinessFlow Option 1</title>
+  <style>
+    :root {
+      --bg: #efe6d8;
+      --panel: rgba(255, 255, 255, 0.74);
+      --text: #111827;
+      --muted: #5b6472;
+      --accent: #0f766e;
+      --accent-dark: #0a5a54;
+      --line: rgba(17, 24, 39, 0.1);
+      --shadow: 0 28px 80px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15,118,110,0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(14,165,233,0.16), transparent 32%),
+        linear-gradient(135deg, #f5ede0 0%, var(--bg) 50%, #e9dfcf 100%);
+    }
+
+    .shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .ribbon {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 18px 22px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 50px;
+      height: 50px;
+      border-radius: 18px;
+      background: var(--accent);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .brand p {
+      margin: 0;
+    }
+
+    .brand .name {
+      font-size: 13px;
+      letter-spacing: 0.24em;
+      font-weight: 700;
+    }
+
+    .brand .tag {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .pill, .ghost, .primary {
+      border-radius: 999px;
+      padding: 11px 18px;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill, .ghost {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255,255,255,0.66);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      border: 1px solid transparent;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 28px;
+      padding-top: 34px;
+      align-items: start;
+    }
+
+    .badge {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.6);
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 86px;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      margin: 0 0 22px;
+      max-width: 820px;
+    }
+
+    .subcopy {
+      max-width: 760px;
+      font-size: 24px;
+      line-height: 1.65;
+      color: #303947;
+      margin-bottom: 28px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .card-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .dark-card {
+      background: #0c1222;
+      color: white;
+      border-radius: 32px;
+      padding: 26px;
+      box-shadow: 0 30px 70px rgba(12, 18, 34, 0.2);
+    }
+
+    .dark-card h3 {
+      margin: 0 0 14px;
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8de3dc;
+    }
+
+    .dark-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #d7def1;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .proof {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 22px;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+    }
+
+    .proof .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .proof h2 {
+      margin: 0 0 10px;
+      font-size: 30px;
+    }
+
+    .proof p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .flow {
+      margin-top: 20px;
+      border-radius: 30px;
+      padding: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .flow .line {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .step {
+      background: #efe8dc;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 15px;
+    }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; }
+      .proof-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 58px; }
+      .subcopy { font-size: 20px; }
+      .ribbon { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="brand-mark">P</div>
+        <div>
+          <p class="name">PG-BUSINESSFLOW.AI</p>
+          <p class="tag">AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a class="pill" href="#">Docs</a>
+        <span class="pill">Pricing · Coming soon</span>
+        <span class="pill">Contact · Coming soon</span>
+        <a class="ghost" href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="badge">AI operating system</div>
+        <h1>Run your PG business from one AI operating system.</h1>
+        <div class="subcopy">
+          Sales, onboarding, property, HR, finance, and workflows in one place.
+          Built for PG owners who want stronger control without running operations across disconnected tools and manual follow-up.
+        </div>
+        <div class="cta-row">
+          <a class="primary" href="#">See how it works</a>
+          <a class="ghost" href="#">Read docs</a>
+        </div>
+      </div>
+
+      <div class="card-stack">
+        <div class="dark-card">
+          <h3>What this product gives you</h3>
+          <ul>
+            <li>One workspace for CRM, property, HR, finance, and workflows</li>
+            <li>Shared operating context across owners, staff, and approvals</li>
+            <li>A foundation for AI-led execution without losing business control</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof-grid">
+      <article class="proof">
+        <div class="eyebrow">Leads to move-in</div>
+        <h2>CRM + visits</h2>
+        <p>Track enquiries, schedule visits, and move prospects into onboarding without scattered follow-up.</p>
+      </article>
+      <article class="proof">
+        <div class="eyebrow">Staff to payroll</div>
+        <h2>HR + attendance</h2>
+        <p>Coordinate staff execution, attendance, and payroll readiness from one operating picture.</p>
+      </article>
+      <article class="proof">
+        <div class="eyebrow">Approvals + SOPs</div>
+        <h2>Finance control</h2>
+        <p>Keep collections, expenses, and approval paths visible while workflows hold the discipline together.</p>
+      </article>
+    </section>
+
+    <section class="flow">
+      <div class="eyebrow">How it works</div>
+      <div class="line">
+        <div class="step">Lead inquiry</div>
+        <div class="step">Booking</div>
+        <div class="step">Onboarding</div>
+        <div class="step">Stay ops</div>
+        <div class="step">Collections</div>
+        <div class="step">Review</div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

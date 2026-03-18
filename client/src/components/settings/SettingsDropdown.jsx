@@ -4,12 +4,13 @@ import { useSettings } from '../../context/SettingsContext';
 import { useDeveloperMode } from '../../context/DeveloperModeContext';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut } from 'lucide-react';
+import { isProductionApp } from '../../lib/runtimeEnv';
 
 const SettingsDropdown = ({ isOpen, onClose }) => {
     const { settings, updateSettings } = useSettings();
     const { logout } = useAuth();
     const { isDeveloperMode, toggleDeveloperMode } = useDeveloperMode();
-    const isProd = (import.meta.env.VITE_APP_ENV || 'development') === 'production';
+    const isProd = isProductionApp();
     const [expandedGroups, setExpandedGroups] = useState(['time']);
 
     if (!isOpen) return null;

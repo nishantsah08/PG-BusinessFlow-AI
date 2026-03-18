@@ -40,11 +40,15 @@
 *   **Policies & Workflows**:
     *   **Strict Adherence**: Executed autonomously once approved.
     *   **Validation**: User validation required only at creation/update.
+    *   **Workflow Authoring Standard**: Conversational workflow drafting, validation, seeded-workflow governance, and go-live requirements follow [workflow_authoring_and_validation.md](./workflow_authoring_and_validation.md).
     *   **Financial Authorization Gate**: MasterAI (Kalyani/Sales) may initiate financial workflows, but completion is blocked until explicit CEO authorization.
+    *   **System Access Policy**: Actor identity, permission model, and scope enforcement for `CEO` / `Staff` / `Customer` are defined in [system_access_policy.md](./system_access_policy.md). Current centralized enforcement is active for `HR`, `CRM`, `Property`, and `Finance`.
+    *   **Workspace Activation Gate**: A new business account remains provisional until the CEO phone is OTP-verified and bound to the tenant. Before activation, MasterAI must deny protected workspace actions.
 *   **Session Management & Persistence**:
     *   **Identity Source (Dual Lookup)**: MasterAI identifies users via **phone number OR email**:
         *   **Phone Number (`lead_id`) via CommunicationsAI**: Maps to a CRM profile via `get_lead_by_phone`. The user's `profile_type` determines guardrail behavior.
         *   **Email ID via Dashboard**: Maps to a CRM profile via `get_lead_by_email` (case-insensitive). If the email matches the CEO, full transparent access is granted.
+        *   **CEO Bootstrap Rule**: During new-account activation, the owner phone must be verified first; the verified phone is then written into the tenant-bound CRM `CEO` profile and becomes the primary WhatsApp identity anchor.
     *   **Context Loading for Known Users**: When a CRM profile is found, MasterAI loads the **last 3 SESSION events** from the user's timeline. This gives Kalyani memory of recent conversations (summary, sentiment, tone) so she doesn't start from scratch.
     *   **Deferred Lead Creation for Unknown Users**: If no CRM profile is found:
         *   A **temporary in-memory context** is created (`isTemporary: true`). No CRM write occurs.
@@ -79,14 +83,16 @@
     *   **Unit Specs**: Units have `types` (e.g., "Double Sharing", "Bunk Bed", "Balcony") and `floor`. A unit can have multiple types.
     *   **Tenancy**: Map Tenants to Units (`assign_tenant` / `vacate_tenant`).
     *   **Meters**: Manage Electricity Meters and Readings (A group of units share a single meter).
-    *   **Maintenance**: Track repair requests (`Log Ticket` -> `Resolve`).
+    *   **Maintenance**: Track repair requests (`Log Ticket` -> status updates).
     *   **Public Rates**: Maintain standard market prices (MRP).
-    *   **Logical Delete**: If a Unit/Property has *accounts history*, it is Disabled (soft delete), never hard-deleted.
+   *   **Logical Delete**: If a Unit/Property has active history or linked transactions, it is Disabled (not hard-deleted) and marked for audit-safe retention. Hard delete is only allowed when no blockers exist.
+   *   **Operational State**: Disabled entities remain visible where listing is required, but live mutations must be blocked until re-enabled.
     *   **Amenities Management**:
         *   Properties have amenities associated at creation.
         *   Units inherit these amenities (subset possible).
         *   *Customer Query*: When asked for facilities, quote the Property-level amenities.
 *   **Status Transitions**: `AVAILABLE`, `BOOKED`, `NOTICE`.
+    *   **Tenant scope**: Property state is tenant-scoped; business tenant context and unit booking tenant id are kept separate to support multi-business use.
     *   **Double Booking Prevention**:
         *   New booking on a unit is ONLY allowed if the current tenant is in 'Notice Period' (or if it's empty).
     *   **Tenant Mapping**:
@@ -214,6 +220,27 @@
     *   **Surety Rule**: You must NOT update any transaction unless you are absolutely sure about it. Double-checking is encouraged.
     *   **Delegated Execution**: FinanceAI itself does not work; it uses its sub-agents to do the work.
     *   **Authorization Rule**: Finance mutations execute only through predefined deterministic workflows after CEO authorization.
+    *   **Workflow Ownership Rule**: Finance workflows belong to the Finance domain, but execution always happens through MasterAI.
+    *   **Workflow Surface Rule**: Master AI should show only business-facing finance workflows to operators. Internal helper workflows may exist underneath but should stay hidden from the normal workflow list.
+    *   **Correction Rule**: Existing finance records are never edited in place. Corrections happen only through new compensating transactions/workflows.
+
+*   **Business-Facing Finance SOP Baseline (Current Program Scope)**:
+    1.  `Record Booking Hold`
+    2.  `Expire Booking Hold`
+    3.  `Onboard Tenant`
+    4.  `Generate Monthly Bills`
+    5.  `Rent Collection`
+    6.  `Record Outgoing Transaction`
+    7.  `Offboard Tenant`
+    8.  `Correct Finance Entry`
+    *   **Scheduling baseline**:
+        *   Monthly bills run on month-end, with reruns on 5th and 10th for controlled late-cycle handling.
+        *   Rent reminders run on 4th and 9th; reminder cycle closes on 15th with CEO escalation summary.
+    *   **Approval baseline**:
+        *   Customer-reported payment may enter via GUI/WhatsApp, but posting requires CEO approval.
+        *   `Correct Finance Entry` is CEO-only.
+    *   **Settlement closure baseline**:
+        *   Offboarding closes only after settlement money movement is completed and final customer communication is sent.
 
 *   **Transaction Schema**:
     *   **Incoming (Revenue)**:
@@ -221,24 +248,46 @@
         *   `amount`: 15000 (The actual cash received)
         *   `date`: Received Date (IST)
         *   `payer_id`: Lead/Tenant ID
+        *   `linked_property_id`: Optional business context
+        *   `linked_unit_id`: Optional operational context
         *   `payment_mode`: "UPI" / "Cash" / "Payment Gateway" / "Net Banking"
         *   `allocations`: [List of `Allocation` Objects] (Populated *automatically* by the Waterfall Logic)
         *   `unallocated_surplus`: Remaining amount after waterfall allocation.
         *   `carry_forward`: If surplus exists, it is converted into a next-month credit (`amount`, `available_from`, `credit_id`).
         *   `attachment`: Link to Receipt/Screenshot
-        *   *Note*: We do not tag "Jan Rent" here manually. The Waterfall Logic allocates this cash to the correct Ledger buckets.
+        *   *Note*: `payer_id` remains the account key. Unit/property are contextual because money may arrive before final unit allocation or after a tenant has shifted units. Normal incoming collection is self-allocated by FinanceAI; booking holds are handled by their own dedicated workflow.
     *   **Outgoing (Expense)**:
         *   `txn_id`: "OUT-XXXX"
         *   `category`: "OpEx" / "CapEx"
         *   `sub_category`: "Goods/Services"
-        *   `work_done`: Description of work (replaces sub_cat detail)
+        *   `work_order_id`: Internal work context resolved or created by FinanceAI
+        *   `work_title`: Human-readable work label
+        *   `work_done`: Description of work / payment reason
         *   `property_id`: Linked Asset
-        *   `amount`: 500
+        *   `unit_id`: Optional finer placement when the spend belongs to one unit
+        *   `amount`: Actual amount paid now
+        *   `line_items`: Optional structured rows (`item_name`, `quantity`, `unit_price`, `line_total`) for fresh purchases or services
         *   `date`: Creation Date (IST)
-        *   `payee`: Vendor Name
+        *   `vendor_id`: Optional registered vendor
+        *   `payee`: Vendor Name / one-off payee
         *   `payment_mode`: UPI/Cash
         *   `approved_by`: "Jatin (Manager)"
         *   `remarks`: Notes
+        *   *Note*: User-facing entry stays as one outgoing transaction workflow. FinanceAI must ask follow-up questions instead of guessing work placement. Internally it may create or reuse a work context so one work can accumulate multiple vendors, purchases, payments, and final delta over time. Financial truth fields remain immutable; work labels/remarks remain editable with audit trail.
+    *   **Booking Hold (Pre-Onboarding Receipt)**:
+        *   `booking_hold_id`: "BH-XXXX"
+        *   `payer_id`: Lead / prospective tenant
+        *   `amount`: Cash received before onboarding
+        *   `received_at`: Actual receipt date
+        *   `valid_until`: 10-day hold window
+        *   `linked_property_id` / `linked_unit_id`: Optional pre-onboarding context
+        *   `status`: "ACTIVE" / "APPLIED_ON_ONBOARDING" / "EXPIRED_FORFEITED"
+        *   *Rule*: If onboarding is not completed within the hold window, the booking expires and the amount is forfeited (no refund).
+    *   **Vendor (Finance Register)**:
+        *   `vendor_id`: "VND-XXXX"
+        *   `vendor_name`, `category`, `primary_phone`
+        *   `upi_id` / bank details (optional)
+        *   `current_period_paid`, `total_paid`, `transaction_count`
 
 *   **Ledger Logic (The Source of Truth)**:
     *   *Concept*: The "Bill" is just a monthly statement. The **Ledger** is the actual database of Debts (`entries`).
@@ -264,6 +313,8 @@
         7.  **Electricity Bill**
         8.  **Asset Damage Recovery**
         9.  **Late Payment Fees**
+    *   **Billing Period Rule**: The billing workflow may run on any operational date, but it always calculates for the target billing month.
+    *   **Prorata Rule**: If a contract becomes effective mid-month, only the commercially valid days in that billing month are billed on prorata basis; remaining charge behavior follows the negotiated rate card.
 
 *   **Sub-Agents**:
     1.  **Billing Agent**:
@@ -284,6 +335,8 @@
             *   *Logic*: `Balance = Previous_Due + New_Bill - Payments`.
     3.  **Salary Agent**:
         *   *Logic*: Calculates Salary and Advances based on the Salary Card defined by HR.
+    4.  **Collections / Contract Logic**:
+        *   *Logic*: Handles booking holds, onboarding-from-booking application, vendor-linked expense context, and contract version changes. The onboarding date is always entered by the CEO, may be backdated, and becomes the commercial effective date for applying the held money.
 
 ---
 

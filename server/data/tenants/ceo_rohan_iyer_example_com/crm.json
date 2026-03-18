@@ -1,0 +1,1455 @@
+{
+    "leads": {
+        "+91981110011": {
+            "lead_id": "+91981110011",
+            "name": "Rohan Caretaker 1",
+            "profile_type": "Staff",
+            "email": "caretaker.1.ceo_rohan_iyer_example_com@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+91981110011",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Internal",
+                "detail": "Caretaker Hiring"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {
+                "role": "caretaker",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Onboarded",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+91981120021": {
+            "lead_id": "+91981120021",
+            "name": "Rohan Caretaker 2",
+            "profile_type": "Staff",
+            "email": "caretaker.2.ceo_rohan_iyer_example_com@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+91981120021",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Internal",
+                "detail": "Caretaker Hiring"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {
+                "role": "caretaker",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Onboarded",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000001": {
+            "lead_id": "+918701000001",
+            "name": "Rohan Customer 01",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000001",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000002": {
+            "lead_id": "+918701000002",
+            "name": "Rohan Customer 02",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000002",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000003": {
+            "lead_id": "+918701000003",
+            "name": "Rohan Customer 03",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000003",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000004": {
+            "lead_id": "+918701000004",
+            "name": "Rohan Customer 04",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000004",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000005": {
+            "lead_id": "+918701000005",
+            "name": "Rohan Customer 05",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000005",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000006": {
+            "lead_id": "+918701000006",
+            "name": "Rohan Customer 06",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000006",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000007": {
+            "lead_id": "+918701000007",
+            "name": "Rohan Customer 07",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000007",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000008": {
+            "lead_id": "+918701000008",
+            "name": "Rohan Customer 08",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000008",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000009": {
+            "lead_id": "+918701000009",
+            "name": "Rohan Customer 09",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000009",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000010": {
+            "lead_id": "+918701000010",
+            "name": "Rohan Customer 10",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000010",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000011": {
+            "lead_id": "+918701000011",
+            "name": "Rohan Customer 11",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000011",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000012": {
+            "lead_id": "+918701000012",
+            "name": "Rohan Customer 12",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000012",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000013": {
+            "lead_id": "+918701000013",
+            "name": "Rohan Customer 13",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000013",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000014": {
+            "lead_id": "+918701000014",
+            "name": "Rohan Customer 14",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000014",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000015": {
+            "lead_id": "+918701000015",
+            "name": "Rohan Customer 15",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000015",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000016": {
+            "lead_id": "+918701000016",
+            "name": "Rohan Customer 16",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000016",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000017": {
+            "lead_id": "+918701000017",
+            "name": "Rohan Customer 17",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000017",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000018": {
+            "lead_id": "+918701000018",
+            "name": "Rohan Customer 18",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000018",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000019": {
+            "lead_id": "+918701000019",
+            "name": "Rohan Customer 19",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000019",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000020": {
+            "lead_id": "+918701000020",
+            "name": "Rohan Customer 20",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000020",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000021": {
+            "lead_id": "+918701000021",
+            "name": "Rohan Customer 21",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000021",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000022": {
+            "lead_id": "+918701000022",
+            "name": "Rohan Customer 22",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000022",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000023": {
+            "lead_id": "+918701000023",
+            "name": "Rohan Customer 23",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000023",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000024": {
+            "lead_id": "+918701000024",
+            "name": "Rohan Customer 24",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000024",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000025": {
+            "lead_id": "+918701000025",
+            "name": "Rohan Customer 25",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000025",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000026": {
+            "lead_id": "+918701000026",
+            "name": "Rohan Customer 26",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000026",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000027": {
+            "lead_id": "+918701000027",
+            "name": "Rohan Customer 27",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000027",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000028": {
+            "lead_id": "+918701000028",
+            "name": "Rohan Customer 28",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000028",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000029": {
+            "lead_id": "+918701000029",
+            "name": "Rohan Customer 29",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000029",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918701000030": {
+            "lead_id": "+918701000030",
+            "name": "Rohan Customer 30",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918701000030",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_rohan_iyer_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+917588498834": {
+            "lead_id": "+917588498834",
+            "name": "Rohan Iyer",
+            "profile_type": "CEO",
+            "email": "ceo.rohan.iyer@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+917588498834",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "System",
+                "detail": "ceo.verified"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T15:00:44.716+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        }
+    },
+    "timelines": {
+        "+91981110011": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Onboarded",
+                    "reason": "Caretaker employee seeded for agentic lifecycle testing"
+                }
+            }
+        ],
+        "+91981120021": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Onboarded",
+                    "reason": "Caretaker employee seeded for agentic lifecycle testing"
+                }
+            }
+        ],
+        "+918701000001": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000002": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000003": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000004": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000005": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000006": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000007": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000008": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000009": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000010": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000011": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000012": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000013": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000014": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000015": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000016": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000017": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000018": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000019": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000020": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000021": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000022": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000023": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000024": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000025": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000026": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000027": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000028": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000029": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918701000030": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+917588498834": [
+            {
+                "event_id": "EVT-1773394244716-874",
+                "timestamp": "2026-03-13T15:00:44.716+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T15:00:44.716+05:30"
+            }
+        ]
+    },
+    "mergeReviews": {},
+    "lastUpdatedAt": "2026-03-16T12:26:58.083+05:30",
+    "businessConfig": {
+        "tenant_id": "ceo_rohan_iyer_example_com",
+        "business_name": "Rohan Iyer's Workspace",
+        "persona": {
+            "name": "Rohan Iyer",
+            "role": "CEO",
+            "ceo_email": "ceo.rohan.iyer@example.com",
+            "ceo_phone": null,
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        }
+    }
+}

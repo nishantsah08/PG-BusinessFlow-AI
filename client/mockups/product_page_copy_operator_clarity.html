@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operator Clarity</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #101827;
+      background:
+        radial-gradient(circle at top left, rgba(16,185,129,0.16), transparent 24%),
+        linear-gradient(135deg, #f5ede0 0%, #efe5d6 52%, #e8dece 100%);
+    }
+    .shell { max-width: 1360px; margin: 0 auto; padding: 28px; }
+    .ribbon {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      padding: 16px 20px; border-radius: 28px; background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(16,24,39,0.08); box-shadow: 0 18px 55px rgba(15,23,42,0.08);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .mark {
+      width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center;
+      background: #146c63; color: white; font-weight: 800; font-size: 22px;
+    }
+    .brand h1, .brand p { margin: 0; }
+    .brand h1 { font-size: 12px; letter-spacing: 0.24em; }
+    .brand p { margin-top: 4px; font-size: 12px; color: #667085; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .nav a, .nav span {
+      text-decoration: none; color: #101827; border-radius: 999px; padding: 11px 16px; font-size: 14px;
+      border: 1px solid rgba(16,24,39,0.08); background: rgba(255,255,255,0.72);
+    }
+    .nav .primary { background: #146c63; color: white; border-color: transparent; }
+    .hero {
+      margin-top: 24px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;
+    }
+    .copy {
+      padding: 46px 42px;
+      border-radius: 34px; background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(16,24,39,0.08);
+    }
+    .eyebrow {
+      display: inline-block; padding: 10px 14px; border-radius: 999px; background: rgba(20,108,99,0.08);
+      color: #146c63; border: 1px solid rgba(20,108,99,0.16); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .headline { margin: 24px 0 18px; font-size: 84px; line-height: 0.95; letter-spacing: -0.05em; max-width: 820px; }
+    .subheadline { font-size: 27px; line-height: 1.55; max-width: 760px; color: #344054; }
+    .support { margin-top: 18px; font-size: 18px; line-height: 1.8; max-width: 740px; color: #5f6774; }
+    .cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; }
+    .cta a {
+      text-decoration: none; border-radius: 999px; padding: 13px 18px; border: 1px solid rgba(16,24,39,0.08); color: #101827; background: white; font-size: 14px;
+    }
+    .cta .primary { background: #111827; color: white; border-color: transparent; }
+    .panel {
+      border-radius: 34px; padding: 28px; background: #0f1726; color: white;
+      border: 1px solid rgba(255,255,255,0.06); display: grid; gap: 16px; align-content: start;
+    }
+    .panel h3 { margin: 0; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #7de7cf; }
+    .panel p { margin: 0; font-size: 17px; line-height: 1.8; color: #d6e0f1; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 18px; }
+    .card {
+      border-radius: 26px; background: rgba(255,255,255,0.76); border: 1px solid rgba(16,24,39,0.08); padding: 22px;
+    }
+    .card .e { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #146c63; }
+    .card h2 { margin: 10px 0; font-size: 32px; }
+    .card p { margin: 0; color: #667085; line-height: 1.8; font-size: 14px; }
+    .flow {
+      margin-top: 18px; border-radius: 24px; padding: 20px; background: rgba(255,255,255,0.76); border: 1px solid rgba(16,24,39,0.08);
+    }
+    .flow h3 { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #146c63; }
+    .flow p { margin: 0; color: #475467; font-size: 16px; line-height: 1.8; }
+    @media (max-width: 1050px) {
+      .hero { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr; }
+      .headline { font-size: 58px; }
+      .subheadline { font-size: 21px; }
+      .ribbon { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="mark">P</div>
+        <div>
+          <h1>PG-BUSINESSFLOW.AI</h1>
+          <p>AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="#">Docs</a>
+        <span>Pricing · Coming soon</span>
+        <span>Contact · Coming soon</span>
+        <a href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div>
+        <article class="copy">
+          <div class="eyebrow">Operator clarity</div>
+          <div class="headline">Built for PG owners who want one clear picture of the business.</div>
+          <div class="subheadline">CRM, operations, staffing, finance, and workflows working from one system.</div>
+          <div class="support">One shared operating context for the work your team already does every day.</div>
+          <div class="cta">
+            <a class="primary" href="#">See how it works</a>
+            <a href="#">Read docs</a>
+          </div>
+        </article>
+
+        <section class="cards">
+          <article class="card">
+            <div class="e">Leads to move-in</div>
+            <h2>CRM + visits</h2>
+            <p>Track enquiries, schedule visits, and move prospects into onboarding without fragmented follow-up.</p>
+          </article>
+          <article class="card">
+            <div class="e">Staff to payroll</div>
+            <h2>HR + attendance</h2>
+            <p>Keep staff execution, attendance, and payroll readiness tied to the same business view.</p>
+          </article>
+          <article class="card">
+            <div class="e">Approvals + SOPs</div>
+            <h2>Finance control</h2>
+            <p>Collections, expenses, approvals, and workflows remain visible instead of getting lost across tools.</p>
+          </article>
+        </section>
+
+        <section class="flow">
+          <h3>How it works</h3>
+          <p>Lead inquiry -> Booking -> Onboarding -> Stay ops -> Collections -> Review</p>
+        </section>
+      </div>
+
+      <aside class="panel">
+        <h3>Positioning</h3>
+        <p>This copy is owner-led and clarity-led. It does not shout. It promises a better operating picture.</p>
+        <h3>What this says emotionally</h3>
+        <p>I will help you see the business clearly and run it with less fragmentation.</p>
+      </aside>
+    </section>
+  </div>
+</body>
+</html>

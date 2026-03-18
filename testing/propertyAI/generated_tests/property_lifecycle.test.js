@@ -59,8 +59,8 @@ describe('PropertyAI: Full Lifecycle Integration', () => {
         });
         expect(notice.current_status).toBe('NOTICE');
 
-        // 8. Attempt Deletion (Should be Soft Delete due to history)
+        // 8. Attempt Deletion (Should be Disabled due to history)
         const del = await agent.callTool('delete_unit', { unit_id: unit.unit_id });
-        expect(del.status).toBe('Unit Soft Deleted');
+        expect(del.status).toBe('Unit Disabled');
     });
 });

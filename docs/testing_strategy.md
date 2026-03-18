@@ -93,6 +93,7 @@ Validate:
 - UI state changes
 - Error display
 - Interaction correctness
+- For cross-channel operational changes, QA must check GUI + CRM sync + WhatsApp, and role-path coverage must include CEO, Staff, and non-staff/customer.
 
 > UI tests are only required once frontend is introduced.
 
@@ -161,6 +162,31 @@ Environment-gated behavior must be covered by tests:
 - `GOOGLE_AUTH_MODE` access policy (`internal` and `public`).
 - Debug endpoint gating when `ALLOW_DEBUG_ENDPOINTS=false`.
 - Readiness endpoint behavior (`/ready` returns not-ready for missing required config).
+
+Operational smoke coverage should remain runnable outside the main domain test suites:
+
+- `cd server && npm run test:communications-direct-local-smoke`
+  - Confirms local iteration still handles inbound WhatsApp events in direct mode with local storage.
+- `cd server && npm run test:gcp-smoke`
+  - Confirms shared development/pre-production can reach Cloud Run, Firestore, and GCS successfully.
+- `cd server && npm run test:communications-pubsub-smoke`
+  - Confirms the shared development/pre-production Pub/Sub topic, push subscription, push audience, and push service account wiring are valid.
+- `cd server && npm run test:preprod-live-regression`
+  - Confirms key shared-environment business linkages across CRM, Property, HR, Finance, uploads, and communications.
+
+These smoke checks are release gates for changes that touch deployment, storage backend selection, or communications event routing.
+
+For shared-environment releases that affect WhatsApp ingress, keep one short live verification step:
+
+```text
+update Meta webhook callback URL
+-> send one real WhatsApp message to the business number
+-> confirm Cloud Run logs show inbound webhook receipt
+-> confirm Pub/Sub handoff is logged
+-> confirm one outbound reply or business event is generated
+```
+
+This live check is not a replacement for the smoke scripts above. It is the final proof that Meta is pointed at the intended environment.
 
 ---
 

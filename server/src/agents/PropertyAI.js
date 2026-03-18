@@ -1,4 +1,5 @@
 const BaseAgent = require('./BaseAgent');
+const TenantDataStore = require('../storage/TenantDataStore');
 const BusinessConfig = require('../config/business');
 
 class PropertyAI extends BaseAgent {
@@ -14,6 +15,7 @@ class PropertyAI extends BaseAgent {
                 tools: [
                     'add_property', 'update_property', 'delete_property', 'get_properties',
                     'add_unit', 'update_unit', 'delete_unit', 'get_units',
+                    'enable_property', 'disable_property', 'enable_unit', 'disable_unit',
                     'assign_tenant', 'vacate_tenant',
                     'add_meter', 'get_meters', 'delete_meter',
                     'update_meter_reading', 'delete_meter_reading',
@@ -28,13 +30,209 @@ class PropertyAI extends BaseAgent {
             }
         });
 
-        // In-memory storage for Phase 1
-        this.properties = []; // { id, name, address, description, image_urls, amenities, floors, status, created_at, updated_at }
-        this.units = [];      // { id, property_id, unit_number, floor, amenities, status, tenant_id, history, created_at, updated_at }
-        this.meters = [];     // { id, consumer_number, type, linked_units, readings, status, created_at, updated_at }
-        this.maintenance_requests = []; // { id, property_id, unit_id, category, description, priority, reported_by, status, remarks, cost, created_at, updated_at }
+        this.defaultTenantId = BusinessConfig.DEFAULT_TENANT_ID || 'default';
+        this.dataBackend = process.env.STORAGE_BACKEND || (process.env.NODE_ENV === 'test' ? 'memory' : 'local');
+        this._activeTenantId = null;
+        this._tenantStates = new Map();
+        this._tenantStores = new Map();
+        this._financeStores = new Map();
+        this._businessConfigProvider = (tenantId) => {
+            if (typeof BusinessConfig.getBusinessConfig === 'function') {
+                return BusinessConfig.getBusinessConfig(tenantId);
+            }
+            return BusinessConfig;
+        };
 
         this.registerTools();
+    }
+
+    _extractTenantId(args = {}) {
+        return args.tenant_id || this.defaultTenantId;
+    }
+
+    _getTenantStore(tenantId) {
+        if (!this._tenantStores.has(tenantId)) {
+            this._tenantStores.set(
+                tenantId,
+                new TenantDataStore({
+                    tenantId,
+                    namespace: 'property',
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._tenantStores.get(tenantId);
+    }
+
+    _getFinanceStore(tenantId) {
+        if (!this._financeStores.has(tenantId)) {
+            this._financeStores.set(
+                tenantId,
+                new TenantDataStore({
+                    tenantId,
+                    namespace: 'finance',
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._financeStores.get(tenantId);
+    }
+
+    _getFinanceState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const store = this._getFinanceStore(resolvedTenantId);
+        const rawState = store.load({
+            transactions: []
+        });
+        return {
+            transactions: Array.isArray(rawState.transactions) ? rawState.transactions : []
+        };
+    }
+
+    _hasFinancialActivityForProperty(propertyId, tenantId = this._activeTenantId) {
+        const { transactions } = this._getFinanceState(tenantId);
+        return transactions.some((txn) => txn && txn.property_id === propertyId);
+    }
+
+    _hasFinancialActivityForUnit(unitId, propertyId, tenantId = this._activeTenantId) {
+        if (!unitId && !propertyId) return false;
+        const { transactions } = this._getFinanceState(tenantId);
+        return transactions.some((txn) => {
+            if (!txn || typeof txn !== 'object') return false;
+            if (txn.property_id && txn.unit_id) {
+                if (unitId && txn.unit_id === unitId) return true;
+                if (propertyId && txn.property_id === propertyId) return true;
+            }
+            if (txn.property_id && propertyId) {
+                return txn.property_id === propertyId;
+            }
+            return false;
+        });
+    }
+
+    _isEnabledEntity(entity) {
+        if (!entity || typeof entity !== 'object') return false;
+        return entity.is_enabled !== false;
+    }
+
+    _canDeleteProperty(propertyId, tenantId = this._activeTenantId) {
+        const hasFinancialActivity = this._hasFinancialActivityForProperty(propertyId, tenantId);
+        const hasActiveUnits = this.units.some((u) => u.property_id === propertyId && u.status !== 'DELETED');
+        return {
+            canDelete: !hasFinancialActivity && !hasActiveUnits,
+            hasFinancialActivity,
+            hasActiveUnits
+        };
+    }
+
+    _canDeleteUnit(unit, tenantId = this._activeTenantId) {
+        if (!unit) return { canDelete: false, hasHistory: false, hasLinkedMeters: false, hasFinancialActivity: false };
+        const hasHistory = unit.history.length > 0;
+        const hasLinkedMeters = this.meters.some((m) => m.linked_units.includes(unit.id) && m.status !== 'DELETED');
+        const hasFinancialActivity = this._hasFinancialActivityForUnit(unit.id, unit.property_id, tenantId);
+        return {
+            canDelete: !hasHistory && !hasLinkedMeters && !hasFinancialActivity,
+            hasHistory,
+            hasLinkedMeters,
+            hasFinancialActivity
+        };
+    }
+
+    _getPublicRateCardSchema() {
+        const rates = this._getActiveBusinessConfig(this._activeTenantId).rates;
+        return {
+            monthly_rent: rates.monthly_rent,
+            base_security_deposit: rates.base_security_deposit,
+            deposit_rules: rates.deposit_rules,
+            payment_cycle_rules: `1st-${rates.deposit_rules.dynamic_range_start - 1}th of every month: Standard Deposit; ${rates.deposit_rules.dynamic_range_start}th-${rates.deposit_rules.dynamic_range_end}th of every month: Additional Deposit`,
+            notice_period_days: rates.notice_period_days,
+            min_stay_months: rates.min_stay_months,
+            early_exit_rule: rates.early_exit_rule,
+            rent_payment_timing: rates.rent_payment_timing,
+            utility_payment_timing: rates.utility_payment_timing,
+            maintenance_fee: rates.maintenance_fee
+        };
+    }
+
+    _getState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        if (!this._tenantStates.has(resolvedTenantId)) {
+            const store = this._getTenantStore(resolvedTenantId);
+            const rawState = store.load({
+                properties: [],
+                units: [],
+                meters: [],
+                maintenance_requests: []
+            });
+            this._tenantStates.set(resolvedTenantId, rawState);
+        }
+        return this._tenantStates.get(resolvedTenantId);
+    }
+
+    async _hydrateTenantState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const rawState = await this._getTenantStore(resolvedTenantId).hydrate({
+            properties: [],
+            units: [],
+            meters: [],
+            maintenance_requests: []
+        });
+        this._tenantStates.set(resolvedTenantId, rawState);
+        await this._getFinanceStore(resolvedTenantId).hydrate({
+            transactions: []
+        });
+    }
+
+    async _saveState(tenantId) {
+        const state = this._getState(tenantId);
+        await this._getTenantStore(tenantId).save({
+            properties: state.properties,
+            units: state.units,
+            meters: state.meters,
+            maintenance_requests: state.maintenance_requests,
+            lastUpdatedAt: new Date().toISOString(),
+            businessConfig: this._businessConfigProvider(tenantId)
+        });
+    }
+
+    _setTenantContext(tenantId) {
+        const normalizedTenantId = this._extractTenantId({ tenant_id: tenantId });
+        const previousTenantId = this._activeTenantId;
+        this._activeTenantId = normalizedTenantId;
+        this._getState(normalizedTenantId);
+        return previousTenantId;
+    }
+
+    _getActiveBusinessConfig(tenantId = this.defaultTenantId) {
+        return this._businessConfigProvider(tenantId) || this._businessConfigProvider(this.defaultTenantId);
+    }
+
+    get properties() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).properties;
+    }
+
+    get units() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).units;
+    }
+
+    get meters() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).meters;
+    }
+
+    get maintenance_requests() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).maintenance_requests;
+    }
+
+    _resolveBusinessTenantId(args = {}, toolName = '') {
+        const explicitTenantContext = args.tenant_context_id || args.business_tenant_id;
+
+        // update_unit uses tenant_id as booking identifier, not business tenant.
+        // Keep old behavior for other tools and allow explicit context overrides.
+        if (toolName === 'update_unit' && args.tenant_id && !explicitTenantContext) {
+            return this.defaultTenantId;
+        }
+
+        return explicitTenantContext || this._extractTenantId(args);
     }
 
     registerTools() {
@@ -45,9 +243,15 @@ class PropertyAI extends BaseAgent {
             properties: {
                 name: { type: 'string' },
                 address: { type: 'string' },
+                street_address: { type: 'string' },
+                pin_code: { type: 'string' },
+                area: { type: 'string' },
+                city: { type: 'string' },
+                state: { type: 'string' },
                 description: { type: 'string' },
                 google_business_link: { type: 'string' },
                 image_urls: { type: 'array', items: { type: 'string' } },
+                thumbnail_url: { type: 'string' },
                 amenities: { type: 'array', items: { type: 'string' } },
                 floors: { type: 'number' }
             },
@@ -64,6 +268,7 @@ class PropertyAI extends BaseAgent {
                 amenities: args.amenities || [],
                 image_urls: args.image_urls || [],
                 status: 'ACTIVE',
+                is_enabled: true,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
@@ -77,28 +282,40 @@ class PropertyAI extends BaseAgent {
                 property_id: { type: 'string' },
                 name: { type: 'string' },
                 address: { type: 'string' },
+                street_address: { type: 'string' },
+                pin_code: { type: 'string' },
+                area: { type: 'string' },
+                city: { type: 'string' },
+                state: { type: 'string' },
                 description: { type: 'string' },
                 google_business_link: { type: 'string' },
                 image_urls: { type: 'array', items: { type: 'string' } },
+                thumbnail_url: { type: 'string' },
                 amenities: { type: 'array', items: { type: 'string' } },
                 floors: { type: 'number' }
             },
             required: ['property_id']
         }, async (args) => {
-            const property = this.properties.find(p => p.id === args.property_id);
-            if (!property || property.status === 'DELETED') throw new Error("Property not found.");
+            const property = this.properties.find(p => p.id === args.property_id && p.status !== 'DELETED');
+            if (!property) throw new Error("Property not found.");
 
             if (args.name && args.name !== property.name) {
-                if (this.properties.some(p => p.name === args.name && p.status !== 'DELETED')) {
+                if (this.properties.some(p => p.name === args.name && p.id !== property.id && p.status !== 'DELETED')) {
                     throw new Error(`Property with name "${args.name}" already exists.`);
                 }
                 property.name = args.name;
             }
 
             if (args.address) property.address = args.address;
+            if (args.street_address !== undefined) property.street_address = args.street_address;
+            if (args.pin_code !== undefined) property.pin_code = args.pin_code;
+            if (args.area !== undefined) property.area = args.area;
+            if (args.city !== undefined) property.city = args.city;
+            if (args.state !== undefined) property.state = args.state;
             if (args.description) property.description = args.description;
             if (args.google_business_link !== undefined) property.google_business_link = args.google_business_link;
             if (args.image_urls) property.image_urls = args.image_urls;
+            if (args.thumbnail_url !== undefined) property.thumbnail_url = args.thumbnail_url;
             if (args.amenities) property.amenities = args.amenities; // Note: This might invalidate unit amenities, but strategy allows property to have base.
             if (args.floors) property.floors = args.floors;
 
@@ -114,9 +331,24 @@ class PropertyAI extends BaseAgent {
         }, async (args) => {
             if (args.property_id) {
                 const p = this.properties.find(p => p.id === args.property_id && p.status !== 'DELETED');
-                return p || { error: "Not found" };
+                if (!p) return { error: "Not found" };
+                const { canDelete, hasFinancialActivity, hasActiveUnits } = this._canDeleteProperty(args.property_id);
+                return {
+                    ...p,
+                    can_delete: canDelete,
+                    has_transactions: hasFinancialActivity,
+                    has_active_units: hasActiveUnits
+                };
             }
-            return this.properties.filter(p => p.status !== 'DELETED');
+            return this.properties.filter(p => p.status !== 'DELETED').map((property) => {
+                const { canDelete, hasFinancialActivity, hasActiveUnits } = this._canDeleteProperty(property.id);
+                return {
+                    ...property,
+                    can_delete: canDelete,
+                    has_transactions: hasFinancialActivity,
+                    has_active_units: hasActiveUnits
+                };
+            });
         });
 
         this.registerTool('delete_property', 'Delete a property (Soft or Hard)', {
@@ -126,22 +358,27 @@ class PropertyAI extends BaseAgent {
             },
             required: ['property_id']
         }, async (args) => {
-            const property = this.properties.find(p => p.id === args.property_id);
+            const property = this.properties.find(p => p.id === args.property_id && p.status !== 'DELETED');
             if (!property) throw new Error("Property not found.");
 
-            // Check for active units
-            const hasActiveUnits = this.units.some(u => u.property_id === args.property_id && u.status !== 'DELETED');
+            const { canDelete, hasFinancialActivity, hasActiveUnits } = this._canDeleteProperty(args.property_id);
 
-            // Logic: If history/units exist -> Soft Delete. If brand new -> Hard Delete (allow cleanup of mistakes)
-            if (hasActiveUnits) {
-                property.status = 'DELETED';
+            if (!canDelete) {
+                property.is_enabled = false;
                 property.updated_at = new Date().toISOString();
-                return { status: "Property Soft Deleted", property_id: property.id, reason: "Has active units" };
+                const reason = hasFinancialActivity ? 'Has financial transactions' : 'Has active units';
+                return {
+                    status: "Property Disabled",
+                    property_id: property.id,
+                    reason,
+                    disabled: true,
+                    can_delete: false
+                };
             } else {
                 // Hard delete
                 const index = this.properties.indexOf(property);
                 this.properties.splice(index, 1);
-                return { status: "Property Hard Deleted", property_id: property.id };
+                return { status: "Property Hard Deleted", property_id: property.id, disabled: false, can_delete: true };
             }
         });
 
@@ -155,15 +392,21 @@ class PropertyAI extends BaseAgent {
                 floor: { type: 'number' },
                 types: { type: 'array', items: { type: 'string' } }, // e.g. ["Double Sharing", "Bunk Bed"]
                 amenities: { type: 'array', items: { type: 'string' } },
-                base_rent: { type: 'number' }
+                base_rent: { type: 'number' },
+                rate_card: { type: 'object' },
+                caretaker_staff_id: { type: 'string' },
+                caretaker_name: { type: 'string' }
             },
             required: ['property_id', 'unit_number']
         }, async (args) => {
             const property = this.properties.find(p => p.id === args.property_id && p.status !== 'DELETED');
             if (!property) throw new Error("Property ID not found");
+            if (!this._isEnabledEntity(property)) {
+                throw new Error("Cannot add unit to a disabled property.");
+            }
 
             // Uniqueness Check
-            if (this.units.some(u => u.property_id === args.property_id && u.unit_number === args.unit_number && u.status !== 'DELETED')) {
+            if (this.units.some(u => u.property_id === args.property_id && u.unit_number === args.unit_number && u.status !== 'DELETED' && u.is_enabled !== false)) {
                 throw new Error(`Unit ${args.unit_number} already exists in this property.`);
             }
 
@@ -181,7 +424,11 @@ class PropertyAI extends BaseAgent {
                 types: args.types || [],
                 amenities: unitAmenities,
                 base_rent: args.base_rent || 0,
+                rate_card: args.rate_card || null,
+                caretaker_staff_id: args.caretaker_staff_id || null,
+                caretaker_name: args.caretaker_name || null,
                 status: 'AVAILABLE',
+                is_enabled: true,
                 history: [],
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
@@ -199,15 +446,24 @@ class PropertyAI extends BaseAgent {
                 types: { type: 'array', items: { type: 'string' } },
                 amenities: { type: 'array', items: { type: 'string' } },
                 base_rent: { type: 'number' },
+                rate_card: { type: 'object' },
+                caretaker_staff_id: { type: 'string' },
+                caretaker_name: { type: 'string' },
                 status: { type: 'string', enum: ['AVAILABLE', 'BOOKED', 'NOTICE'] }, // Transitions
                 tenant_id: { type: 'string' } // Required if status -> BOOKED
             },
             required: ['unit_id']
         }, async (args) => {
-            const unit = this.units.find(u => u.id === args.unit_id);
-            if (!unit || unit.status === 'DELETED') throw new Error("Unit not found.");
+            const unit = this.units.find(u => u.id === args.unit_id && u.status !== 'DELETED');
+            if (!unit) throw new Error("Unit not found.");
+            if (!this._isEnabledEntity(unit)) {
+                throw new Error("Cannot modify a disabled unit.");
+            }
 
-            const property = this.properties.find(p => p.id === unit.property_id);
+            const property = this.properties.find(p => p.id === unit.property_id && p.status !== 'DELETED');
+            if (!property || !this._isEnabledEntity(property)) {
+                throw new Error("Cannot modify unit because parent property is disabled.");
+            }
 
             // 1. Double Booking Guard (must be checked BEFORE the status-change gate)
             if (args.status === 'BOOKED' && unit.status === 'BOOKED') {
@@ -255,9 +511,9 @@ class PropertyAI extends BaseAgent {
             // 2. Data Updates
             if (args.unit_number) {
                 // Check uniqueness
-                if (this.units.some(u => u.property_id === unit.property_id && u.unit_number === args.unit_number && u.id !== unit.id && u.status !== 'DELETED')) {
-                    throw new Error(`Unit ${args.unit_number} already exists in this property.`);
-                }
+            if (this.units.some(u => u.property_id === unit.property_id && u.unit_number === args.unit_number && u.id !== unit.id && u.status !== 'DELETED')) {
+                throw new Error(`Unit ${args.unit_number} already exists in this property.`);
+            }
                 unit.unit_number = args.unit_number;
             }
             if (args.floor !== undefined) unit.floor = args.floor;
@@ -271,6 +527,9 @@ class PropertyAI extends BaseAgent {
                 unit.amenities = args.amenities;
             }
             if (args.base_rent !== undefined) unit.base_rent = args.base_rent;
+            if (args.rate_card !== undefined) unit.rate_card = args.rate_card;
+            if (args.caretaker_staff_id !== undefined) unit.caretaker_staff_id = args.caretaker_staff_id || null;
+            if (args.caretaker_name !== undefined) unit.caretaker_name = args.caretaker_name || null;
 
             unit.updated_at = new Date().toISOString();
             return { status: "Unit Updated", unit_id: unit.id, current_status: unit.status };
@@ -288,7 +547,18 @@ class PropertyAI extends BaseAgent {
         }, async (args) => {
             let results = this.units.filter(u => u.status !== 'DELETED');
             if (args.property_id) results = results.filter(u => u.property_id === args.property_id);
-            if (args.unit_id) return results.find(u => u.id === args.unit_id) || { error: "Not found" };
+            if (args.unit_id) {
+                const unit = results.find((u) => u.id === args.unit_id);
+                if (!unit) return { error: "Not found" };
+                const unitFlags = this._canDeleteUnit(unit);
+                return {
+                    ...unit,
+                    can_delete: unitFlags.canDelete,
+                    has_history: unitFlags.hasHistory,
+                    has_linked_meters: unitFlags.hasLinkedMeters,
+                    has_financial_activity: unitFlags.hasFinancialActivity
+                };
+            }
             if (args.floor !== undefined) results = results.filter(u => u.floor === args.floor);
             if (args.status) results = results.filter(u => u.status === args.status);
             if (args.types && args.types.length > 0) {
@@ -301,7 +571,44 @@ class PropertyAI extends BaseAgent {
                 // Let's do: Match if unit.types contains any of the args.types.
                 results = results.filter(u => args.types.some(t => u.types.includes(t)));
             }
-            return results;
+            return results.map((unit) => {
+                const unitFlags = this._canDeleteUnit(unit);
+                return {
+                    ...unit,
+                    can_delete: unitFlags.canDelete,
+                    has_history: unitFlags.hasHistory,
+                    has_linked_meters: unitFlags.hasLinkedMeters,
+                    has_financial_activity: unitFlags.hasFinancialActivity
+                };
+            });
+        });
+
+        this.registerTool('disable_property', 'Disable a property to keep record while blocking operations', {
+            type: 'object',
+            properties: {
+                property_id: { type: 'string' }
+            },
+            required: ['property_id']
+        }, async (args) => {
+            const property = this.properties.find(p => p.id === args.property_id && p.status !== 'DELETED');
+            if (!property) throw new Error("Property not found.");
+            property.is_enabled = false;
+            property.updated_at = new Date().toISOString();
+            return { status: "Property Disabled", property_id: property.id, disabled: true, can_delete: false };
+        });
+
+        this.registerTool('enable_property', 'Re-enable a property for operations', {
+            type: 'object',
+            properties: {
+                property_id: { type: 'string' }
+            },
+            required: ['property_id']
+        }, async (args) => {
+            const property = this.properties.find(p => p.id === args.property_id && p.status !== 'DELETED');
+            if (!property) throw new Error("Property not found.");
+            property.is_enabled = true;
+            property.updated_at = new Date().toISOString();
+            return { status: "Property Enabled", property_id: property.id, disabled: false, can_delete: true };
         });
 
         this.registerTool('delete_unit', 'Delete a unit (Soft/Hard)', {
@@ -311,21 +618,56 @@ class PropertyAI extends BaseAgent {
             },
             required: ['unit_id']
         }, async (args) => {
-            const unit = this.units.find(u => u.id === args.unit_id);
+            const unit = this.units.find(u => u.id === args.unit_id && u.status !== 'DELETED');
             if (!unit) throw new Error("Unit not found");
-
             const hasHistory = unit.history.length > 0; // Has it ever been booked?
             const linkedMeters = this.meters.some(m => m.linked_units.includes(unit.id) && m.status !== 'DELETED');
+            const propertyId = unit.property_id;
+            const hasFinancialActivity = this._hasFinancialActivityForUnit(unit.id, propertyId);
 
-            if (hasHistory || linkedMeters) {
-                unit.status = 'DELETED';
+            if (hasHistory || linkedMeters || hasFinancialActivity) {
+                unit.is_enabled = false;
                 unit.updated_at = new Date().toISOString();
-                return { status: "Unit Soft Deleted", unit_id: unit.id, reason: "Has history/meters" };
+                return {
+                    status: "Unit Disabled",
+                    unit_id: unit.id,
+                    reason: hasHistory || linkedMeters || hasFinancialActivity ? 'Has history/meters/transactions' : 'Has history/meters',
+                    disabled: true,
+                    can_delete: false
+                };
             } else {
                 const index = this.units.indexOf(unit);
                 this.units.splice(index, 1);
-                return { status: "Unit Hard Deleted", unit_id: unit.id };
+                return { status: "Unit Hard Deleted", unit_id: unit.id, disabled: false, can_delete: true };
             }
+        });
+
+        this.registerTool('disable_unit', 'Disable a unit to keep record while blocking operations', {
+            type: 'object',
+            properties: {
+                unit_id: { type: 'string' }
+            },
+            required: ['unit_id']
+        }, async (args) => {
+            const unit = this.units.find(u => u.id === args.unit_id && u.status !== 'DELETED');
+            if (!unit) throw new Error("Unit not found.");
+            unit.is_enabled = false;
+            unit.updated_at = new Date().toISOString();
+            return { status: "Unit Disabled", unit_id: unit.id, disabled: true, can_delete: false };
+        });
+
+        this.registerTool('enable_unit', 'Re-enable a unit for operations', {
+            type: 'object',
+            properties: {
+                unit_id: { type: 'string' }
+            },
+            required: ['unit_id']
+        }, async (args) => {
+            const unit = this.units.find(u => u.id === args.unit_id && u.status !== 'DELETED');
+            if (!unit) throw new Error("Unit not found.");
+            unit.is_enabled = true;
+            unit.updated_at = new Date().toISOString();
+            return { status: "Unit Enabled", unit_id: unit.id, disabled: false, can_delete: true };
         });
 
         this.registerTool('assign_tenant', 'Assign a tenant to a unit (Booking)', {
@@ -335,12 +677,21 @@ class PropertyAI extends BaseAgent {
                 lead_id: { type: 'string' },
                 start_date: { type: 'string' },
                 monthly_rent: { type: 'number' },
-                security_deposit: { type: 'number' }
+                security_deposit: { type: 'number' },
+                caretaker_staff_id: { type: 'string' },
+                caretaker_name: { type: 'string' }
             },
             required: ['unit_id', 'lead_id', 'start_date']
         }, async (args) => {
             const unit = this.units.find(u => u.id === args.unit_id);
             if (!unit || unit.status === 'DELETED') throw new Error("Unit not found.");
+            if (!this._isEnabledEntity(unit)) {
+                throw new Error("Cannot assign tenant to disabled unit.");
+            }
+            const property = this.properties.find(p => p.id === unit.property_id && p.status !== 'DELETED');
+            if (!property || !this._isEnabledEntity(property)) {
+                throw new Error("Cannot assign tenant because parent property is disabled.");
+            }
 
             // Validation: Cannot double book
             if (unit.status === 'BOOKED') {
@@ -385,11 +736,19 @@ class PropertyAI extends BaseAgent {
 
             unit.status = 'BOOKED';
             unit.tenant_id = args.lead_id;
+            if (args.caretaker_staff_id !== undefined) unit.caretaker_staff_id = args.caretaker_staff_id || null;
+            if (args.caretaker_name !== undefined) unit.caretaker_name = args.caretaker_name || null;
             unit.history.push({
                 state: 'BOOKED',
                 date: new Date().toISOString(),
                 tenant: args.lead_id,
-                metadata: { start: args.start_date, rent: args.monthly_rent, deposit: args.security_deposit }
+                metadata: {
+                    start: args.start_date,
+                    rent: args.monthly_rent,
+                    deposit: args.security_deposit,
+                    caretaker_staff_id: unit.caretaker_staff_id,
+                    caretaker_name: unit.caretaker_name
+                }
             });
             unit.updated_at = new Date().toISOString();
 
@@ -406,6 +765,9 @@ class PropertyAI extends BaseAgent {
         }, async (args) => {
             const unit = this.units.find(u => u.id === args.unit_id);
             if (!unit || unit.status === 'DELETED') throw new Error("Unit not found.");
+            if (!this._isEnabledEntity(unit)) {
+                throw new Error("Cannot vacate disabled unit.");
+            }
 
             if (unit.status === 'AVAILABLE') {
                 throw new Error("Unit is already AVAILABLE.");
@@ -457,7 +819,10 @@ class PropertyAI extends BaseAgent {
 
             // Validate linked units
             if (args.linked_units) {
-                const validUnits = args.linked_units.every(uid => this.units.some(u => u.id === uid && u.status !== 'DELETED'));
+                const validUnits = args.linked_units.every((uid) => {
+                    const unit = this.units.find(u => u.id === uid && u.status !== 'DELETED');
+                    return Boolean(unit && this._isEnabledEntity(unit));
+                });
                 if (!validUnits) throw new Error("One or more linked units do not exist.");
 
                 // Prevent duplicate linking: A unit can only be linked to ONE meter
@@ -529,7 +894,7 @@ class PropertyAI extends BaseAgent {
             },
             required: ['monthly_rent', 'start_date']
         }, async (args) => {
-            const rates = BusinessConfig.rates;
+            const rates = this._getActiveBusinessConfig(this._activeTenantId).rates;
             const date = new Date(args.start_date);
             const day = date.getDate();
             let deposit = rates.base_security_deposit;
@@ -552,17 +917,7 @@ class PropertyAI extends BaseAgent {
             type: 'object',
             properties: {}
         }, async () => {
-            const rates = BusinessConfig.rates;
-            return {
-                monthly_rent: rates.monthly_rent,
-                base_security_deposit: rates.base_security_deposit,
-                payment_cycle_rules: `1st-${rates.deposit_rules.dynamic_range_start - 1}th: Standard; ${rates.deposit_rules.dynamic_range_start}th-${rates.deposit_rules.dynamic_range_end}th: Standard + ${rates.deposit_rules.dynamic_multiplier_days} Days Rent`,
-                notice_period_days: rates.notice_period_days,
-                min_stay_months: rates.min_stay_months,
-                early_exit_rule: rates.early_exit_rule,
-                rent_payment_timing: rates.rent_payment_timing,
-                utility_payment_timing: rates.utility_payment_timing
-            };
+            return this._getPublicRateCardSchema();
         });
 
         this.registerTool('update_meter_reading', 'Log a new meter reading', {
@@ -621,7 +976,10 @@ class PropertyAI extends BaseAgent {
                 category: { type: 'string', enum: ['PLUMBING', 'ELECTRICAL', 'CARPENTRY', 'Cleaning', 'Appliance', 'Other'] },
                 description: { type: 'string' },
                 priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] },
-                reported_by: { type: 'string' } // Lead ID or Staff ID
+                reported_by: { type: 'string' }, // Lead ID or Staff ID
+                reported_by_name: { type: 'string' },
+                resident_name: { type: 'string' },
+                image_urls: { type: 'array', items: { type: 'string' } }
             },
             required: ['property_id', 'description', 'reported_by']
         }, async (args) => {
@@ -633,9 +991,15 @@ class PropertyAI extends BaseAgent {
                 if (!unit) throw new Error("Unit not found in this property");
             }
 
+            const unit = args.unit_id
+                ? this.units.find(u => u.id === args.unit_id && u.property_id === args.property_id && u.status !== 'DELETED')
+                : null;
+
             const ticket = {
                 id: `TICKET-${this.maintenance_requests.length + 1}`,
                 ...args,
+                assigned_caretaker_staff_id: unit?.caretaker_staff_id || null,
+                assigned_caretaker_name: unit?.caretaker_name || null,
                 status: 'OPEN',
                 remarks: [],
                 cost: 0,
@@ -659,6 +1023,7 @@ class PropertyAI extends BaseAgent {
             const ticket = this.maintenance_requests.find(t => t.id === args.ticket_id);
             if (!ticket) throw new Error("Ticket not found");
 
+            // Keep remarks optional to allow simple status transitions in workflows.
             if (args.status) ticket.status = args.status;
             if (args.remarks) ticket.remarks.push({ date: new Date().toISOString(), text: args.remarks });
             if (args.cost !== undefined) ticket.cost = args.cost;
@@ -702,7 +1067,7 @@ class PropertyAI extends BaseAgent {
             }
         }, async (args) => {
             // Dynamic Calculation based on active units
-            let relevantUnits = this.units.filter(u => u.status !== 'DELETED');
+            let relevantUnits = this.units.filter(u => u.status !== 'DELETED' && this._isEnabledEntity(u));
             if (args.property_id) {
                 const propId = args.property_id;
                 const resolvedProp = this.properties.find(p => p.id === propId && p.status !== 'DELETED');
@@ -718,22 +1083,40 @@ class PropertyAI extends BaseAgent {
             const available = relevantUnits.filter(u => u.status === 'AVAILABLE').length;
             const on_notice = relevantUnits.filter(u => u.status === 'NOTICE').length;
 
-            // Churn & Occupancy historical data (Mocked for visual demonstration, as in-memory won't build history easily)
-            const currentMonth = new Date().toLocaleString('default', { month: 'short' });
+            // Churn & Occupancy historical data (mocked, but with stable date keys for filtering)
+            const now = new Date();
+            const monthStarts = [];
+            for (let i = 3; i >= 0; i -= 1) {
+                monthStarts.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+            }
+            const monthLabel = (dt) => dt.toLocaleString('default', { month: 'short' });
+            const periodKey = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-01`;
+
+            const baseOccupied = Math.max(0, occupied - 6);
+            const occupancySeries = monthStarts.map((dt, idx) => ({
+                month: monthLabel(dt),
+                period_start: periodKey(dt),
+                occupied: Math.max(0, baseOccupied + (idx * 2)),
+                capacity: capacity
+            }));
+            if (occupancySeries.length > 0) {
+                occupancySeries[occupancySeries.length - 1].occupied = occupied;
+            }
+
+            const churnSeries = monthStarts.map((dt, idx) => ({
+                month: monthLabel(dt),
+                period_start: periodKey(dt),
+                move_ins: Math.max(0, 6 + (idx * 2)),
+                move_outs: Math.max(0, 1 + idx)
+            }));
+            if (churnSeries.length > 0) {
+                churnSeries[churnSeries.length - 1].move_ins = Math.max(0, occupied);
+                churnSeries[churnSeries.length - 1].move_outs = Math.max(0, on_notice);
+            }
 
             return {
-                occupancy_data: [
-                    { month: 'Jan', occupied: Math.max(0, occupied - 15), capacity: capacity },
-                    { month: 'Feb', occupied: Math.max(0, occupied - 10), capacity: capacity },
-                    { month: 'Mar', occupied: Math.max(0, occupied - 5), capacity: capacity },
-                    { month: currentMonth, occupied: occupied, capacity: capacity },
-                ],
-                churn_data: [
-                    { month: 'Jan', move_ins: 10, move_outs: 2 },
-                    { month: 'Feb', move_ins: 8, move_outs: 3 },
-                    { month: 'Mar', move_ins: 12, move_outs: 5 },
-                    { month: currentMonth, move_ins: occupied, move_outs: on_notice },
-                ],
+                occupancy_data: occupancySeries,
+                churn_data: churnSeries,
                 summary: {
                     capacity: capacity,
                     occupied: occupied,
@@ -744,8 +1127,26 @@ class PropertyAI extends BaseAgent {
         });
     }
 
+    async callTool(name, args = {}) {
+        const tenantId = this._resolveBusinessTenantId(args, name);
+        const normalizedArgs = { ...args };
+        if (name !== 'update_unit' && !normalizedArgs.tenant_id) {
+            normalizedArgs.tenant_id = tenantId;
+        }
+        await this._hydrateTenantState(tenantId);
+        const previousTenantId = this._setTenantContext(tenantId);
+
+        try {
+            const result = await super.callTool(name, normalizedArgs);
+            await this._saveState(tenantId);
+            return result;
+        } finally {
+            this._activeTenantId = previousTenantId;
+        }
+    }
+
     getOperatingInstructions() {
-        const rates = BusinessConfig.rates;
+        const rates = this._getActiveBusinessConfig(this._activeTenantId).rates;
         return `## PropertyAI — Operating Instructions
 - **IDs**: Properties use \`PROP-X\` format. Units use \`UNIT-X\` format. When a user refers to a unit by its human name (e.g., "unit 101"), you MUST first call \`get_units\` with the \`property_id\` to look up the correct \`unit_id\`. Never guess unit IDs.
 - **Creating a Property**: REQUIRED: name, address. OPTIONAL: floors, amenities, description, google_business_link, image_urls. Before creating, list what you have and what optional fields are available.

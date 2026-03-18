@@ -174,6 +174,59 @@ describe('Session Context Loading (MasterAI)', () => {
         expect(check.status).toBe('Not Found');
     });
 
+    test('CTX-07A: Snapshot process creates merge review records and links them to the session timeline', async () => {
+        const unknownPhone = '+919777700001';
+        const session = await masterAI.getOrCreateSession(unknownPhone);
+        clearTimeout(session.timeoutId);
+
+        session.messages = [
+            { role: 'user', content: 'Hi, I am Neeraj. I had visited before from another number and want to continue the discussion.' }
+        ];
+
+        masterAI.openai.chat.completions.create.mockResolvedValueOnce({
+            choices: [{
+                message: {
+                    content: JSON.stringify({
+                        is_business_relevant: true,
+                        reason: 'Returning customer continuing prior room discussion',
+                        extracted_name: 'Neeraj',
+                        summary: 'Customer says he had already visited earlier from another number and wants to continue the same discussion.',
+                        sentiment: 'Positive',
+                        tone: 'Practical',
+                        email: 'rahul@gmail.com',
+                        merge_review: {
+                            should_flag: true,
+                            target_email: 'rahul@gmail.com',
+                            target_name: 'Rahul Sharma',
+                            reasoning: 'Customer explicitly said he had already visited before from another number and the email matches an existing CRM lead.',
+                            confidence: 0.93,
+                            relationship: 'Duplicate'
+                        }
+                    })
+                }
+            }]
+        });
+
+        await masterAI.flushSession(unknownPhone);
+
+        const lead = await crmAgent.callTool('get_lead_by_phone', { phone: unknownPhone });
+        expect(lead.status).toBe('Found');
+
+        const candidates = await crmAgent.callTool('get_merge_candidates', { limit: 10 });
+        expect(candidates.count).toBe(1);
+        expect(candidates.candidates[0].source.lead_id).toBe(unknownPhone);
+        expect(candidates.candidates[0].target.lead_id).toBe('+919800098000');
+        expect(candidates.candidates[0].reasons[0]).toMatch(/already visited before from another number/i);
+
+        const timeline = await crmAgent.callTool('get_timeline', { lead_id: unknownPhone });
+        const sessionEvent = timeline.events.find((event) => event.type === 'SESSION');
+        const mergeReviewEvent = timeline.events.find((event) => event.type === 'MERGE_REVIEW');
+
+        expect(mergeReviewEvent).toBeDefined();
+        expect(sessionEvent).toBeDefined();
+        expect(sessionEvent.links.related_event_ids).toContain(mergeReviewEvent.event_id);
+    });
+
     test('CTX-08: Existing session → no re-lookup on 2nd message', async () => {
         const session1 = await masterAI.getOrCreateSession('+919800098000');
         const session2 = await masterAI.getOrCreateSession('+919800098000');

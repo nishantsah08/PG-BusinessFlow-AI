@@ -10,9 +10,14 @@
 - **INV-BS-05**: Direct transition from BOOKED → AVAILABLE is forbidden (must go through NOTICE or Admin Hard Reset).
 
 ### 2. Logical Delete
-- **INV-LD-01**: Properties/Units with active history (bookings/meters) must be SOFT DELETED.
-- **INV-LD-02**: Soft-deleted entities must be excluded from standard `get_` queries.
-- **INV-LD-03**: Entities with NO history/links must be HARD DELETED (db removal).
+- **INV-LD-01**: Properties/Units with active history/linked transactions are disabled instead of hard-deleted.
+- **INV-LD-02**: Disabled entities remain visible in direct-read access but must not support workflow-impacting mutations.
+- **INV-LD-03**: Entities with NO history/links may be hard-deleted (db removal).
+
+### 3. Operational Availability
+- **INV-OS-01**: Disabled properties must reject active mutations (`add_unit`, `delete_property`, `enable/disable` transitions are still allowed).
+- **INV-OS-02**: Disabled units must reject active mutations (`update_unit`, `assign_tenant`, `vacate_tenant`, and meter-linked reassignment attempts).
+- **INV-OS-03**: `enable_property`/`enable_unit` operations must re-activate disabled entities for live use.
 
 ### 3. Amenities
 - **INV-AM-01**: Unit amenities must be a strict subset of Property amenities.
@@ -43,6 +48,7 @@
 ## Implementation Status
 - [x] INV-BS-01 to 05
 - [x] INV-LD-01 to 03
+- [x] INV-OS-01 to 03
 - [x] INV-AM-01 to 02
 - [x] INV-DI-01 to 05
 - [x] INV-DF-01 to 03

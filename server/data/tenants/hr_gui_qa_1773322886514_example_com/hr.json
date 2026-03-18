@@ -1,0 +1,262 @@
+{
+    "staff": [
+        {
+            "id": "STF-01",
+            "name": "HR QA 1773322886514 Updated",
+            "designation": "Caretaker Lead",
+            "compensation_profile": "caretaker",
+            "job_description": "Updated onboarding test 1773322886514",
+            "contact": {
+                "primary": "+917722886514",
+                "email": "staff.updated.1773322886514@example.com"
+            },
+            "tenant_id": "hr_gui_qa_1773322886514_example_com",
+            "requested_by": "hr.gui.qa.1773322886514@example.com",
+            "requested_by_role": "CEO",
+            "ceo_authorized": true,
+            "approved_by": "hr.gui.qa.1773322886514@example.com",
+            "status": "TERMINATED",
+            "created_at": "2026-03-12T13:41:33.163Z",
+            "updated_at": "2026-03-12T13:41:52.145Z",
+            "reason_for_termination": "QA termination 1773322886514",
+            "last_working_day": "2026-03-11"
+        }
+    ],
+    "salary_cards": [
+        {
+            "staff_id": "STF-01",
+            "base_salary": 27800,
+            "bank_details": {
+                "account_holder": "HR QA 1773322886514 Updated",
+                "account_number": "1773322886514123456",
+                "ifsc": "HDFC0004321",
+                "bank_name": "HDFC Bank",
+                "upi_id": "hr.qa.1773322886514@oksbi"
+            },
+            "components": {
+                "compensation_model": "CARETAKER_UNIT_BASED",
+                "salary_advance_limit": 5000,
+                "reimbursements_allowed": true,
+                "incentives": {
+                    "logic": "Fully paid occupied units * amount per unit",
+                    "amount_per_unit": 525
+                },
+                "allowances": {
+                    "travel": 1800,
+                    "phone": 900
+                },
+                "caretaker_rules": {
+                    "daily_cleaning_proof_amount": 240,
+                    "weekly_parking_cleaning_amount": 350,
+                    "maintenance_complaint_deduction": 260
+                }
+            },
+            "effective_from": "2026-03-12",
+            "created_at": "2026-03-12T13:41:33.165Z",
+            "history": [
+                {
+                    "date": "2026-03-12T13:41:45.039Z",
+                    "base_salary": 4000,
+                    "bank_details": {
+                        "account_holder": "HR QA 1773322886514",
+                        "account_number": "",
+                        "ifsc": "",
+                        "bank_name": "",
+                        "upi_id": ""
+                    },
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    },
+                    "reason": "Reviewed from HR panel"
+                },
+                {
+                    "date": "2026-03-12T13:41:46.535Z",
+                    "base_salary": 26500,
+                    "bank_details": {
+                        "account_holder": "HR QA 1773322886514",
+                        "account_number": "",
+                        "ifsc": "",
+                        "bank_name": "",
+                        "upi_id": ""
+                    },
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 450
+                        },
+                        "allowances": {
+                            "travel": 1500,
+                            "phone": 700
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 180,
+                            "weekly_parking_cleaning_amount": 300,
+                            "maintenance_complaint_deduction": 220
+                        }
+                    },
+                    "reason": "Bank details updated from HR panel"
+                },
+                {
+                    "date": "2026-03-12T13:41:47.855Z",
+                    "base_salary": 26500,
+                    "bank_details": {
+                        "account_holder": "HR QA 1773322886514 Updated",
+                        "account_number": "1773322886514123456",
+                        "ifsc": "HDFC0004321",
+                        "bank_name": "HDFC Bank",
+                        "upi_id": "hr.qa.1773322886514@oksbi"
+                    },
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 450
+                        },
+                        "allowances": {
+                            "travel": 1500,
+                            "phone": 700
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 180,
+                            "weekly_parking_cleaning_amount": 300,
+                            "maintenance_complaint_deduction": 220
+                        }
+                    },
+                    "reason": "Reviewed from HR panel"
+                }
+            ],
+            "meta": {
+                "source": "AUTO_DESIGNATION_TEMPLATE",
+                "auto_generated": false,
+                "manual_override": true,
+                "compensation_profile_key": "caretaker",
+                "designation_template_key": "caretaker",
+                "designation_snapshot": "Caretaker Lead",
+                "last_manual_update_at": "2026-03-12T13:41:47.855Z"
+            }
+        }
+    ],
+    "leaves": [],
+    "caretaker_activity": [],
+    "lastUpdatedAt": "2026-03-12T13:41:52.827Z",
+    "businessConfig": {
+        "tenant_id": "hr_gui_qa_1773322886514_example_com",
+        "business_name": "HR GUI QA 1773322886514's Workspace",
+        "persona": {
+            "name": "HR GUI QA 1773322886514",
+            "role": "CEO",
+            "ceo_email": "hr.gui.qa.1773322886514@example.com",
+            "ceo_phone": "+917588498834",
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        }
+    }
+}

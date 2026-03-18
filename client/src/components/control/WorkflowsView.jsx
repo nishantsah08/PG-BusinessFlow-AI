@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../api/client';
 import StateWrapper from '../common/StateWrapper';
 import WorkflowList from '../workflows/WorkflowList';
-import WorkflowBuilder from '../workflows/WorkflowBuilder';
+import WorkflowDefinitionViewer from '../workflows/WorkflowDefinitionViewer';
 import { useUI } from '../../context/UIContext';
+import { useAuth } from '../../context/AuthContext';
 
 /**
  * WorkflowsView
@@ -12,10 +13,11 @@ import { useUI } from '../../context/UIContext';
  */
 const WorkflowsView = () => {
     const { addNotification } = useUI();
+    const { authContext } = useAuth();
 
     const [workflows, setWorkflows] = useState([]);
     const [selectedWorkflow, setSelectedWorkflow] = useState(null);
-    const [viewMode, setViewMode] = useState('list'); // 'list' | 'build'
+    const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
     const [loadState, setLoadState] = useState('loading');
     const [loadError, setLoadError] = useState(null);
 
@@ -37,8 +39,7 @@ const WorkflowsView = () => {
     useEffect(() => {
         fetchWorkflows();
 
-        // Fast-polling or event-driven update could go here. 
-        // For now, refreshing every 3 seconds while in list view so if MasterAI creates one, it pops up!
+        // Refresh while in list view so chat/whatsapp workflow changes appear automatically.
         const intervalId = setInterval(() => {
             if (viewMode === 'list') {
                 apiClient.get('/api/workflows').then(result => {
@@ -53,60 +54,43 @@ const WorkflowsView = () => {
         return () => clearInterval(intervalId);
     }, [fetchWorkflows, viewMode]);
 
-    // Create New
-    const handleCreateNew = () => {
-        setSelectedWorkflow(null);
-        setViewMode('build');
-    };
-
-    // Select for viewing/editing
+    // Select for viewing
     const handleSelect = (wf) => {
         setSelectedWorkflow(wf);
-        setViewMode('build');
+        setViewMode('detail');
     };
 
-    // Save (create or update)
-    const handleSave = async (data) => {
-        const isEdit = !!selectedWorkflow;
-        let result;
-        if (isEdit) {
-            result = await apiClient.put(`/api/workflows/${data.workflow_id}`, data);
-        } else {
-            result = await apiClient.post('/api/workflows', data);
-        }
-
+    const handleActivate = async (workflowId) => {
+        const result = await apiClient.post(`/api/workflows/${workflowId}/activate`, {});
         if (result.success) {
-            addNotification(
-                isEdit ? `Workflow "${data.workflow_id}" updated.` : `Workflow "${data.workflow_id}" created.`,
-                'success'
-            );
-            setViewMode('list');
-            setSelectedWorkflow(null);
+            addNotification(`Workflow "${workflowId}" is now active for this tenant.`, 'success');
             fetchWorkflows();
-        } else {
-            addNotification(result.error || 'Save failed', 'error');
-        }
-    };
-
-    // Delete
-    const handleDelete = async (workflowId) => {
-        const result = await apiClient.delete(`/api/workflows/${workflowId}`);
-        if (result.success) {
-            addNotification(`Workflow "${workflowId}" deleted.`, 'success');
             if (selectedWorkflow?.workflow_id === workflowId) {
-                setSelectedWorkflow(null);
-                setViewMode('list');
+                const refreshed = result.data || null;
+                if (refreshed) setSelectedWorkflow(refreshed);
             }
-            fetchWorkflows();
         } else {
-            addNotification(result.error || 'Delete failed', 'error');
+            addNotification(result.error || 'Activation failed', 'error');
         }
     };
 
-    // Cancel builder
-    const handleCancel = () => {
-        setSelectedWorkflow(null);
+    const handleDeactivate = async (workflowId) => {
+        const result = await apiClient.post(`/api/workflows/${workflowId}/deactivate`, {});
+        if (result.success) {
+            addNotification(`Workflow "${workflowId}" is now inactive.`, 'success');
+            fetchWorkflows();
+            if (selectedWorkflow?.workflow_id === workflowId) {
+                const refreshed = result.data || null;
+                if (refreshed) setSelectedWorkflow(refreshed);
+            }
+        } else {
+            addNotification(result.error || 'Deactivation failed', 'error');
+        }
+    };
+
+    const handleBack = () => {
         setViewMode('list');
+        setSelectedWorkflow(null);
     };
 
     return (
@@ -123,17 +107,20 @@ const WorkflowsView = () => {
                             workflows={workflows}
                             selectedId={selectedWorkflow?.workflow_id}
                             onSelect={handleSelect}
-                            onDelete={handleDelete}
-                            onCreateNew={handleCreateNew}
+                            onActivate={handleActivate}
+                            onDeactivate={handleDeactivate}
+                            canManage={authContext?.profile_type === 'CEO'}
                         />
                     </StateWrapper>
                 </div>
             ) : (
                 <div className="flex-1 overflow-hidden relative">
-                    <WorkflowBuilder
+                    <WorkflowDefinitionViewer
                         workflow={selectedWorkflow}
-                        onSave={handleSave}
-                        onCancel={handleCancel}
+                        canManage={authContext?.profile_type === 'CEO'}
+                        onBack={handleBack}
+                        onActivate={handleActivate}
+                        onDeactivate={handleDeactivate}
                     />
                 </div>
             )}

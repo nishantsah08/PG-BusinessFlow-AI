@@ -1,11 +1,40 @@
 const BaseAgent = require('./BaseAgent');
 const PhoneNormalizationService = require('../services/PhoneNormalizationService');
+const TenantDataStore = require('../storage/TenantDataStore');
+const BusinessConfig = require('../config/business');
 
 class HRAgent extends BaseAgent {
     constructor(config = {}) {
         super({
             name: 'HRAgent',
-            // ... (rest of config passed to super, but we need to extract crmAgent from incoming config)
+            identity: {
+                role: 'Staff Manager',
+                description: 'Handles staff lifecycle, leaves, and salary-card definitions.'
+            },
+            capabilities: {
+                skills: ['Staff Lifecycle', 'Salary Card Management', 'Leave Management'],
+                tools: [
+                    'hire_staff',
+                    'update_staff_profile',
+                    'terminate_staff',
+                    'get_staff_details',
+                    'get_all_staff',
+                    'create_salary_card',
+                    'update_salary_card',
+                    'get_salary_card',
+                    'record_leave',
+                    'get_staff_leaves',
+                    'approve_leave_request',
+                    'record_caretaker_activity',
+                    'get_caretaker_activity',
+                    'calculate_incentive',
+                    'get_performance_metrics'
+                ]
+            },
+            directives: {
+                goals: ['Maintain accurate staff records', 'Define compensation contracts for Finance'],
+                constraints: ['Does not disburse money']
+            },
             ...config
         });
 
@@ -13,11 +42,259 @@ class HRAgent extends BaseAgent {
         // this.crmAgent = config.crmAgent;
 
         // ... (rest of constructor)
-        this.staff = [];
-        this.salary_cards = [];
-        this.leaves = [];
+        this.defaultTenantId = BusinessConfig.DEFAULT_TENANT_ID || 'default';
+        this.dataBackend = process.env.STORAGE_BACKEND || (process.env.NODE_ENV === 'test' ? 'memory' : 'local');
+        this._activeTenantId = null;
+        this._tenantStates = new Map();
+        this._tenantStores = new Map();
+        this._businessConfigProvider = (tenantId) => {
+            if (typeof BusinessConfig.getBusinessConfig === 'function') {
+                return BusinessConfig.getBusinessConfig(tenantId);
+            }
+            return BusinessConfig;
+        };
 
         this.registerTools();
+    }
+
+    _extractTenantId(args = {}) {
+        return args.tenant_id || this.defaultTenantId;
+    }
+
+    _getTenantStore(tenantId) {
+        if (!this._tenantStores.has(tenantId)) {
+            this._tenantStores.set(
+                tenantId,
+                new TenantDataStore({
+                    tenantId,
+                    namespace: 'hr',
+                    backend: this.dataBackend
+                })
+            );
+        }
+        return this._tenantStores.get(tenantId);
+    }
+
+    _getState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        if (!this._tenantStates.has(resolvedTenantId)) {
+            const store = this._getTenantStore(resolvedTenantId);
+            const rawState = store.load({
+                staff: [],
+                salary_cards: [],
+                leaves: [],
+                caretaker_activity: []
+            });
+            this._tenantStates.set(resolvedTenantId, rawState);
+        }
+        return this._tenantStates.get(resolvedTenantId);
+    }
+
+    async _hydrateTenantState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const store = this._getTenantStore(resolvedTenantId);
+        const rawState = await store.hydrate({
+            staff: [],
+            salary_cards: [],
+            leaves: [],
+            caretaker_activity: []
+        });
+        this._tenantStates.set(resolvedTenantId, rawState);
+        return rawState;
+    }
+
+    async _saveState(tenantId) {
+        const state = this._getState(tenantId);
+        await this._getTenantStore(tenantId).save({
+            staff: state.staff,
+            salary_cards: state.salary_cards,
+            leaves: state.leaves,
+            caretaker_activity: state.caretaker_activity,
+            lastUpdatedAt: new Date().toISOString(),
+            businessConfig: this._businessConfigProvider(tenantId)
+        });
+    }
+
+    _setTenantContext(tenantId) {
+        const resolvedTenantId = this._extractTenantId({ tenant_id: tenantId });
+        const previousTenantId = this._activeTenantId;
+        this._activeTenantId = resolvedTenantId;
+        this._getState(resolvedTenantId);
+        return previousTenantId;
+    }
+
+    get staff() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).staff;
+    }
+
+    get salary_cards() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).salary_cards;
+    }
+
+    get leaves() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).leaves;
+    }
+
+    get caretaker_activity() {
+        return this._getState(this._activeTenantId || this.defaultTenantId).caretaker_activity;
+    }
+
+    _normalizeDesignationKey(designation = '') {
+        return String(designation || '')
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '');
+    }
+
+    _getCompensationTemplateForDesignation(designation, tenantId = this._activeTenantId || this.defaultTenantId, preferredTemplateKey = '') {
+        const config = this._businessConfigProvider(tenantId) || {};
+        const financeConfig = config.finance || {};
+        const designationKey = this._normalizeDesignationKey(designation);
+        const preferredKey = this._normalizeDesignationKey(preferredTemplateKey);
+        const templates = financeConfig.staff_compensation_templates || {};
+        const caretakerComp = financeConfig.caretaker_compensation || {};
+        const defaultBaseSalary = Number(financeConfig.default_base_salary) || 4000;
+        const defaultIncentive = Number(financeConfig.default_incentive_per_unit) || 0;
+
+        const defaultTemplate = templates.default || {
+            base_salary: defaultBaseSalary,
+            components: {
+                compensation_model: 'STANDARD',
+                salary_advance_limit: 5000,
+                reimbursements_allowed: true,
+                incentives: {
+                    logic: 'Role-based performance incentive',
+                    amount_per_unit: defaultIncentive,
+                },
+                allowances: {
+                    travel: 0,
+                    phone: 0,
+                },
+            },
+        };
+
+        const caretakerTemplate = templates.caretaker || {
+            base_salary: Number(caretakerComp.fixed_basic_salary) || defaultBaseSalary,
+            components: {
+                compensation_model: 'CARETAKER_UNIT_BASED',
+                salary_advance_limit: 5000,
+                reimbursements_allowed: true,
+                incentives: {
+                    logic: 'Fully paid occupied units * amount per unit',
+                    amount_per_unit: Number(caretakerComp.per_fully_paid_occupied_unit) || defaultIncentive,
+                },
+                allowances: {
+                    travel: 0,
+                    phone: 0,
+                },
+                caretaker_rules: {
+                    daily_cleaning_proof_amount: Number(caretakerComp.daily_cleaning_proof_amount) || 100,
+                    weekly_parking_cleaning_amount: Number(caretakerComp.weekly_parking_cleaning_amount) || 100,
+                    maintenance_complaint_deduction: Number(caretakerComp.maintenance_complaint_deduction) || 100,
+                },
+            },
+        };
+
+        let resolvedTemplate = defaultTemplate;
+        let templateKey = 'default';
+
+        if (preferredKey === 'caretaker') {
+            resolvedTemplate = caretakerTemplate;
+            templateKey = 'caretaker';
+        } else if (preferredKey === 'default') {
+            resolvedTemplate = defaultTemplate;
+            templateKey = 'default';
+        } else if (preferredKey && templates[preferredKey]) {
+            resolvedTemplate = templates[preferredKey];
+            templateKey = preferredKey;
+        } else if (designationKey.includes('caretaker')) {
+            resolvedTemplate = caretakerTemplate;
+            templateKey = 'caretaker';
+        } else if (templates[designationKey]) {
+            resolvedTemplate = templates[designationKey];
+            templateKey = designationKey;
+        }
+
+        return {
+            templateKey,
+            template: JSON.parse(JSON.stringify(resolvedTemplate)),
+        };
+    }
+
+    _buildAutoSalaryCard(staffMember, tenantId = this._activeTenantId || this.defaultTenantId, overrides = {}) {
+        const explicitProfileKey = overrides.compensation_profile || staffMember.compensation_profile || '';
+        const { templateKey, template } = this._getCompensationTemplateForDesignation(
+            staffMember.designation,
+            tenantId,
+            explicitProfileKey
+        );
+        const baseSalary = Number(overrides.base_salary)
+            || Number(template.base_salary)
+            || Number(this._businessConfigProvider(tenantId)?.finance?.default_base_salary)
+            || 4000;
+
+        return {
+            staff_id: staffMember.id,
+            base_salary: baseSalary,
+            bank_details: {
+                account_holder: staffMember.name,
+                account_number: '',
+                ifsc: '',
+                bank_name: '',
+                upi_id: '',
+            },
+            components: {
+                ...(template.components || {}),
+            },
+            effective_from: overrides.effective_from || new Date().toISOString().slice(0, 10),
+            created_at: new Date().toISOString(),
+            history: [],
+            meta: {
+                source: 'AUTO_DESIGNATION_TEMPLATE',
+                auto_generated: true,
+                manual_override: false,
+                compensation_profile_key: templateKey,
+                designation_template_key: templateKey,
+                designation_snapshot: staffMember.designation,
+            }
+        };
+    }
+
+    _ensureAutoSalaryCardForStaff(staffMember, tenantId = this._activeTenantId || this.defaultTenantId, overrides = {}) {
+        if (!staffMember?.id) return null;
+        const existingCard = this.salary_cards.find((card) => card.staff_id === staffMember.id);
+        if (existingCard) return existingCard;
+
+        const card = this._buildAutoSalaryCard(staffMember, tenantId, overrides);
+        this.salary_cards.push(card);
+        return card;
+    }
+
+    _refreshAutoSalaryCardForStaff(staffMember, tenantId = this._activeTenantId || this.defaultTenantId) {
+        if (!staffMember?.id) return null;
+        const card = this.salary_cards.find((entry) => entry.staff_id === staffMember.id);
+        if (!card || card.meta?.manual_override || card.meta?.source !== 'AUTO_DESIGNATION_TEMPLATE') {
+            return card || null;
+        }
+
+        const regenerated = this._buildAutoSalaryCard(staffMember, tenantId, {
+            effective_from: card.effective_from,
+        });
+
+        card.base_salary = regenerated.base_salary;
+        card.components = regenerated.components;
+        card.bank_details = {
+            ...regenerated.bank_details,
+            ...(card.bank_details || {}),
+            account_holder: (card.bank_details?.account_holder || '').trim() || staffMember.name,
+        };
+        card.meta = {
+            ...(card.meta || {}),
+            ...regenerated.meta,
+        };
+
+        return card;
     }
 
     registerTools() {
@@ -28,6 +305,7 @@ class HRAgent extends BaseAgent {
             properties: {
                 name: { type: 'string' },
                 designation: { type: 'string' },
+                compensation_profile: { type: 'string' },
                 job_description: { type: 'string' },
                 contact: {
                     type: 'object',
@@ -62,11 +340,16 @@ class HRAgent extends BaseAgent {
             const newStaff = {
                 id: `STF-${String(this.staff.length + 1).padStart(2, '0')}`,
                 ...args,
+                compensation_profile: args.compensation_profile || null,
                 status: 'ACTIVE',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
             this.staff.push(newStaff);
+            const autoCard = this._ensureAutoSalaryCardForStaff(newStaff, args.tenant_id || this._activeTenantId || this.defaultTenantId, {
+                base_salary: args.base_salary,
+                compensation_profile: args.compensation_profile,
+            });
 
             // --- EVENT EMISSION ---
             // Fix 1: Decoupled architecture. Emit event instead of direct call.
@@ -74,13 +357,21 @@ class HRAgent extends BaseAgent {
                 staff_id: newStaff.id,
                 name: args.name,
                 designation: args.designation,
+                job_description: args.job_description || '',
                 contact: args.contact,
+                compensation_profile: args.compensation_profile || null,
+                tenant_id: args.tenant_id || this._activeTenantId || this.defaultTenantId,
                 timestamp: new Date().toISOString()
             });
 
             console.log(`[HRAgent] Staff hired: ${newStaff.id}. Event 'staff.hired' emitted.`);
 
-            return { status: "Staff Hired", staff_id: newStaff.id };
+            return {
+                status: "Staff Hired",
+                staff_id: newStaff.id,
+                compensation_status: autoCard ? 'AUTO_GENERATED' : 'PENDING',
+                compensation_template_key: autoCard?.meta?.designation_template_key || null
+            };
         });
 
         this.registerTool('update_staff_profile', 'Update staff details', {
@@ -89,6 +380,7 @@ class HRAgent extends BaseAgent {
                 staff_id: { type: 'string' },
                 name: { type: 'string' },
                 designation: { type: 'string' },
+                compensation_profile: { type: 'string' },
                 job_description: { type: 'string' },
                 contact: {
                     type: 'object',
@@ -104,12 +396,60 @@ class HRAgent extends BaseAgent {
             const staffMember = this.staff.find(s => s.id === args.staff_id);
             if (!staffMember) throw new Error("Staff not found.");
 
+            const previousContact = {
+                primary: staffMember.contact?.primary || null,
+                email: staffMember.contact?.email || null,
+                alternate: Array.isArray(staffMember.contact?.alternate) ? [...staffMember.contact.alternate] : [],
+            };
+
+            if (args.contact?.primary) {
+                try {
+                    args.contact.primary = PhoneNormalizationService.normalizeToE164(args.contact.primary);
+                } catch (err) {
+                    return { status: "Invalid Input", message: "Invalid primary phone number format provided in contacts" };
+                }
+            }
+
+            if (Array.isArray(args.contact?.alternate)) {
+                try {
+                    args.contact.alternate = args.contact.alternate.map((phone) => PhoneNormalizationService.normalizeToE164(phone));
+                } catch (err) {
+                    return { status: "Invalid Input", message: "Invalid alternate phone number format provided in contacts" };
+                }
+            }
+
+            if (args.contact?.primary) {
+                const conflictingStaff = this.staff.find((staff) =>
+                    staff.id !== staffMember.id &&
+                    staff.status !== 'TERMINATED' &&
+                    staff.contact?.primary === args.contact.primary
+                );
+                if (conflictingStaff) {
+                    throw new Error(`Staff with primary contact ${args.contact.primary} already exists.`);
+                }
+            }
+
             if (args.name) staffMember.name = args.name;
             if (args.designation) staffMember.designation = args.designation;
+            if (typeof args.compensation_profile === 'string') staffMember.compensation_profile = args.compensation_profile || null;
             if (args.job_description) staffMember.job_description = args.job_description;
             if (args.contact) staffMember.contact = { ...staffMember.contact, ...args.contact };
 
             staffMember.updated_at = new Date().toISOString();
+            this._refreshAutoSalaryCardForStaff(staffMember, args.tenant_id || this._activeTenantId || this.defaultTenantId);
+
+            this.emit('staff.profile_updated', {
+                staff_id: staffMember.id,
+                name: staffMember.name,
+                designation: staffMember.designation,
+                job_description: staffMember.job_description || '',
+                contact: staffMember.contact,
+                compensation_profile: staffMember.compensation_profile || null,
+                previous_contact: previousContact,
+                tenant_id: args.tenant_id || this._activeTenantId || this.defaultTenantId,
+                timestamp: new Date().toISOString()
+            });
+
             return { status: "Staff Profile Updated", staff_id: staffMember.id };
         });
 
@@ -218,7 +558,14 @@ class HRAgent extends BaseAgent {
             const card = {
                 ...args,
                 created_at: new Date().toISOString(),
-                history: []
+                history: [],
+                meta: {
+                    source: 'MANUAL',
+                    auto_generated: false,
+                    manual_override: true,
+                    designation_template_key: null,
+                    designation_snapshot: staffMember.designation,
+                }
             };
             this.salary_cards.push(card);
             return { status: "Salary Card Created", staff_id: args.staff_id };
@@ -228,6 +575,8 @@ class HRAgent extends BaseAgent {
             type: 'object',
             properties: {
                 staff_id: { type: 'string' },
+                new_base_salary: { type: 'number' },
+                new_bank_details: { type: 'object' },
                 new_components: { type: 'object' },
                 reason: { type: 'string' }
             },
@@ -239,6 +588,8 @@ class HRAgent extends BaseAgent {
             // Archive current state to history
             card.history.push({
                 date: new Date().toISOString(),
+                base_salary: card.base_salary,
+                bank_details: JSON.parse(JSON.stringify(card.bank_details || {})),
                 components: JSON.parse(JSON.stringify(card.components)),
                 reason: args.reason
             });
@@ -247,6 +598,21 @@ class HRAgent extends BaseAgent {
                 // Merge top level keys
                 card.components = { ...card.components, ...args.new_components };
             }
+
+            if (args.new_base_salary !== undefined && args.new_base_salary !== null) {
+                card.base_salary = Number(args.new_base_salary);
+            }
+
+            if (args.new_bank_details && typeof args.new_bank_details === 'object') {
+                card.bank_details = { ...(card.bank_details || {}), ...args.new_bank_details };
+            }
+
+            card.meta = {
+                ...(card.meta || {}),
+                auto_generated: false,
+                manual_override: true,
+                last_manual_update_at: new Date().toISOString(),
+            };
 
             return { status: "Salary Card Updated", staff_id: args.staff_id };
         });
@@ -332,6 +698,63 @@ class HRAgent extends BaseAgent {
             return { status: "Leave Updated", leave_id: leave.id, current_status: leave.status };
         });
 
+        this.registerTool('record_caretaker_activity', 'Record caretaker proof-based work activity', {
+            type: 'object',
+            properties: {
+                staff_id: { type: 'string' },
+                activity_type: { type: 'string', enum: ['DAILY_CLEANING', 'PARKING_CLEANING'] },
+                occurred_at: { type: 'string' },
+                proof_url: { type: 'string' },
+                property_id: { type: 'string' },
+                unit_id: { type: 'string' },
+                notes: { type: 'string' }
+            },
+            required: ['staff_id', 'activity_type', 'occurred_at', 'proof_url']
+        }, async (args) => {
+            const staffMember = this.staff.find(s => s.id === args.staff_id);
+            if (!staffMember) throw new Error("Staff not found.");
+
+            const activity = {
+                id: `CT-ACT-${this.caretaker_activity.length + 1}`,
+                staff_id: args.staff_id,
+                activity_type: args.activity_type,
+                occurred_at: args.occurred_at,
+                proof_url: args.proof_url,
+                property_id: args.property_id || null,
+                unit_id: args.unit_id || null,
+                notes: args.notes || '',
+                created_at: new Date().toISOString()
+            };
+
+            this.caretaker_activity.push(activity);
+            return { status: "Caretaker Activity Recorded", activity_id: activity.id };
+        });
+
+        this.registerTool('get_caretaker_activity', 'Get caretaker proof logs', {
+            type: 'object',
+            properties: {
+                staff_id: { type: 'string' },
+                activity_type: { type: 'string', enum: ['DAILY_CLEANING', 'PARKING_CLEANING'] },
+                from_date: { type: 'string' },
+                to_date: { type: 'string' }
+            },
+            required: ['staff_id']
+        }, async (args) => {
+            let result = this.caretaker_activity.filter((entry) => entry.staff_id === args.staff_id);
+            if (args.activity_type) {
+                result = result.filter((entry) => entry.activity_type === args.activity_type);
+            }
+            if (args.from_date) {
+                const fromTs = new Date(args.from_date).getTime();
+                result = result.filter((entry) => new Date(entry.occurred_at).getTime() >= fromTs);
+            }
+            if (args.to_date) {
+                const toTs = new Date(args.to_date).getTime();
+                result = result.filter((entry) => new Date(entry.occurred_at).getTime() <= toTs);
+            }
+            return result;
+        });
+
         // --- PERFORMANCE & INCENTIVES ---
 
         this.registerTool('calculate_incentive', 'Calculate incentive amount', {
@@ -365,7 +788,7 @@ class HRAgent extends BaseAgent {
             };
         });
 
-        this.registerTool('get_performance_metrics', 'Get staff performance metrics', {
+    this.registerTool('get_performance_metrics', 'Get staff performance metrics', {
             type: 'object',
             properties: {
                 staff_id: { type: 'string' },
@@ -386,11 +809,26 @@ class HRAgent extends BaseAgent {
         });
     }
 
+    async callTool(name, args = {}) {
+        const tenantId = this._extractTenantId(args);
+        const normalizedArgs = { ...args, tenant_id: args.tenant_id || tenantId };
+        await this._hydrateTenantState(tenantId);
+        const previousTenantId = this._setTenantContext(tenantId);
+
+        try {
+            const result = await super.callTool(name, normalizedArgs);
+            await this._saveState(tenantId);
+            return result;
+        } finally {
+            this._activeTenantId = previousTenantId;
+        }
+    }
+
     getOperatingInstructions() {
         return `## HRAgent — Operating Instructions
 - **Staff IDs**: Use \`STF-XX\` format. Always look up via \`get_all_staff\` if unsure.
-- **Hiring**: Required fields are: name, designation, contact.primary (phone in E.164 format). If base_salary is not specified, ask.
-- **Salary Card**: A salary card MUST be created after hiring. It requires: staff_id, base_salary, bank_details (account_number, ifsc). Without a salary card, FinanceAI cannot process payroll.
+- **Hiring**: Required fields are: name, designation, contact.primary (phone in E.164 format). If base_salary is not specified, use designation/business compensation rules.
+- **Compensation**: Hiring auto-generates a salary card from designation/business rules. Use \`update_salary_card\` to review or override the generated agreement when needed.
 - **Incentive Structure**: Incentives can be defined as amount_per_unit (e.g., ₹50 per occupied unit). The formula is: metric_value × amount_per_unit.
 - **Leave Management**: Leave types are: ADVANCE, EMERGENCY, CASUAL, SICK. Always specify start_date. Leaves start as PENDING and need approval.
 - **Termination**: Requires a reason. Sets status to TERMINATED. Cannot be undone.`;

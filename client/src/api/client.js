@@ -1,3 +1,5 @@
+import { getViteEnv } from '../lib/runtimeEnv';
+
 /**
  * Centralized API Client for PG-BusinessFlow.ai
  *
@@ -19,11 +21,26 @@ const generateRequestId = () => {
 /**
  * Standardized response formatter
  */
+const normalizeErrorMessage = (error) => {
+    if (!error) return null;
+    if (typeof error === 'string') return error;
+    if (typeof error?.message === 'string' && error.message.trim()) return error.message;
+    if (typeof error?.error?.message === 'string' && error.error.message.trim()) return error.error.message;
+    if (typeof error?.error?.error_data?.details === 'string' && error.error.error_data.details.trim()) {
+        return error.error.error_data.details;
+    }
+    try {
+        return JSON.stringify(error);
+    } catch (_err) {
+        return String(error);
+    }
+};
+
 const formatResponse = (success, data, error, correlation_id, latency_ms, extras = {}) => {
     return {
         success: Boolean(success),
         data: data !== undefined ? data : null,
-        error: error ? String(error) : null,
+        error: normalizeErrorMessage(error),
         correlation_id: correlation_id || 'unknown',
         latency_ms: Number(latency_ms) || 0,
         ...extras
@@ -42,9 +59,10 @@ const executeRequest = async (url, options = {}) => {
 
     const startTime = performance.now();
     const requestId = generateRequestId();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    const baseUrl = getViteEnv('VITE_API_BASE_URL', '');
     let authHeader = {};
     let actorHeader = {};
+    let tenantHeader = {};
     try {
         const rawUser = localStorage.getItem('master_ai_user');
         if (rawUser) {
@@ -54,6 +72,9 @@ const executeRequest = async (url, options = {}) => {
             }
             if (parsed?.email) {
                 actorHeader = { 'X-Actor-Email': String(parsed.email).toLowerCase() };
+            }
+            if (parsed?.tenant_id || parsed?.tenantId) {
+                tenantHeader = { 'X-Tenant-ID': String(parsed.tenant_id || parsed.tenantId) };
             }
         }
     } catch (_e) {
@@ -66,6 +87,7 @@ const executeRequest = async (url, options = {}) => {
         'X-Request-ID': requestId,
         ...authHeader,
         ...actorHeader,
+        ...tenantHeader,
         ...options.headers,
     };
 

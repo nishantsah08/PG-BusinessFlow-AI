@@ -7,10 +7,10 @@
     "fir-bestpg": {
       "hosting": {
         "development": [
-          "pgbf-web-development"
+          "fir-bestpg-development-public"
         ],
         "production": [
-          "pgbf-web-production"
+          "fir-bestpg-production-public"
         ]
       }
     }

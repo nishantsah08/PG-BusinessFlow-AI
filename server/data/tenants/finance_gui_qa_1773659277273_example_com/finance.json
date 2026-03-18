@@ -1,0 +1,178 @@
+{
+    "ledgerEntries": [
+        {
+            "id": "LED-1",
+            "payer_id": "+919459277273",
+            "category": "Rent",
+            "month_year": "Mar 2026",
+            "amount_due": 12000,
+            "amount_paid": 12000,
+            "balance": 0,
+            "status": "PAID",
+            "created_at": "2026-03-16T11:08:01.288Z",
+            "source_contract_id": "CTR-1773659281006-846",
+            "charge_window": {
+                "from": "2026-03-01",
+                "to": "2026-03-31",
+                "days_active": 31,
+                "days_in_month": 31
+            }
+        }
+    ],
+    "transactions": [
+        {
+            "txn_id": "UTR-1773659277273",
+            "type": "INCOMING",
+            "payer_id": "+919459277273",
+            "amount": 12000,
+            "payment_mode": "UPI",
+            "date": "2026-03-16",
+            "attachment_url": "/images/artifact_1773659296434_st3687.txt",
+            "linked_unit_id": "UNIT-1",
+            "linked_property_id": "PROP-1",
+            "note": "March payment received in one shot.",
+            "tenant_id": "finance_gui_qa_1773659277273_example_com",
+            "allocations": [
+                {
+                    "ledger_entry_id": "LED-1",
+                    "category": "Rent",
+                    "amount_allocated": 12000
+                }
+            ],
+            "unallocated_surplus": 0,
+            "timestamp": "2026-03-16T11:08:17.989Z"
+        }
+    ],
+    "contracts": {
+        "+919459277273": {
+            "active_contract_id": "CTR-1773659281006-846",
+            "versions": [
+                {
+                    "contract_id": "CTR-1773659281006-846",
+                    "lead_id": "+919459277273",
+                    "unit_id": "UNIT-1",
+                    "property_id": "PROP-1",
+                    "negotiated_rent": 12000,
+                    "security_deposit": 2500,
+                    "rent_payment_timing": "ADVANCE",
+                    "utility_payment_timing": "ARREARS",
+                    "effective_from": "2026-03-01",
+                    "effective_to": null,
+                    "status": "ACTIVE",
+                    "version": "v1773659281006",
+                    "created_at": "2026-03-16T11:08:01.006Z",
+                    "updated_at": "2026-03-16T11:08:01.006Z"
+                }
+            ]
+        }
+    },
+    "salaryCards": {},
+    "carryForwardCredits": {},
+    "vendors": {},
+    "bookingHolds": {},
+    "workOrders": {},
+    "offboardCases": {},
+    "lastUpdatedAt": "2026-03-16T11:08:21.841Z",
+    "businessConfig": {
+        "tenant_id": "finance_gui_qa_1773659277273_example_com",
+        "business_name": "Finance GUI QA 1773659277273's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773659277273",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773659277273@example.com",
+            "ceo_phone": "+917759277273",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-16T16:37:58.338+05:30"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        },
+        "account_status": "ACTIVE"
+    }
+}

@@ -1,0 +1,1455 @@
+{
+    "leads": {
+        "+91981010011": {
+            "lead_id": "+91981010011",
+            "name": "Neha Caretaker 1",
+            "profile_type": "Staff",
+            "email": "caretaker.1.ceo_neha_kapoor_example_com@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+91981010011",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Internal",
+                "detail": "Caretaker Hiring"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {
+                "role": "caretaker",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Onboarded",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+91981020021": {
+            "lead_id": "+91981020021",
+            "name": "Neha Caretaker 2",
+            "profile_type": "Staff",
+            "email": "caretaker.2.ceo_neha_kapoor_example_com@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+91981020021",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "Internal",
+                "detail": "Caretaker Hiring"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {
+                "role": "caretaker",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Onboarded",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000001": {
+            "lead_id": "+918700000001",
+            "name": "Neha Customer 01",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000001",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000002": {
+            "lead_id": "+918700000002",
+            "name": "Neha Customer 02",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000002",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000003": {
+            "lead_id": "+918700000003",
+            "name": "Neha Customer 03",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000003",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000004": {
+            "lead_id": "+918700000004",
+            "name": "Neha Customer 04",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000004",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000005": {
+            "lead_id": "+918700000005",
+            "name": "Neha Customer 05",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000005",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000006": {
+            "lead_id": "+918700000006",
+            "name": "Neha Customer 06",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000006",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000007": {
+            "lead_id": "+918700000007",
+            "name": "Neha Customer 07",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000007",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000008": {
+            "lead_id": "+918700000008",
+            "name": "Neha Customer 08",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000008",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000009": {
+            "lead_id": "+918700000009",
+            "name": "Neha Customer 09",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000009",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000010": {
+            "lead_id": "+918700000010",
+            "name": "Neha Customer 10",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000010",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000011": {
+            "lead_id": "+918700000011",
+            "name": "Neha Customer 11",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000011",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000012": {
+            "lead_id": "+918700000012",
+            "name": "Neha Customer 12",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000012",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000013": {
+            "lead_id": "+918700000013",
+            "name": "Neha Customer 13",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000013",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000014": {
+            "lead_id": "+918700000014",
+            "name": "Neha Customer 14",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000014",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000015": {
+            "lead_id": "+918700000015",
+            "name": "Neha Customer 15",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000015",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000016": {
+            "lead_id": "+918700000016",
+            "name": "Neha Customer 16",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000016",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000017": {
+            "lead_id": "+918700000017",
+            "name": "Neha Customer 17",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000017",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000018": {
+            "lead_id": "+918700000018",
+            "name": "Neha Customer 18",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000018",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000019": {
+            "lead_id": "+918700000019",
+            "name": "Neha Customer 19",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000019",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000020": {
+            "lead_id": "+918700000020",
+            "name": "Neha Customer 20",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000020",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000021": {
+            "lead_id": "+918700000021",
+            "name": "Neha Customer 21",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000021",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000022": {
+            "lead_id": "+918700000022",
+            "name": "Neha Customer 22",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000022",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000023": {
+            "lead_id": "+918700000023",
+            "name": "Neha Customer 23",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000023",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000024": {
+            "lead_id": "+918700000024",
+            "name": "Neha Customer 24",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000024",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000025": {
+            "lead_id": "+918700000025",
+            "name": "Neha Customer 25",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000025",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000026": {
+            "lead_id": "+918700000026",
+            "name": "Neha Customer 26",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000026",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000027": {
+            "lead_id": "+918700000027",
+            "name": "Neha Customer 27",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000027",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000028": {
+            "lead_id": "+918700000028",
+            "name": "Neha Customer 28",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000028",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000029": {
+            "lead_id": "+918700000029",
+            "name": "Neha Customer 29",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000029",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Double Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+918700000030": {
+            "lead_id": "+918700000030",
+            "name": "Neha Customer 30",
+            "profile_type": "Customer",
+            "email": null,
+            "phones": {
+                "primary": {
+                    "number": "+918700000030",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "WhatsApp",
+                "detail": "Agentic Loop Seed"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": "Single Sharing",
+            "requirement_date": "2026-03-15",
+            "ai_notes": {
+                "seeded_for_testing": true,
+                "channel": "whatsapp_only",
+                "tenant_id": "ceo_neha_kapoor_example_com"
+            },
+            "status": "Enquiry",
+            "created_at": "2026-03-10T12:00:04.613Z",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        },
+        "+917588498834": {
+            "lead_id": "+917588498834",
+            "name": "Dev Bypass User",
+            "profile_type": "CEO",
+            "email": "ceo.neha.kapoor@example.com",
+            "phones": {
+                "primary": {
+                    "number": "+917588498834",
+                    "whatsapp": true
+                },
+                "others": []
+            },
+            "source": {
+                "category": "System",
+                "detail": "ceo.verified"
+            },
+            "demographics": {},
+            "preferences": [],
+            "unit_type_required": null,
+            "requirement_date": null,
+            "ai_notes": {},
+            "status": "Enquiry",
+            "created_at": "2026-03-13T15:00:44.711+05:30",
+            "timezone": "Asia/Kolkata",
+            "date_format": "DD-MM-YYYY"
+        }
+    },
+    "timelines": {
+        "+91981010011": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Onboarded",
+                    "reason": "Caretaker employee seeded for agentic lifecycle testing"
+                }
+            }
+        ],
+        "+91981020021": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Onboarded",
+                    "reason": "Caretaker employee seeded for agentic lifecycle testing"
+                }
+            }
+        ],
+        "+918700000001": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000002": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000003": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000004": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000005": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000006": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000007": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000008": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000009": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000010": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000011": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000012": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000013": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000014": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000015": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000016": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000017": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000018": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000019": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000020": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000021": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000022": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000023": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000024": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000025": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000026": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000027": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000028": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000029": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+918700000030": [
+            {
+                "type": "STATUS_CHANGE",
+                "timestamp": "2026-03-10T12:00:04.613Z",
+                "data": {
+                    "from": null,
+                    "to": "Enquiry",
+                    "reason": "WhatsApp customer seeded for lifecycle testing"
+                }
+            }
+        ],
+        "+917588498834": [
+            {
+                "event_id": "EVT-1773394244711-526",
+                "timestamp": "2026-03-13T15:00:44.711+05:30",
+                "type": "STATUS_CHANGE",
+                "from": null,
+                "to": "Enquiry",
+                "reason": "Lead Created",
+                "changed_at": "2026-03-13T15:00:44.711+05:30"
+            }
+        ]
+    },
+    "mergeReviews": {},
+    "lastUpdatedAt": "2026-03-16T12:26:58.077+05:30",
+    "businessConfig": {
+        "tenant_id": "ceo_neha_kapoor_example_com",
+        "business_name": "Dev Bypass User's Workspace",
+        "persona": {
+            "name": "Dev Bypass User",
+            "role": "CEO",
+            "ceo_email": "ceo.neha.kapoor@example.com",
+            "ceo_phone": null,
+            "session_timeout_ms": 900000
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        }
+    }
+}

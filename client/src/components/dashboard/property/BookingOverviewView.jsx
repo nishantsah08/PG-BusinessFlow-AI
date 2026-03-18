@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Loader2, Zap, UserX, AlertTriangle, Layers, Home, Info, Building } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { executeDashboardTool } from './toolClient';
+import DateInputField from '../../common/DateInputField';
 
 const BookingOverviewView = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -14,19 +16,14 @@ const BookingOverviewView = () => {
     const [occupancyData, setOccupancyData] = useState([]);
     const [churnData, setChurnData] = useState([]);
     const [summary, setSummary] = useState({});
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 // Fetch Properties
-                const propRes = await fetch('/api/master_ai/tools/execute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                        agent_name: 'PropertyAI',
-                        tool_name: 'get_properties',
-                        parameters: {}
-                    })
-                });
-                const propBody = await propRes.json();
+                const propBody = await executeDashboardTool('PropertyAI', 'get_properties', {});
                 const loadedProps = propBody.data || [];
                 setProperties(loadedProps);
 
@@ -53,25 +50,11 @@ const BookingOverviewView = () => {
             setIsLoading(true);
             try {
                 // Fetch Units for explicit floor mapping
-                const unitsRes = await fetch('/api/master_ai/tools/execute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                        agent_name: 'PropertyAI',
-                        tool_name: 'get_units',
-                        parameters: { property_id: selectedPropertyId }
-                    })
-                });
-                const unitsBody = await unitsRes.json();
+                const unitsBody = await executeDashboardTool('PropertyAI', 'get_units', { property_id: selectedPropertyId });
                 setUnits(unitsBody.data || []);
 
                 // Fetch Analytics for charts
-                const statsRes = await fetch('/api/master_ai/tools/execute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-                        agent_name: 'PropertyAI',
-                        tool_name: 'get_analytics_stats',
-                        parameters: { property_id: selectedPropertyId }
-                    })
-                });
-                const statsBody = await statsRes.json();
+                const statsBody = await executeDashboardTool('PropertyAI', 'get_analytics_stats', { property_id: selectedPropertyId });
                 if (statsBody.success && statsBody.data) {
                     setOccupancyData(statsBody.data.occupancy_data || []);
                     setChurnData(statsBody.data.churn_data || []);
@@ -121,6 +104,24 @@ const BookingOverviewView = () => {
         }
     };
 
+    const filteredOccupancyData = useMemo(() => {
+        return occupancyData.filter((item) => {
+            const key = String(item.period_start || '');
+            if (fromDate && key < fromDate) return false;
+            if (toDate && key > toDate) return false;
+            return true;
+        });
+    }, [occupancyData, fromDate, toDate]);
+
+    const filteredChurnData = useMemo(() => {
+        return churnData.filter((item) => {
+            const key = String(item.period_start || '');
+            if (fromDate && key < fromDate) return false;
+            if (toDate && key > toDate) return false;
+            return true;
+        });
+    }, [churnData, fromDate, toDate]);
+
     if (isLoading && properties.length === 0) {
         return <div className="h-full flex items-center justify-center text-gray-500"><Loader2 className="w-8 h-8 animate-spin mr-3" /> Loading Overview...</div>;
     }
@@ -141,6 +142,22 @@ const BookingOverviewView = () => {
                             <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                     </select>
+                    <span className="text-gray-500 ml-2">From:</span>
+                    <DateInputField
+                        ariaLabel="Booking Overview From Date"
+                        value={fromDate}
+                        onValueChange={setFromDate}
+                        className="min-w-[136px] bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5"
+                        buttonClassName="rounded-lg border border-gray-200 bg-gray-50 p-2 text-gray-500 hover:bg-gray-100"
+                    />
+                    <span className="text-gray-500">To:</span>
+                    <DateInputField
+                        ariaLabel="Booking Overview To Date"
+                        value={toDate}
+                        onValueChange={setToDate}
+                        className="min-w-[136px] bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5"
+                        buttonClassName="rounded-lg border border-gray-200 bg-gray-50 p-2 text-gray-500 hover:bg-gray-100"
+                    />
                 </div>
             </div>
 
@@ -235,7 +252,7 @@ const BookingOverviewView = () => {
                         <h3 className="font-semibold text-gray-900 mb-6">Occupancy Trend vs Full Capacity</h3>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={occupancyData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                <LineChart data={filteredOccupancyData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
@@ -255,7 +272,7 @@ const BookingOverviewView = () => {
                         <h3 className="font-semibold text-gray-900 mb-6">Monthly Tenant Churning</h3>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={churnData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                <BarChart data={filteredChurnData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />

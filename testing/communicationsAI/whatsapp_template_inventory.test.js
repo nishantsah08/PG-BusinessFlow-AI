@@ -7,7 +7,7 @@ describe('WhatsApp template inventory enforcement', () => {
 
         const allowed = await comms.callTool('send_template_message', {
             recipient_phone: '+917588498834',
-            template_name: 'v1_boys_en'
+            template_name: 'rent_due_cycle_en'
         });
         expect(allowed.status).toBe('success');
 
@@ -21,10 +21,10 @@ describe('WhatsApp template inventory enforcement', () => {
     test('inventory includes user-provided core templates', () => {
         const names = WHATSAPP_TEMPLATES.map(t => t.name);
         expect(names).toEqual(expect.arrayContaining([
-            'v1_onboarding_en',
-            'v1_payment_dynamic_en',
-            'v1_payment_static_en',
-            'v1_boys_en',
+            'rent_due_cycle_en',
+            'payment_received_confirmation_en',
+            'onboarding_confirmation_en',
+            'offboarding_settlement_en',
             'hello_world'
         ]));
     });

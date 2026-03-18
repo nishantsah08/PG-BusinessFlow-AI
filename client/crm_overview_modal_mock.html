@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Overview Mock - Modal</title>
+  <style>
+    :root {
+      --bg: #f1ebde;
+      --paper: #fffaf1;
+      --panel: rgba(255, 252, 246, 0.96);
+      --line: #ddcfbc;
+      --ink: #19232c;
+      --muted: #69727d;
+      --shadow: 0 22px 52px rgba(43, 33, 19, 0.10);
+
+      --brand: #103f46;
+      --brand-soft: #d9ecec;
+      --brand-mid: #bdd9db;
+
+      --enquiry-bg: #dbeeff;
+      --enquiry-ink: #1e6098;
+      --visited-bg: #fde9c8;
+      --visited-ink: #99600f;
+      --onboarded-bg: #dcf4e3;
+      --onboarded-ink: #24734a;
+      --left-bg: #f8dede;
+      --left-ink: #aa3b3b;
+      --follow-bg: #e3ebef;
+      --follow-ink: #496474;
+
+      --session: #e8f1ff;
+      --note: #f8efe0;
+      --merge: #efe5ff;
+      --artifact: #e2eff2;
+      --safe-edit: #eef8ef;
+      --unsafe: #f9e7e7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Gill Sans", "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(16, 63, 70, 0.10), transparent 24rem),
+        radial-gradient(circle at left bottom, rgba(153, 96, 15, 0.10), transparent 20rem),
+        var(--bg);
+      padding: 26px;
+    }
+
+    .shell {
+      max-width: 1540px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .header {
+      padding: 28px 30px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    h1, h2, h3, h4, p { margin: 0; }
+
+    h1 {
+      font-size: 38px;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .btn.primary {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: 1px solid rgba(0,0,0,0.06);
+      white-space: nowrap;
+    }
+
+    .brand { background: var(--brand-soft); color: var(--brand); }
+    .enquiry { background: var(--enquiry-bg); color: var(--enquiry-ink); }
+    .visited { background: var(--visited-bg); color: var(--visited-ink); }
+    .onboarded { background: var(--onboarded-bg); color: var(--onboarded-ink); }
+    .left { background: var(--left-bg); color: var(--left-ink); }
+    .follow { background: var(--follow-bg); color: var(--follow-ink); }
+    .merge { background: var(--merge); color: #6f50a0; }
+    .session { background: var(--session); color: #345d98; }
+    .note { background: var(--note); color: #8a6330; }
+    .artifact { background: var(--artifact); color: #2f6770; }
+    .safe { background: var(--safe-edit); color: #2f7447; }
+    .locked { background: var(--unsafe); color: #9b4040; }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      padding: 0 22px 22px;
+    }
+
+    .kpi {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.06);
+      min-height: 116px;
+    }
+
+    .kpi span {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      margin-bottom: 12px;
+    }
+
+    .kpi strong {
+      display: block;
+      font-size: 32px;
+      letter-spacing: -0.05em;
+      margin-bottom: 10px;
+    }
+
+    .kpi em {
+      display: block;
+      font-style: normal;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .total { background: #f2ede5; color: #4f4338; }
+    .analytics-card,
+    .tab-workspace {
+      margin: 0 22px 22px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 180px;
+      gap: 12px;
+      padding: 0 0 22px;
+    }
+
+    .field {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 18px;
+    }
+
+    .block {
+      padding: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-head h2,
+    .section-head h3 {
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .section-head small {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .merge-list,
+    .lead-list,
+    .timeline-list,
+    .session-list { display: grid; gap: 12px; }
+
+    .merge-card,
+    .lead-row,
+    .timeline-row,
+    .session-card {
+      background: var(--paper);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .merge-card {
+      background: linear-gradient(135deg, rgba(239,229,255,0.65), rgba(255,250,241,0.95));
+    }
+
+    .merge-top,
+    .lead-top,
+    .timeline-top,
+    .session-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .merge-card h4,
+    .lead-row h4,
+    .session-card h4 {
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .merge-actions,
+    .inline-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+    .mini-btn {
+      padding: 9px 11px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: white;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .graphs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .graph-card {
+      background: var(--paper);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .graph-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .bars {
+      height: 190px;
+      display: flex;
+      align-items: end;
+      gap: 16px;
+      padding: 12px 4px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .bar-group {
+      flex: 1;
+      display: flex;
+      gap: 5px;
+      align-items: end;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .bar {
+      width: 16px;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .xlabels {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .line-graph {
+      height: 220px;
+      position: relative;
+      border-radius: 16px;
+      background:
+        linear-gradient(to top, rgba(0,0,0,0.04) 1px, transparent 1px) 0 0 / 100% 25%,
+        white;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .line {
+      position: absolute;
+      inset: 0;
+    }
+
+    .line svg { width: 100%; height: 100%; }
+
+    .tab-strip {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .tab-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .tab-pill.active {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+
+    .recent-leads {
+      padding: 0 22px 22px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .lead-row.active {
+      box-shadow: inset 0 0 0 1px rgba(16,63,70,0.16);
+      background: linear-gradient(135deg, rgba(217,236,236,0.58), rgba(255,250,241,0.98));
+    }
+
+    .option-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .option-layout { grid-template-columns: 1fr; }
+    .option-layout > section:last-child { display: none; }
+
+    .preview-shell {
+      position: relative;
+      min-height: 980px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+    }
+
+    .backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 19, 26, 0.28);
+    }
+
+    .modal {
+      position: absolute;
+      top: 34px;
+      left: 34px;
+      right: 34px;
+      bottom: 34px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: 0 30px 70px rgba(24, 18, 11, 0.22);
+      overflow: auto;
+      padding: 24px;
+    }
+
+    .drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 66%;
+      height: 100%;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      box-shadow: -18px 0 44px rgba(24,18,11,0.16);
+      padding: 24px;
+      overflow: auto;
+    }
+
+    .popup-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .popup-head h2 {
+      font-size: 30px;
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+
+    .status-box {
+      display: grid;
+      justify-items: end;
+      gap: 8px;
+    }
+
+    .status-main {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .status-value {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .popup-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 16px;
+    }
+
+    .sub-card {
+      background: var(--paper);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .sub-card h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 170px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 0;
+      border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .field-row:first-of-type { border-top: none; padding-top: 0; }
+
+    .field-row label {
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+    }
+
+    .field-value {
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .edit-chip {
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .edit { background: var(--safe-edit); color: #2f7447; }
+    .noedit { background: #f2ede5; color: #8b7b65; }
+
+    .session-card p,
+    .timeline-row p { font-size: 13px; line-height: 1.45; color: #30414d; }
+
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .link {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand);
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 1320px) {
+      .kpis,
+      .filters,
+      .overview-grid,
+      .option-layout,
+      .popup-grid,
+      .popup-grid .full-width,
+      .graphs,
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .header,
+      .popup-head,
+      .section-head,
+      .merge-top,
+      .lead-top,
+      .timeline-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .drawer {
+        width: 100%;
+        position: relative;
+        height: auto;
+        box-shadow: none;
+        border-left: none;
+      }
+
+      .modal {
+        position: relative;
+        inset: auto;
+      }
+
+      .backdrop { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="card">
+      <div class="header">
+        <div>
+          <h1>CRM Overview</h1>
+        </div>
+        <div class="actions">
+          <button class="btn">Date Range: 01 Mar -> 11 Mar</button>
+          <button class="btn primary">Refresh Overview</button>
+        </div>
+      </div>
+
+      <section class="block card analytics-card" style="box-shadow:none;">
+        <div class="section-head">
+          <div>
+            <h2>Overview Analytics</h2>
+            <small>Date-filtered lifecycle counts and movement trends</small>
+          </div>
+          <span class="pill brand">01 Mar -> 11 Mar</span>
+        </div>
+        <div class="kpis" style="padding:0 0 22px;">
+          <div class="kpi total">
+            <span>Total Leads</span>
+            <strong>182</strong>
+            <em>All customer + staff profiles in CRM</em>
+          </div>
+          <div class="kpi enquiry">
+            <span>Enquiry</span>
+            <strong>64</strong>
+            <em>Fresh demand waiting action</em>
+          </div>
+          <div class="kpi visited">
+            <span>Visited</span>
+            <strong>27</strong>
+            <em>Needs follow-up, not rediscovery</em>
+          </div>
+          <div class="kpi onboarded">
+            <span>Onboarded</span>
+            <strong>55</strong>
+            <em>Now active customers</em>
+          </div>
+          <div class="kpi left">
+            <span>Left</span>
+            <strong>17</strong>
+            <em>Exited or dropped</em>
+          </div>
+          <div class="kpi follow">
+            <span>Pending Follow-up</span>
+            <strong>31</strong>
+            <em>Should be visible immediately</em>
+          </div>
+        </div>
+        <div class="graphs">
+          <div class="graph-card">
+            <div class="graph-title">
+              <h4 style="font-size:15px;">Lead movement by day</h4>
+            </div>
+            <div class="bars">
+              <div class="bar-group">
+                <div class="bar enquiry" style="height:48%;"></div>
+                <div class="bar visited" style="height:22%;"></div>
+                <div class="bar onboarded" style="height:16%;"></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar enquiry" style="height:58%;"></div>
+                <div class="bar visited" style="height:30%;"></div>
+                <div class="bar onboarded" style="height:18%;"></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar enquiry" style="height:39%;"></div>
+                <div class="bar visited" style="height:34%;"></div>
+                <div class="bar onboarded" style="height:20%;"></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar enquiry" style="height:51%;"></div>
+                <div class="bar visited" style="height:40%;"></div>
+                <div class="bar onboarded" style="height:26%;"></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar enquiry" style="height:61%;"></div>
+                <div class="bar visited" style="height:33%;"></div>
+                <div class="bar onboarded" style="height:31%;"></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar enquiry" style="height:44%;"></div>
+                <div class="bar visited" style="height:37%;"></div>
+                <div class="bar onboarded" style="height:29%;"></div>
+              </div>
+            </div>
+            <div class="xlabels">
+              <span>01 Mar</span><span>03 Mar</span><span>05 Mar</span><span>07 Mar</span><span>09 Mar</span><span>11 Mar</span>
+            </div>
+          </div>
+
+          <div class="graph-card">
+            <div class="graph-title">
+              <h4 style="font-size:15px;">Funnel trend</h4>
+            </div>
+            <div class="line-graph">
+              <div class="line">
+                <svg viewBox="0 0 600 220" preserveAspectRatio="none">
+                  <polyline fill="none" stroke="#1e6098" stroke-width="4" points="20,42 120,56 220,68 320,82 420,90 520,102" />
+                  <polyline fill="none" stroke="#99600f" stroke-width="4" points="20,160 120,145 220,132 320,118 420,110 520,98" />
+                  <polyline fill="none" stroke="#24734a" stroke-width="4" points="20,192 120,188 220,180 320,170 420,156 520,140" />
+                  <circle cx="520" cy="102" r="5" fill="#1e6098" />
+                  <circle cx="520" cy="98" r="5" fill="#99600f" />
+                  <circle cx="520" cy="140" r="5" fill="#24734a" />
+                </svg>
+              </div>
+            </div>
+            <div class="inline-actions" style="margin-top: 10px;">
+              <span class="pill enquiry">Enquiry</span>
+              <span class="pill visited">Visited</span>
+              <span class="pill onboarded">Onboarded</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="block card analytics-card" style="box-shadow:none;">
+          <div class="section-head">
+            <div>
+              <h2>Merge Queue</h2>
+              <small>System flags probable duplicates or referral-linked leads. CEO can open the comparison and approve or reject from GUI or WhatsApp.</small>
+            </div>
+            <span class="pill merge">CEO approval required</span>
+          </div>
+
+          <div class="merge-list">
+            <div class="merge-card">
+              <div class="merge-top">
+                <div>
+                  <h4>High Confidence Match</h4>
+                  <div class="meta">Lead A: Rahul Menon (+91 98100 22111)<br/>Lead B: R. Menon (+91 98100 22119)</div>
+                </div>
+                <span class="pill merge">Confidence 92%</span>
+              </div>
+              <div class="meta">Flag reason: same family context, same visit date, same preferred property, same deposit discussion pattern.</div>
+              <div class="merge-actions">
+                <button class="mini-btn">Open Comparison</button>
+                <button class="mini-btn">Approve</button>
+              </div>
+            </div>
+
+            <div class="merge-card">
+              <div class="merge-top">
+                <div>
+                  <h4>Approval Pending</h4>
+                  <div class="meta">Lead A: Pooja Rao (+91 98989 45502)<br/>Lead B: P. Rao (+91 98989 45511)</div>
+                </div>
+                <span class="pill visited">Awaiting CEO</span>
+              </div>
+              <div class="meta">Suggested by snapshot process after direct visit without prior enquiry on the second number.</div>
+              <div class="merge-actions">
+                <button class="mini-btn">Open Decision View</button>
+                <button class="mini-btn">WhatsApp Reminder</button>
+              </div>
+            </div>
+
+            <div class="merge-card">
+              <div class="merge-top">
+                <div>
+                  <h4>Recently Approved</h4>
+                  <div class="meta">Priya Shah parent enquiry -> Priya Shah visit lead</div>
+                </div>
+                <span class="pill onboarded">Approved</span>
+              </div>
+              <div class="meta">Merged 10 Mar 2026 by CEO. Original phone moved into <code>phones.others</code>. MERGE event appended.</div>
+            </div>
+          </div>
+        </section>
+
+      <section class="block card tab-workspace" style="box-shadow:none;">
+        <div class="section-head">
+          <div>
+            <h2>Workspace</h2>
+            <small>Lead search moves into the Leads tab. Overview remains read-heavy and decision-focused.</small>
+          </div>
+          <span class="pill brand">Read first, edit only safe fields</span>
+        </div>
+        <div class="tab-strip">
+          <span class="tab-pill">Overview</span>
+          <span class="tab-pill active">Leads</span>
+        </div>
+        <div class="filters">
+          <div class="field">Search by phone / name / email / source</div>
+          <div class="field">Status: All</div>
+          <div class="field">Profile: Customer</div>
+          <div class="field">Source: All</div>
+          <button class="btn">Search</button>
+        </div>
+
+        <div class="recent-leads">
+          <div class="lead-row active">
+            <div class="lead-top">
+              <div>
+                <h4>Neeraj Sinha</h4>
+                <div class="meta">+91 98765 11121 • neeraj.sinha@email.com • Source: WhatsApp / Meta Ad</div>
+              </div>
+              <div class="inline-actions">
+                <span class="pill visited">Visited</span>
+                <span class="pill follow">Follow-up due today</span>
+              </div>
+            </div>
+            <div class="meta">Need: Single Sharing • Budget: ₹13k-₹15k • Snapshot flags: high urgency, practical negotiation style, Wi-Fi sensitive.</div>
+          </div>
+
+          <div class="lead-row">
+            <div class="lead-top">
+              <div>
+                <h4>Rahul Menon</h4>
+                <div class="meta">+91 98100 22111 • Source: Referral • Merge candidate</div>
+              </div>
+              <div class="inline-actions">
+                <span class="pill enquiry">Enquiry</span>
+                <span class="pill merge">Merge-risk</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lead-row">
+            <div class="lead-top">
+              <div>
+                <h4>Aman Gill</h4>
+                <div class="meta">+91 98222 18890 • Customer live • Last session about billing clarification</div>
+              </div>
+              <div class="inline-actions">
+                <span class="pill onboarded">Onboarded</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="option-layout">
+      <section class="card preview-shell">
+        <div class="block" style="padding-bottom: 0;">
+          <div class="section-head">
+            <div>
+              <h2>Leads Tab + Modal</h2>
+              <small>Search stays in the Leads tab. Opening a row launches the profile as a modal.</small>
+            </div>
+            <span class="pill brand">Preview</span>
+          </div>
+        </div>
+        <div class="backdrop"></div>
+        <div class="modal">
+          <div class="popup-head">
+            <div>
+              <div class="eyebrow">Customer Profile</div>
+              <h2>Neeraj Sinha</h2>
+              <div class="inline-actions">
+                <span class="pill brand">lead_id = +91 98765 11121</span>
+                <span class="pill enquiry">Source: WhatsApp</span>
+              </div>
+            </div>
+            <div class="status-box">
+              <div class="status-value visited">Visited &#9662;</div>
+            </div>
+          </div>
+
+          <div class="popup-grid">
+            <section class="sub-card">
+              <h3>Profile</h3>
+              <div class="field-row">
+                <label>Name</label><div class="field-value">Neeraj Sinha</div><span class="edit-chip noedit">Locked</span>
+              </div>
+              <div class="field-row">
+                <label>Email</label><div class="field-value">neeraj.sinha@email.com</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+              <div class="field-row">
+                <label>Profile Type</label><div class="field-value">Customer</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+              <div class="field-row">
+                <label>Primary Phone</label><div class="field-value">+91 98765 11121</div><span class="edit-chip noedit">Locked</span>
+              </div>
+              <div class="field-row">
+                <label>Secondary Phone</label><div class="field-value">+91 98765 11122</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+              <div class="field-row">
+                <label>Source</label><div class="field-value">WhatsApp / Meta Ad Campaign</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+              <div class="field-row">
+                <label>AI Notes</label><div class="field-value">Urgency: High • Budget sensitivity: Medium • Negotiation style: Practical • Prefers quiet unit</div><span class="edit-chip noedit">Snapshot</span>
+              </div>
+              <div class="field-row">
+                <label>KYC</label><div class="field-value">Aadhaar, PAN, and Police Verification available</div><span class="edit-chip noedit">Links</span>
+              </div>
+              <div class="link-row">
+                <span class="link">Aadhaar.pdf</span>
+                <span class="link">PAN.pdf</span>
+                <span class="link">Police_Verification_Form.pdf</span>
+              </div>
+              <div style="height: 14px;"></div>
+              <h3>Requirement</h3>
+              <div class="field-row">
+                <label>Unit Type</label><div class="field-value">Single Sharing</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+              <div class="field-row">
+                <label>Budget</label><div class="field-value">₹13,000 to ₹15,000</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+              <div class="field-row">
+                <label>Move-in</label><div class="field-value">Within 7 days</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+              <div class="field-row">
+                <label>Preferences</label><div class="field-value">Quiet room, strong Wi-Fi, top two floors preferred</div><span class="edit-chip edit">&#9662;</span>
+              </div>
+            </section>
+
+            <section class="sub-card full-width">
+              <div class="section-head">
+                <div>
+                  <h3>Session Timeline</h3>
+                  <small>Show actual session fields, not just vague notes</small>
+                </div>
+                <button class="mini-btn">Confirm Status Change</button>
+              </div>
+              <div class="session-list">
+                <div class="session-card">
+                  <div class="session-top">
+                    <div>
+                      <h4>Session - 11 Mar 2026 - 08:54 AM</h4>
+                      <div class="meta">Participants: MasterAI, Customer</div>
+                    </div>
+                    <div class="inline-actions">
+                      <span class="pill session">Sentiment: Positive</span>
+                      <span class="pill session">Tone: Practical</span>
+                      <span class="pill session">Financial: Medium</span>
+                      <span class="pill session">Compliance: None</span>
+                    </div>
+                  </div>
+                  <p>Summary: Asked about deposit flexibility, Wi-Fi quality, and notice period. Lead is likely to convert if pricing terms remain within stated range.</p>
+                  <div class="link-row">
+                    <span class="link">Rate_Card.pdf</span>
+                    <span class="link">Related Status Change</span>
+                  </div>
+                </div>
+
+                <div class="session-card">
+                  <div class="session-top">
+                    <div>
+                      <h4>Session - 10 Mar 2026 - 06:10 PM</h4>
+                      <div class="meta">Participants: MasterAI, Customer, Parent</div>
+                    </div>
+                    <div class="inline-actions">
+                      <span class="pill session">Sentiment: Neutral</span>
+                      <span class="pill session">Tone: Evaluative</span>
+                    </div>
+                  </div>
+                  <p>Summary: Parent asked about safety, CCTV, and payment schedule. Customer still wanted visit before final decision.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="card preview-shell">
+        <div class="block" style="padding-bottom: 0;">
+          <div class="section-head">
+            <div>
+              <h2>Hidden Drawer Variant</h2>
+              <small>Overview stays visible. Detail opens from the right for faster back-and-forth review.</small>
+            </div>
+            <span class="pill brand">Preview</span>
+          </div>
+        </div>
+        <div class="backdrop"></div>
+        <div class="drawer">
+          <div class="popup-head">
+            <div>
+              <div class="eyebrow">Customer Profile</div>
+              <h2>Neeraj Sinha</h2>
+              <div class="inline-actions">
+                <span class="pill brand">lead_id = +91 98765 11121</span>
+                <span class="pill visited">Visited</span>
+              </div>
+            </div>
+            <div class="status-box">
+              <div class="status-value visited">Visited &#9662;</div>
+            </div>
+          </div>
+
+          <div class="sub-card">
+            <h3>Profile</h3>
+            <div class="field-row">
+              <label>Name</label><div class="field-value">Neeraj Sinha</div><span class="edit-chip noedit">Locked</span>
+            </div>
+            <div class="field-row">
+              <label>Email</label><div class="field-value">neeraj.sinha@email.com</div><span class="edit-chip edit">&#9662;</span>
+            </div>
+            <div class="field-row">
+              <label>Profile Type</label><div class="field-value">Customer</div><span class="edit-chip edit">&#9662;</span>
+            </div>
+            <div class="field-row">
+              <label>Requirement</label><div class="field-value">Single Sharing • ₹13k-₹15k • Move-in within 7 days</div><span class="edit-chip edit">&#9662;</span>
+            </div>
+            <div class="field-row">
+              <label>KYC</label><div class="field-value">Aadhaar, PAN, Police Verification available</div><span class="edit-chip noedit">Links</span>
+            </div>
+            <div class="link-row">
+              <span class="link">Aadhaar.pdf</span>
+              <span class="link">PAN.pdf</span>
+              <span class="link">Police_Verification_Form.pdf</span>
+            </div>
+          </div>
+
+          <div style="height: 14px;"></div>
+
+          <div class="sub-card">
+            <h3>Session Timeline</h3>
+            <div class="session-list">
+              <div class="session-card">
+                <time style="display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:8px;">11 Mar 2026 - 08:54 AM</time>
+                <div class="inline-actions">
+                  <span class="pill session">Positive</span>
+                  <span class="pill session">Practical</span>
+                  <span class="pill session">Financial: Medium</span>
+                </div>
+                <p>Asked about deposit flexibility, Wi-Fi quality, and notice period.</p>
+              </div>
+              <div class="session-card">
+                <time style="display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:8px;">10 Mar 2026 - 06:10 PM</time>
+                <div class="inline-actions">
+                  <span class="pill session">Neutral</span>
+                  <span class="pill session">Evaluative</span>
+                </div>
+                <p>Parent joined the conversation. Safety and payment cycle discussed.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+</body>
+</html>

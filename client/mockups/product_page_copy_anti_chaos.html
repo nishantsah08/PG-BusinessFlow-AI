@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anti Chaos</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #0f172a;
+      background: linear-gradient(135deg, #ff7a3d 0%, #ffb655 34%, #fff0d7 34%, #fff0d7 100%);
+    }
+    .shell { max-width: 1420px; margin: 0 auto; padding: 24px; }
+    .ribbon {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      border-radius: 24px; padding: 15px 18px; background: rgba(255,245,226,0.92);
+      border: 2px solid #0f172a;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; background: #0f172a; color: #fff0d7; font-weight: 800; }
+    .brand h1, .brand p { margin: 0; }
+    .brand h1 { font-size: 12px; letter-spacing: 0.24em; }
+    .brand p { margin-top: 4px; font-size: 11px; color: #475569; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .nav a, .nav span {
+      text-decoration: none; color: #0f172a; border: 2px solid #0f172a; border-radius: 999px; padding: 10px 15px; font-size: 13px; background: #fff6e7;
+    }
+    .nav .primary { background: #0f172a; color: white; }
+    .hero { margin-top: 18px; display: grid; grid-template-columns: 1fr 410px; gap: 18px; }
+    .left {
+      position: relative; overflow: hidden; border-radius: 34px; border: 2px solid #0f172a;
+      background: #fff0d7; padding: 40px 42px 32px;
+    }
+    .eyebrow {
+      display: inline-block; border: 2px solid #0f172a; border-radius: 999px; padding: 8px 12px; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase; background: white;
+    }
+    .headline {
+      margin: 20px 0 16px; font-size: 94px; line-height: 0.9; letter-spacing: -0.08em; max-width: 860px; text-transform: uppercase;
+    }
+    .subheadline { font-size: 26px; line-height: 1.45; max-width: 760px; color: #334155; }
+    .support { margin-top: 16px; font-size: 18px; line-height: 1.75; max-width: 720px; color: #475569; }
+    .cta { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+    .cta a {
+      text-decoration: none; border: 2px solid #0f172a; border-radius: 999px; padding: 13px 17px; background: white; color: #0f172a; font-size: 14px;
+    }
+    .cta .primary { background: #0f172a; color: white; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 30px; }
+    .card {
+      border-radius: 24px; border: 2px solid #0f172a; background: white; padding: 18px;
+    }
+    .card .e { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #ff6f3b; }
+    .card h2 { margin: 10px 0; font-size: 31px; line-height: 1; }
+    .card p { margin: 0; color: #475569; line-height: 1.75; font-size: 14px; }
+    .shape {
+      position: absolute; right: -90px; bottom: -60px; width: 320px; height: 320px;
+      background: #ff6f3b; transform: rotate(38deg); border: 2px solid #0f172a;
+    }
+    .right { display: grid; gap: 16px; }
+    .box {
+      border-radius: 28px; background: #111827; color: white; border: 2px solid #0f172a; padding: 24px;
+    }
+    .box h3 { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #ffd28c; }
+    .box p, .box li { margin: 0; color: #dce6f4; line-height: 1.85; font-size: 15px; }
+    .box ul { padding-left: 18px; }
+    @media (max-width: 1050px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .headline { font-size: 60px; }
+      .subheadline { font-size: 20px; }
+      .ribbon { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="mark">P</div>
+        <div>
+          <h1>PG-BUSINESSFLOW.AI</h1>
+          <p>AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="#">Docs</a>
+        <span>Pricing · Coming soon</span>
+        <span>Contact · Coming soon</span>
+        <a href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="left">
+        <div class="eyebrow">Anti-chaos</div>
+        <div class="headline">Stop running your PG business through disconnected tools.</div>
+        <div class="subheadline">One system for customer flow, operational flow, and financial control.</div>
+        <div class="support">Everything from enquiry to collections, connected in one workspace.</div>
+        <div class="cta">
+          <a class="primary" href="#">Create workspace</a>
+          <a href="#">Read docs</a>
+        </div>
+
+        <section class="grid">
+          <article class="card">
+            <div class="e">Demand</div>
+            <h2>CRM</h2>
+            <p>Lead capture, visits, conversion, and onboarding readiness in one flow.</p>
+          </article>
+          <article class="card">
+            <div class="e">Execution</div>
+            <h2>Ops</h2>
+            <p>Property, staff, attendance, and task movement on one operating layer.</p>
+          </article>
+          <article class="card">
+            <div class="e">Control</div>
+            <h2>Finance</h2>
+            <p>Collections, expenses, approvals, and business review without scattered records.</p>
+          </article>
+        </section>
+        <div class="shape"></div>
+      </div>
+
+      <aside class="right">
+        <div class="box">
+          <h3>Positioning</h3>
+          <p>This copy attacks fragmentation directly. It frames the current situation as the problem and the product as the correction.</p>
+        </div>
+        <div class="box">
+          <h3>What this says emotionally</h3>
+          <ul>
+            <li>You are losing time because your system is fragmented</li>
+            <li>This product gives you one connected operating layer</li>
+            <li>The right next step is to consolidate</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+  </div>
+</body>
+</html>

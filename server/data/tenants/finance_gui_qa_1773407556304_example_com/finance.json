@@ -1,0 +1,268 @@
+{
+    "ledgerEntries": [
+        {
+            "id": "LED-1",
+            "payer_id": "+919407556304",
+            "category": "Rent",
+            "month_year": "Mar 2026",
+            "amount_due": 12000,
+            "amount_paid": 12000,
+            "balance": 0,
+            "status": "PAID",
+            "created_at": "2026-03-13T13:12:37.847Z",
+            "source_contract_id": "CTR-1773407557744-443",
+            "charge_window": {
+                "from": "2026-03-01",
+                "to": "2026-03-31",
+                "days_active": 31,
+                "days_in_month": 31
+            }
+        }
+    ],
+    "transactions": [
+        {
+            "txn_id": "UTR-1773407556304",
+            "type": "INCOMING",
+            "payer_id": "+919407556304",
+            "amount": 12000,
+            "payment_mode": "UPI",
+            "date": "2026-03-13",
+            "linked_unit_id": "UNIT-1",
+            "linked_property_id": "PROP-1",
+            "tenant_id": "finance_gui_qa_1773407556304_example_com",
+            "allocations": [
+                {
+                    "ledger_entry_id": "LED-1",
+                    "category": "Rent",
+                    "amount_allocated": 12000
+                }
+            ],
+            "unallocated_surplus": 0,
+            "timestamp": "2026-03-13T13:12:43.297Z"
+        },
+        {
+            "txn_id": "IN-1773407566842-364",
+            "type": "INCOMING",
+            "payer_id": "+919507556304",
+            "amount": 5000,
+            "payment_mode": "UPI",
+            "date": "2026-03-13",
+            "attachment_url": "/images/artifact_1773407566447_esgku0.txt",
+            "linked_unit_id": null,
+            "linked_property_id": "PROP-1",
+            "context_type": "BOOKING_HOLD",
+            "booking_hold_id": "BH-1773407566842-705",
+            "allocations": [],
+            "unallocated_surplus": 5000,
+            "timestamp": "2026-03-13T13:12:46.843Z"
+        },
+        {
+            "txn_id": "OUT-1773407575919",
+            "type": "OUTGOING",
+            "category": "OpEx",
+            "sub_category": "Plumbing",
+            "work_done": "Current month plumbing repair",
+            "property_id": "PROP-1",
+            "amount": 1800,
+            "date": "2026-03-13",
+            "vendor_id": "VND-1773407572769-975",
+            "payment_mode": "UPI",
+            "approved_by": "finance.gui.qa.1773407556304@example.com",
+            "tenant_id": "finance_gui_qa_1773407556304_example_com",
+            "payee": "Vendor 1773407556304",
+            "timestamp": "2026-03-13T13:12:55.919Z"
+        }
+    ],
+    "contracts": {
+        "+919407556304": {
+            "active_contract_id": "CTR-1773407557744-443",
+            "versions": [
+                {
+                    "contract_id": "CTR-1773407557744-443",
+                    "lead_id": "+919407556304",
+                    "unit_id": "UNIT-1",
+                    "property_id": "PROP-1",
+                    "negotiated_rent": 12000,
+                    "security_deposit": 2500,
+                    "rent_payment_timing": "ADVANCE",
+                    "utility_payment_timing": "ARREARS",
+                    "effective_from": "2026-03-01",
+                    "effective_to": null,
+                    "status": "ACTIVE",
+                    "version": "v1773407557744",
+                    "created_at": "2026-03-13T13:12:37.744Z",
+                    "updated_at": "2026-03-13T13:12:37.744Z"
+                }
+            ]
+        },
+        "+919507556304": {
+            "active_contract_id": "CTR-1773407569836-83",
+            "versions": [
+                {
+                    "contract_id": "CTR-1773407569836-83",
+                    "lead_id": "+919507556304",
+                    "unit_id": "UNIT-2",
+                    "property_id": "PROP-1",
+                    "negotiated_rent": 12500,
+                    "security_deposit": 5000,
+                    "rent_payment_timing": "ADVANCE",
+                    "utility_payment_timing": "ARREARS",
+                    "effective_from": "2026-03-21",
+                    "effective_to": null,
+                    "status": "ACTIVE",
+                    "version": "v1773407569836",
+                    "created_at": "2026-03-13T13:12:49.836Z",
+                    "updated_at": "2026-03-13T13:12:49.836Z"
+                }
+            ]
+        }
+    },
+    "salaryCards": {},
+    "carryForwardCredits": {
+        "+919507556304": [
+            {
+                "id": "CF-1773407569836-584",
+                "amount_remaining": 5000,
+                "available_from_key": 24314,
+                "available_from_month_year": "Mar 2026",
+                "source_txn_id": "IN-1773407566842-364"
+            }
+        ]
+    },
+    "vendors": {
+        "VND-1773407572769-975": {
+            "vendor_id": "VND-1773407572769-975",
+            "vendor_name": "Vendor 1773407556304",
+            "category": "Maintenance",
+            "primary_phone": "+919107556304",
+            "email": null,
+            "upi_id": "vendor1773407556304@upi",
+            "bank_details": null,
+            "notes": null,
+            "status": "ACTIVE",
+            "created_at": "2026-03-13T13:12:52.769Z",
+            "updated_at": "2026-03-13T13:12:52.769Z"
+        }
+    },
+    "bookingHolds": {
+        "BH-1773407566842-705": {
+            "booking_hold_id": "BH-1773407566842-705",
+            "payer_id": "+919507556304",
+            "amount": 5000,
+            "received_at": "2026-03-13",
+            "valid_until": "2026-03-23",
+            "linked_property_id": "PROP-1",
+            "linked_unit_id": "UNIT-2",
+            "evidence_link": "/images/artifact_1773407566447_esgku0.txt",
+            "notes": null,
+            "status": "APPLIED_ON_ONBOARDING",
+            "source_txn_id": "IN-1773407566842-364",
+            "applied_on": "2026-03-21",
+            "created_at": "2026-03-13T13:12:46.843Z",
+            "updated_at": "2026-03-13T13:12:49.836Z"
+        }
+    },
+    "lastUpdatedAt": "2026-03-13T13:13:01.959Z",
+    "businessConfig": {
+        "tenant_id": "finance_gui_qa_1773407556304_example_com",
+        "business_name": "Finance GUI QA 1773407556304's Workspace",
+        "persona": {
+            "name": "Finance GUI QA 1773407556304",
+            "role": "CEO",
+            "ceo_email": "finance.gui.qa.1773407556304@example.com",
+            "ceo_phone": "+917707556304",
+            "session_timeout_ms": 900000,
+            "ceo_phone_verified_at": "2026-03-13T18:42:36.750+05:30"
+        },
+        "property": {
+            "required_fields": [
+                "name",
+                "address",
+                "floors",
+                "amenities"
+            ],
+            "default_amenities": [
+                "Wi-Fi"
+            ]
+        },
+        "rates": {
+            "monthly_rent": 12000,
+            "base_security_deposit": 2500,
+            "deposit_rules": {
+                "dynamic_range_start": 6,
+                "dynamic_range_end": 10,
+                "dynamic_multiplier_days": 5,
+                "rounding": 50
+            },
+            "notice_period_days": 30,
+            "min_stay_months": 6,
+            "early_exit_rule": "DEPOSIT_FORFEIT",
+            "rent_payment_timing": "ADVANCE",
+            "utility_payment_timing": "ARREARS",
+            "maintenance_fee": 0
+        },
+        "finance": {
+            "waterfall_priority": [
+                "Security Deposit",
+                "Past Dues",
+                "Police Verification Fee",
+                "Rent",
+                "Parking Fee",
+                "Wi-Fi Fee",
+                "Electricity Bill",
+                "Asset Damage Recovery",
+                "Late Payment Fees"
+            ],
+            "late_fee_daily": 50,
+            "default_base_salary": 4000,
+            "default_incentive_per_unit": 350,
+            "staff_compensation_templates": {
+                "default": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "STANDARD",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Role-based performance incentive",
+                            "amount_per_unit": 350
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        }
+                    }
+                },
+                "caretaker": {
+                    "base_salary": 4000,
+                    "components": {
+                        "compensation_model": "CARETAKER_UNIT_BASED",
+                        "salary_advance_limit": 5000,
+                        "reimbursements_allowed": true,
+                        "incentives": {
+                            "logic": "Fully paid occupied units * amount per unit",
+                            "amount_per_unit": 250
+                        },
+                        "allowances": {
+                            "travel": 0,
+                            "phone": 0
+                        },
+                        "caretaker_rules": {
+                            "daily_cleaning_proof_amount": 100,
+                            "weekly_parking_cleaning_amount": 100,
+                            "maintenance_complaint_deduction": 100
+                        }
+                    }
+                }
+            },
+            "caretaker_compensation": {
+                "fixed_basic_salary": 4000,
+                "per_fully_paid_occupied_unit": 250,
+                "daily_cleaning_proof_amount": 100,
+                "weekly_parking_cleaning_amount": 100,
+                "maintenance_complaint_deduction": 100
+            }
+        },
+        "account_status": "ACTIVE"
+    }
+}

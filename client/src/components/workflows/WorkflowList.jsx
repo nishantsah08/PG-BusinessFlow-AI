@@ -1,6 +1,31 @@
 import React from 'react';
-import { GitBranch, Trash2, Edit3, Plus, Zap } from 'lucide-react';
+import { GitBranch, Zap, Power, PowerOff } from 'lucide-react';
 import { useTimeDisplay } from '../../hooks/useTimeDisplay';
+
+const getWorkflowTypeLabel = (workflow) => {
+    if (workflow?.tenant_id && !workflow?.protected) {
+        return workflow?.clone_of_workflow_id ? 'User Cloned' : 'User Custom';
+    }
+    if (workflow?.protected) return 'System Default';
+    return 'User Custom';
+};
+
+const getWorkflowStateLabel = (workflow) => {
+    if (workflow?.tenant_id && !workflow?.protected) {
+        return workflow?.is_active ? 'Enabled' : 'Disabled';
+    }
+    if (workflow?.template_state === 'OVERRIDDEN_BY_TENANT') {
+        return 'Disabled';
+    }
+    return 'Enabled';
+};
+
+const getWorkflowStateClasses = (workflow) => {
+    const label = getWorkflowStateLabel(workflow);
+    return label === 'Enabled'
+        ? 'bg-emerald-100 text-emerald-700'
+        : 'bg-slate-100 text-slate-600';
+};
 
 /**
  * WorkflowList Component
@@ -14,27 +39,15 @@ import { useTimeDisplay } from '../../hooks/useTimeDisplay';
  * - onDelete: (workflow_id) => void — called when delete is confirmed
  * - onCreateNew: () => void — called when "+ New Workflow" is clicked
  */
-const WorkflowList = ({ workflows = [], selectedId, onSelect, onDelete, onCreateNew }) => {
+const WorkflowList = ({
+    workflows = [],
+    selectedId,
+    onSelect,
+    onActivate,
+    onDeactivate,
+    canManage = false,
+}) => {
     const { formatTime } = useTimeDisplay();
-    const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
-
-    const handleDeleteClick = (e, workflowId) => {
-        e.stopPropagation();
-        setDeleteConfirmId(workflowId);
-    };
-
-    const handleConfirmDelete = (e) => {
-        e.stopPropagation();
-        if (deleteConfirmId) {
-            onDelete(deleteConfirmId);
-            setDeleteConfirmId(null);
-        }
-    };
-
-    const handleCancelDelete = (e) => {
-        e.stopPropagation();
-        setDeleteConfirmId(null);
-    };
 
     return (
         <div className="flex flex-col h-full">
@@ -69,29 +82,6 @@ const WorkflowList = ({ workflows = [], selectedId, onSelect, onDelete, onCreate
                                 : 'border-gray-200 bg-white hover:border-indigo-200 hover:bg-gray-50'
                             }`}
                     >
-                        {/* Delete Confirmation Overlay */}
-                        {deleteConfirmId === wf.workflow_id && (
-                            <div className="absolute inset-0 bg-white/95 rounded-xl flex items-center justify-center z-10 border border-red-200">
-                                <div className="text-center p-3">
-                                    <p className="text-sm font-medium text-gray-700 mb-3">Delete "{wf.workflow_id}"?</p>
-                                    <div className="flex space-x-2 justify-center">
-                                        <button
-                                            onClick={handleCancelDelete}
-                                            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleConfirmDelete}
-                                            className="px-3 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0 pr-4">
                                 <h3 className="text-sm font-semibold text-gray-800 truncate mb-1">{wf.name || wf.workflow_id || 'Untitled Process'}</h3>
@@ -107,6 +97,12 @@ const WorkflowList = ({ workflows = [], selectedId, onSelect, onDelete, onCreate
                                     <span className="text-xs text-gray-400">
                                         {wf.steps?.length || 0} step{(wf.steps?.length || 0) !== 1 ? 's' : ''}
                                     </span>
+                                    <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                                        {getWorkflowTypeLabel(wf)}
+                                    </span>
+                                    <span className={`text-[10px] font-semibold uppercase tracking-[0.15em] px-2 py-1 rounded-full ${getWorkflowStateClasses(wf)}`}>
+                                        {getWorkflowStateLabel(wf)}
+                                    </span>
                                     {wf.created_at && (
                                         <span className="text-xs text-gray-300">
                                             {formatTime(wf.created_at).date}
@@ -117,35 +113,29 @@ const WorkflowList = ({ workflows = [], selectedId, onSelect, onDelete, onCreate
 
                             {/* Actions */}
                             <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onSelect(wf); }}
-                                    className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                    title="Edit"
-                                >
-                                    <Edit3 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                    onClick={(e) => handleDeleteClick(e, wf.workflow_id)}
-                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Delete"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                {canManage && wf.tenant_id && !wf.protected && (
+                                    wf.is_active ? (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onDeactivate?.(wf.workflow_id); }}
+                                            className="p-1.5 text-gray-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                            title="Deactivate"
+                                        >
+                                            <PowerOff className="w-3.5 h-3.5" />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onActivate?.(wf.workflow_id); }}
+                                            className="p-1.5 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                                            title="Activate"
+                                        >
+                                            <Power className="w-3.5 h-3.5" />
+                                        </button>
+                                    )
+                                )}
                             </div>
                         </div>
                     </div>
                 ))}
-            </div>
-
-            {/* Create Button */}
-            <div className="p-3 border-t border-gray-100">
-                <button
-                    onClick={onCreateNew}
-                    className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    <span>New Workflow</span>
-                </button>
             </div>
         </div>
     );
