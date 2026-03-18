@@ -41,7 +41,7 @@ jobs:
 
           body_lower="$(printf '%s' "${PR_BODY}" | tr '[:upper:]' '[:lower:]')"
           for item in "${required_items[@]}"; do
-            if ! grep -Fq "${item}" <<< "${body_lower}"; then
+            if ! grep -Fq -- "${item}" <<< "${body_lower}"; then
               echo "Missing required PR checklist item: ${item}"
               exit 1
             fi
