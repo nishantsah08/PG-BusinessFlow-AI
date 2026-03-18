@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "jest --config ../testing/propertyAI/jest.config.js --verbose",
+    "test:ci:v1": "npm run test:communications-direct-local-smoke",
     "dev": "node src/index.js",
     "test:communications-direct-local-smoke": "node scripts/local_communications_direct_smoke.js",
     "test:gcp-smoke": "node scripts/preprod_gcp_smoke.js",
