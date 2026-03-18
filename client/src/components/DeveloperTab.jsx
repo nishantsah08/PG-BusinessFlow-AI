@@ -9,6 +9,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Activity, X } from 'lucide-react';
+import { apiClient } from '../api/client';
 
 const DeveloperTab = () => {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -18,8 +19,8 @@ const DeveloperTab = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch('/api/agents');
-            const agents = await res.json();
+            const res = await apiClient.get('/api/agents');
+            const agents = Array.isArray(res.data?.agents) ? res.data.agents : [];
 
             const newNodes = [];
             const newEdges = [];

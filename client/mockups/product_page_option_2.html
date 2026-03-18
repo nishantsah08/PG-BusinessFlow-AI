@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PG BusinessFlow Option 2</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --bg-soft: #0f1c2a;
+      --text: #eff5ff;
+      --muted: #95a6bf;
+      --line: rgba(148, 163, 184, 0.18);
+      --accent: #4de2c3;
+      --accent-dark: #17b59d;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(77,226,195,0.15), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(59,130,246,0.18), transparent 32%),
+        linear-gradient(160deg, #050b13 0%, var(--bg) 50%, #0b1624 100%);
+    }
+
+    .shell {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .ribbon {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      padding: 18px 22px;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: rgba(8, 17, 28, 0.78);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #4de2c3 0%, #1f6feb 100%);
+      color: #08111c;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .brand .name {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.24em;
+      font-weight: 700;
+    }
+
+    .brand .tag {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pill, .ghost, .primary {
+      border-radius: 999px;
+      padding: 11px 18px;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill, .ghost {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(15, 28, 42, 0.8);
+    }
+
+    .primary {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+      color: #041017;
+      font-weight: 700;
+    }
+
+    .hero {
+      margin-top: 28px;
+      border-radius: 40px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(10,16,28,0.94), rgba(6,12,21,0.86));
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      min-height: 720px;
+    }
+
+    .hero-copy {
+      padding: 64px 60px;
+    }
+
+    .badge {
+      display: inline-block;
+      border: 1px solid rgba(77,226,195,0.26);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 12px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 28px 0 22px;
+      font-size: 94px;
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+    }
+
+    .subcopy {
+      max-width: 680px;
+      font-size: 22px;
+      line-height: 1.7;
+      color: #c6d0e1;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 40px;
+    }
+
+    .metric {
+      border-radius: 26px;
+      padding: 20px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+
+    .metric .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8de5d8;
+      margin-bottom: 10px;
+    }
+
+    .metric h2 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .metric p {
+      margin: 10px 0 0;
+      color: #b5c2d7;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .hero-panel {
+      padding: 38px;
+      background:
+        radial-gradient(circle at top right, rgba(77,226,195,0.12), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      display: grid;
+      align-content: end;
+    }
+
+    .system-card {
+      border-radius: 34px;
+      padding: 28px;
+      background: rgba(8, 17, 28, 0.84);
+      border: 1px solid rgba(148,163,184,0.16);
+      box-shadow: 0 28px 90px rgba(0,0,0,0.28);
+    }
+
+    .system-card h3 {
+      margin: 0 0 14px;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #7de9d8;
+    }
+
+    .system-card .line {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
+      color: #dbe5f7;
+      font-size: 16px;
+    }
+
+    .system-card .line:last-child { border-bottom: 0; }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; min-height: unset; }
+      .metrics { grid-template-columns: 1fr; }
+      h1 { font-size: 62px; }
+      .ribbon { flex-direction: column; align-items: flex-start; }
+      .hero-copy { padding: 40px 28px; }
+      .hero-panel { padding: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="ribbon">
+      <div class="brand">
+        <div class="brand-mark">P</div>
+        <div>
+          <p class="name">PG-BUSINESSFLOW.AI</p>
+          <p class="tag">AI operating system for PG operators</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a class="pill" href="#">Docs</a>
+        <span class="pill">Pricing · Coming soon</span>
+        <span class="pill">Contact · Coming soon</span>
+        <a class="ghost" href="#">Sign in</a>
+        <a class="primary" href="#">Create workspace</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="badge">AI operating system</div>
+        <h1>Stop running your PG business through disconnected tools.</h1>
+        <div class="subcopy">
+          PG-BusinessFlow.ai brings CRM, onboarding, property operations, HR, finance, and workflows into one operating layer so the business moves with shared context instead of manual follow-up.
+        </div>
+        <div class="cta-row">
+          <a class="primary" href="#">Create workspace</a>
+          <a class="ghost" href="#">Read docs</a>
+        </div>
+
+        <div class="metrics">
+          <article class="metric">
+            <div class="eyebrow">Business view</div>
+            <h2>One system</h2>
+            <p>Owners get a single view of demand, operations, staff execution, and financial movement.</p>
+          </article>
+          <article class="metric">
+            <div class="eyebrow">Operational flow</div>
+            <h2>Shared context</h2>
+            <p>Each domain works on the same picture instead of depending on messages, reminders, and handoffs.</p>
+          </article>
+          <article class="metric">
+            <div class="eyebrow">AI layer</div>
+            <h2>Process discipline</h2>
+            <p>Automation becomes useful because the workflow structure already exists across the business.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="hero-panel">
+        <div class="system-card">
+          <h3>Operating model</h3>
+          <div class="line">Lead inquiry -> visit scheduling</div>
+          <div class="line">Booking -> onboarding -> room readiness</div>
+          <div class="line">Attendance -> payroll -> approvals</div>
+          <div class="line">Dues -> collections -> business review</div>
+          <div class="line">SOPs and workflows keep the system moving</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

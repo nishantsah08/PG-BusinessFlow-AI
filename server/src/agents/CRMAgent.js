@@ -115,7 +115,20 @@ class CRMAgent extends BaseAgent {
         return this._tenantStates.get(resolvedTenantId);
     }
 
-    _saveState(tenantId) {
+    async _hydrateTenantState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const store = this._getTenantStore(resolvedTenantId);
+        const rawState = await store.hydrate({
+            leads: {},
+            timelines: {},
+            lastUpdatedAt: TimeAuthorityService.nowIST()
+        });
+        const hydrated = this._hydrateMapsFromStore(rawState);
+        this._tenantStates.set(resolvedTenantId, hydrated);
+        return hydrated;
+    }
+
+    async _saveState(tenantId) {
         const state = this._getState(tenantId);
         const payload = {
             leads: Object.fromEntries(state.leads.entries()),
@@ -129,7 +142,7 @@ class CRMAgent extends BaseAgent {
             lastUpdatedAt: TimeAuthorityService.nowIST(),
             businessConfig: this._businessConfigProvider(tenantId)
         };
-        this._getTenantStore(tenantId).save(payload);
+        await this._getTenantStore(tenantId).save(payload);
     }
 
     _getActiveBusinessConfig(tenantId = this.defaultTenantId) {
@@ -844,6 +857,7 @@ class CRMAgent extends BaseAgent {
         // Global interceptor for CRM Agent to normalize all identity-based arguments to E.164
         const tenantId = this._extractTenantId(args || {});
         const normalizedArgs = { ...(args || {}) };
+        await this._hydrateTenantState(tenantId);
         const previousTenantId = this._setTenantContext(tenantId);
 
         if (!normalizedArgs.tenant_id) {
@@ -865,7 +879,7 @@ class CRMAgent extends BaseAgent {
 
         try {
             const result = await super.callTool(name, normalizedArgs);
-            this._saveState(tenantId);
+            await this._saveState(tenantId);
             return result;
         } finally {
             this._activeTenantId = previousTenantId;

@@ -11,6 +11,7 @@
         "build": "vite build",
         "lint": "eslint .",
         "preview": "vite preview",
+        "test:api-routing": "node scripts/check-no-direct-api-fetch.mjs",
         "test": "jest --verbose",
         "test:e2e": "playwright test",
         "test:e2e:headed": "playwright test --headed",
@@ -18,6 +19,7 @@
     },
     "dependencies": {
         "@react-oauth/google": "^0.13.4",
+        "firebase": "^12.10.0",
         "jwt-decode": "^4.0.0",
         "lucide-react": "^0.395.0",
         "react": "^18.3.1",

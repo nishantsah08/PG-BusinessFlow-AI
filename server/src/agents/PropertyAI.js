@@ -169,9 +169,23 @@ class PropertyAI extends BaseAgent {
         return this._tenantStates.get(resolvedTenantId);
     }
 
-    _saveState(tenantId) {
+    async _hydrateTenantState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const rawState = await this._getTenantStore(resolvedTenantId).hydrate({
+            properties: [],
+            units: [],
+            meters: [],
+            maintenance_requests: []
+        });
+        this._tenantStates.set(resolvedTenantId, rawState);
+        await this._getFinanceStore(resolvedTenantId).hydrate({
+            transactions: []
+        });
+    }
+
+    async _saveState(tenantId) {
         const state = this._getState(tenantId);
-        this._getTenantStore(tenantId).save({
+        await this._getTenantStore(tenantId).save({
             properties: state.properties,
             units: state.units,
             meters: state.meters,
@@ -1119,11 +1133,12 @@ class PropertyAI extends BaseAgent {
         if (name !== 'update_unit' && !normalizedArgs.tenant_id) {
             normalizedArgs.tenant_id = tenantId;
         }
+        await this._hydrateTenantState(tenantId);
         const previousTenantId = this._setTenantContext(tenantId);
 
         try {
             const result = await super.callTool(name, normalizedArgs);
-            this._saveState(tenantId);
+            await this._saveState(tenantId);
             return result;
         } finally {
             this._activeTenantId = previousTenantId;

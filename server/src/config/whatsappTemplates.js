@@ -4,6 +4,7 @@
  * This is the local source of truth used by CommunicationsAI validation.
  */
 const WHATSAPP_TEMPLATES = [
+    { key: 'auth_otp', name: 'otp_en', category: 'Authentication', language: 'en_US', status: 'ACTIVE' },
     { key: 'rent_due_cycle', name: 'rent_due_cycle_en', category: 'Utility', language: 'en', status: 'ACTIVE' },
     { key: 'payment_received_confirmation', name: 'payment_received_confirmation_en', category: 'Utility', language: 'en', status: 'ACTIVE' },
     { key: 'booking_hold_confirmation', name: 'booking_hold_confirmation_en', category: 'Utility', language: 'en', status: 'ACTIVE' },

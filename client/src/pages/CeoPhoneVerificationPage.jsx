@@ -29,34 +29,44 @@ const CeoPhoneVerificationPage = () => {
 
     const handleSendOtp = async (event) => {
         event.preventDefault();
-        setSending(true);
-        setError('');
-        setNotice('');
-        setDevOtp('');
-        const response = await apiClient.post('/api/auth/ceo-phone/start', { phone });
-        setSending(false);
-        if (!response.success) {
-            setError(response.error || 'Unable to send OTP.');
-            return;
+        try {
+            setSending(true);
+            setError('');
+            setNotice('');
+            setDevOtp('');
+            const response = await apiClient.post('/api/auth/ceo-phone/start', { phone });
+            if (!response.success) {
+                setError(response.error || 'Unable to send OTP.');
+                return;
+            }
+            setOtpSent(true);
+            setExpiresAt(response.data?.expires_at || '');
+            setNotice(`OTP sent to ${maskPhone(response.data?.phone || phone)}.`);
+            setDevOtp(response.data?.dev_otp || '');
+        } catch (error) {
+            setError(error?.message || 'Unable to send OTP.');
+        } finally {
+            setSending(false);
         }
-        setOtpSent(true);
-        setExpiresAt(response.data?.expires_at || '');
-        setNotice(`OTP sent to ${maskPhone(response.data?.phone || phone)}.`);
-        setDevOtp(response.data?.dev_otp || '');
     };
 
     const handleVerifyOtp = async (event) => {
         event.preventDefault();
-        setVerifying(true);
-        setError('');
-        const response = await apiClient.post('/api/auth/ceo-phone/verify', { otp });
-        setVerifying(false);
-        if (!response.success) {
-            setError(response.error || 'Unable to verify OTP.');
-            return;
+        try {
+            setVerifying(true);
+            setError('');
+            const response = await apiClient.post('/api/auth/ceo-phone/verify', { otp });
+            if (!response.success) {
+                setError(response.error || 'Unable to verify OTP.');
+                return;
+            }
+            await refreshAuthContext();
+            navigate('/app/master', { replace: true });
+        } catch (error) {
+            setError(error?.message || 'Unable to verify OTP.');
+        } finally {
+            setVerifying(false);
         }
-        await refreshAuthContext();
-        navigate('/master', { replace: true });
     };
 
     return (

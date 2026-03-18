@@ -21,18 +21,31 @@ The following strategic updates are now implemented and should be treated as the
    - Correlation IDs are attached per request (`X-Correlation-ID`).
 5. **Storage Abstraction Seam**
     - Workflow and image persistence now use storage interfaces (`WorkflowStore`, `ImageStore`) with `STORAGE_BACKEND`.
-    - Property domain now uses tenant-scoped local persistence (`TenantDataStore`) on top of the same backend abstraction.
-    - Current backend remains `local`; Firestore/GCS patch remains a controlled next phase.
-6. **Deployment Structure**
+    - Property domain now uses tenant-scoped persistence (`TenantDataStore`) on top of the same backend abstraction.
+    - Local iteration continues on `STORAGE_BACKEND=local`.
+    - Shared development/pre-production now runs on `STORAGE_BACKEND=gcp` with Firestore and GCS.
+6. **Communications Event Transport Split**
+   - Local iteration continues to process inbound WhatsApp events directly inside the Node runtime (`COMMUNICATIONS_EVENT_BACKEND=direct`).
+   - Shared development/pre-production now routes inbound WhatsApp webhook traffic through GCP Pub/Sub before the internal processing endpoint handles it (`COMMUNICATIONS_EVENT_BACKEND=pubsub`).
+   - Real inbound WhatsApp to the shared environment still depends on Meta webhook configuration pointing at the environment callback URL and using the matching verify token.
+7. **Deployment Structure**
    - Separate GCP development/production deployment scripts and environment files are defined under `infra/gcp/`.
    - Firebase Hosting targets for development and production are defined for web deployment.
-7. **Workspace Activation Baseline**
+8. **Workspace Activation Baseline**
    - A newly created business account stays in `PENDING_CEO_PHONE_VERIFICATION` until the CEO phone is OTP-verified.
    - Protected workspace actions remain blocked during this provisional state.
    - On verification, the tenant-bound CRM `CEO` identity is created/updated and becomes the trusted cross-channel phone anchor for GUI/WhatsApp policy enforcement.
+9. **Public Product Entry Baseline**
+   - The website root is now a public workspace entry page for potential customers.
+   - Any valid Google user may sign up to create a workspace.
+   - Workspace activation still requires CEO phone OTP verification before protected usage begins.
+   - The website header provides a docs link for detailed product reading instead of embedding a long product page in the app surface.
+   - Current rollout starts on the development hosting/backend targets, which act as the shared pre-production surface for this public entry flow.
+   - Public website and signup flow details are documented in [public_website_signup_activation_flow.md](./public_website_signup_activation_flow.md).
 
 > [!IMPORTANT]
 > **Phase 1: Dummy Data & Local Simulation**
+> This phase still applies to local iteration. Shared development/pre-production has now moved beyond this baseline for storage and communications transport.
 > For the first step, **DO NOT** connect to Firestore or Google Cloud Storage.
 > *   **Data Persistence**: Use local JSON files or in-memory dictionaries to simulate database operations.
 > *   **File Storage**: Use a local directory (e.g., `./all_files`) to stand in for the GCS bucket. Agents should generate and store files here (simulating the single Application-Level Bucket).

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Wrench, AlertCircle, Clock, CheckCircle, Loader2, Plus, X } from 'lucide-react';
+import { apiClient } from '../../../api/client';
 import { executeDashboardTool } from './toolClient';
 import useTimeDisplay from '../../../hooks/useTimeDisplay';
 
@@ -301,8 +302,7 @@ const MaintenanceView = () => {
                                                 const formData = new FormData();
                                                 files.forEach((file) => formData.append('images', file));
                                                 try {
-                                                    const uploadRes = await fetch('/api/upload/images', { method: 'POST', body: formData });
-                                                    const uploadBody = await uploadRes.json();
+                                                    const uploadBody = await apiClient.post('/api/upload/images', formData);
                                                     if (uploadBody.success && Array.isArray(uploadBody.data?.urls)) {
                                                         setLogImages((prev) => [...prev, ...uploadBody.data.urls]);
                                                     }

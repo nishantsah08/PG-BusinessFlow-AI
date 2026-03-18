@@ -1,3 +1,5 @@
+import { apiClient } from '../../../api/client';
+
 export const getTenantIdFromLocalUser = () => {
     try {
         const rawUser = localStorage.getItem('master_ai_user');
@@ -81,11 +83,9 @@ export const executeDashboardTool = async (agentName, toolName, parameters = {})
         body.tenant_id = tenantId;
     }
 
-    const response = await fetch('/api/master_ai/tools/execute', {
-        method: 'POST',
-        headers: getDashboardApiHeaders(true),
-        body: JSON.stringify(body)
-    });
-
-    return parseToolResponse(response);
+    const response = await apiClient.post('/api/master_ai/tools/execute', body);
+    if (!response.success) {
+        throw new Error(response.error || 'Tool call failed');
+    }
+    return { success: true, data: response.data };
 };

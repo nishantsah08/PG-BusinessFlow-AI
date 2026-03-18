@@ -7,7 +7,6 @@ const BusinessConfig = require('../config/business');
 const WorkflowStore = require('../storage/WorkflowStore');
 const {
     FINANCIAL_MUTATION_TOOL_TO_WORKFLOW,
-    ensurePredefinedFinancialWorkflows,
     isProtectedPredefinedWorkflow
 } = require('../workflows/financialWorkflowPolicy');
 const { getWhatsAppTemplatesForWorkflowId } = require('../config/whatsappSopTemplates');
@@ -138,8 +137,6 @@ class MasterAI extends BaseAgent {
             : BusinessConfig;
         this.SESSION_TIMEOUT_MS = defaultConfig?.persona?.session_timeout_ms || 15 * 60 * 1000; // 15 Minutes
         this.financeAuthorizationRequests = new Map();
-
-        ensurePredefinedFinancialWorkflows(workflowStore);
 
         this._setupSelfTools();
         this._attachedAgentNames = new Set();
@@ -2641,5 +2638,16 @@ Rules:
         }
     }
 }
+
+MasterAI.getWorkflowStore = function getWorkflowStore() {
+    return workflowStore;
+};
+
+MasterAI.initializeWorkflowStore = async function initializeWorkflowStore() {
+    if (typeof workflowStore.initialize === 'function') {
+        await workflowStore.initialize();
+    }
+    return workflowStore;
+};
 
 module.exports = MasterAI;

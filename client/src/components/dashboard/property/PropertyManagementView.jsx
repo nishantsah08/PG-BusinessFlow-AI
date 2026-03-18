@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Building, Search, Save, Loader2, Edit2, Trash2, X, Tag, ListFilter, MoreVertical, Wallet } from 'lucide-react';
+import { apiClient } from '../../../api/client';
 
 const PIN_DIRECTORY = {
     '411001': { area: 'Camp', city: 'Pune', state: 'Maharashtra' },
@@ -193,12 +194,11 @@ const PropertyManagementView = () => {
         if (tenantId) {
             body.tenant_id = tenantId;
         }
-        const response = await fetch('/api/master_ai/tools/execute', {
-            method: 'POST',
-            headers: getApiHeaders(true),
-            body: JSON.stringify(body)
-        });
-        return parseToolResponse(response);
+        const response = await apiClient.post('/api/master_ai/tools/execute', body);
+        if (!response.success) {
+            throw new Error(response.error || 'Tool call failed');
+        }
+        return { success: true, data: response.data };
     };
 
     const executeFinanceTool = async (tool, parameters = {}) => {
@@ -211,12 +211,11 @@ const PropertyManagementView = () => {
         if (tenantId) {
             body.tenant_id = tenantId;
         }
-        const response = await fetch('/api/master_ai/tools/execute', {
-            method: 'POST',
-            headers: getApiHeaders(true),
-            body: JSON.stringify(body)
-        });
-        return parseToolResponse(response);
+        const response = await apiClient.post('/api/master_ai/tools/execute', body);
+        if (!response.success) {
+            throw new Error(response.error || 'Tool call failed');
+        }
+        return { success: true, data: response.data };
     };
 
     const parseAddressParts = (property) => {
@@ -567,7 +566,7 @@ const PropertyManagementView = () => {
             setIsEditing(false);
         } catch (e) {
             console.error("Save error:", e);
-            alert("Network error while saving.");
+            alert(e?.message || "Failed to save property.");
         } finally {
             setIsSavingObject(false);
         }
@@ -958,12 +957,7 @@ const PropertyManagementView = () => {
                                                                 const formData = new FormData();
                                                                 files.forEach(f => formData.append('images', f));
 
-                                                                const uploadRes = await fetch('/api/upload/images', {
-                                                                    method: 'POST',
-                                                                    headers: getApiHeaders(),
-                                                                    body: formData
-                                                                });
-                                                                const uploadResponse = await uploadRes.json();
+                                                                const uploadResponse = await apiClient.post('/api/upload/images', formData);
                                                                 const { success, data, error } = uploadResponse;
                                                                 if (success && data?.urls) {
                                                                     setEditImages(prev => {

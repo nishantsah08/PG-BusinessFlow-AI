@@ -134,10 +134,41 @@ class FinanceAI extends BaseAgent {
         return this._tenantStates.get(resolvedTenantId);
     }
 
-    _saveState(tenantId) {
+    async _hydrateTenantState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const rawState = await this._getTenantStore(resolvedTenantId).hydrate({
+            ledgerEntries: [],
+            transactions: [],
+            contracts: {},
+            salaryCards: {},
+            carryForwardCredits: {},
+            vendors: {},
+            bookingHolds: {},
+            workOrders: {},
+            offboardCases: {},
+        });
+        this._tenantStates.set(resolvedTenantId, this._hydrateState(rawState));
+
+        await Promise.all([
+            this._getNamespaceStore(resolvedTenantId, 'hr').hydrate({
+                staff: [],
+                salary_cards: [],
+                leaves: [],
+                caretaker_activity: [],
+            }),
+            this._getNamespaceStore(resolvedTenantId, 'property').hydrate({
+                properties: [],
+                units: [],
+                meters: [],
+                maintenance_requests: [],
+            }),
+        ]);
+    }
+
+    async _saveState(tenantId) {
         const resolvedTenantId = tenantId || this.defaultTenantId;
         const state = this._getState(resolvedTenantId);
-        this._getTenantStore(resolvedTenantId).save({
+        await this._getTenantStore(resolvedTenantId).save({
             ...state,
             lastUpdatedAt: new Date().toISOString(),
             businessConfig: this._businessConfigProvider(resolvedTenantId)
@@ -2077,11 +2108,12 @@ class FinanceAI extends BaseAgent {
     async callTool(name, args = {}) {
         const tenantId = this._extractTenantId(args);
         const normalizedArgs = { ...args, tenant_id: args.tenant_id || tenantId };
+        await this._hydrateTenantState(tenantId);
         const previousTenantId = this._setTenantContext(tenantId);
 
         try {
             const result = await super.callTool(name, normalizedArgs);
-            this._saveState(tenantId);
+            await this._saveState(tenantId);
             return result;
         } finally {
             this._activeTenantId = previousTenantId;

@@ -1,14 +1,10 @@
 export const getViteEnv = (key, fallback = '') => {
-    let env;
+    const runtimeEnv = globalThis && typeof globalThis === 'object'
+        ? globalThis.__PGBF_RUNTIME_ENV__
+        : undefined;
 
-    try {
-        env = new Function('try { return import.meta.env; } catch (error) { return undefined; }')();
-    } catch (_error) {
-        env = undefined;
-    }
-
-    const value = env && Object.prototype.hasOwnProperty.call(env, key) ? env[key] : undefined;
+    const value = runtimeEnv && Object.prototype.hasOwnProperty.call(runtimeEnv, key) ? runtimeEnv[key] : undefined;
     return value ?? fallback;
 };
 
-export const isProductionApp = () => getViteEnv('VITE_APP_ENV', 'development') === 'production';
+export const isProductionApp = () => ['production', 'preprod'].includes(getViteEnv('VITE_APP_ENV', 'development'));

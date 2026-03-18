@@ -21,11 +21,26 @@ const generateRequestId = () => {
 /**
  * Standardized response formatter
  */
+const normalizeErrorMessage = (error) => {
+    if (!error) return null;
+    if (typeof error === 'string') return error;
+    if (typeof error?.message === 'string' && error.message.trim()) return error.message;
+    if (typeof error?.error?.message === 'string' && error.error.message.trim()) return error.error.message;
+    if (typeof error?.error?.error_data?.details === 'string' && error.error.error_data.details.trim()) {
+        return error.error.error_data.details;
+    }
+    try {
+        return JSON.stringify(error);
+    } catch (_err) {
+        return String(error);
+    }
+};
+
 const formatResponse = (success, data, error, correlation_id, latency_ms, extras = {}) => {
     return {
         success: Boolean(success),
         data: data !== undefined ? data : null,
-        error: error ? String(error) : null,
+        error: normalizeErrorMessage(error),
         correlation_id: correlation_id || 'unknown',
         latency_ms: Number(latency_ms) || 0,
         ...extras

@@ -90,9 +90,22 @@ class HRAgent extends BaseAgent {
         return this._tenantStates.get(resolvedTenantId);
     }
 
-    _saveState(tenantId) {
+    async _hydrateTenantState(tenantId = this.defaultTenantId) {
+        const resolvedTenantId = tenantId || this.defaultTenantId;
+        const store = this._getTenantStore(resolvedTenantId);
+        const rawState = await store.hydrate({
+            staff: [],
+            salary_cards: [],
+            leaves: [],
+            caretaker_activity: []
+        });
+        this._tenantStates.set(resolvedTenantId, rawState);
+        return rawState;
+    }
+
+    async _saveState(tenantId) {
         const state = this._getState(tenantId);
-        this._getTenantStore(tenantId).save({
+        await this._getTenantStore(tenantId).save({
             staff: state.staff,
             salary_cards: state.salary_cards,
             leaves: state.leaves,
@@ -799,11 +812,12 @@ class HRAgent extends BaseAgent {
     async callTool(name, args = {}) {
         const tenantId = this._extractTenantId(args);
         const normalizedArgs = { ...args, tenant_id: args.tenant_id || tenantId };
+        await this._hydrateTenantState(tenantId);
         const previousTenantId = this._setTenantContext(tenantId);
 
         try {
             const result = await super.callTool(name, normalizedArgs);
-            this._saveState(tenantId);
+            await this._saveState(tenantId);
             return result;
         } finally {
             this._activeTenantId = previousTenantId;

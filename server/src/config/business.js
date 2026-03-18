@@ -6,9 +6,13 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { isGcpBackend, getFirestore, withCollectionPrefix } = require('../storage/GcpResourceClient');
 
 const DEFAULT_TENANT_ID = 'default';
 const BUSINESS_CONFIG_FILE = path.join(__dirname, '..', '..', 'data', 'tenant_configs.json');
+const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'local';
+let tenantConfigOverridesCache = null;
+let persistQueue = Promise.resolve();
 
 const DEFAULT_BUSINESS_CONFIG = {
     tenant_id: DEFAULT_TENANT_ID,
@@ -125,6 +129,9 @@ function normalizeTenantId(tenantId) {
 }
 
 function loadTenantConfigFile() {
+    if (tenantConfigOverridesCache && typeof tenantConfigOverridesCache === 'object') {
+        return cloneConfig(tenantConfigOverridesCache);
+    }
     if (!fs.existsSync(BUSINESS_CONFIG_FILE)) {
         return {};
     }
@@ -139,6 +146,24 @@ function loadTenantConfigFile() {
 }
 
 function writeTenantConfigFile(nextValue) {
+    tenantConfigOverridesCache = cloneConfig(nextValue);
+    if (isGcpBackend(STORAGE_BACKEND)) {
+        const collection = getFirestore().collection(withCollectionPrefix('tenant_configs'));
+        persistQueue = persistQueue
+            .then(async () => {
+                const snapshot = await collection.get();
+                const batch = getFirestore().batch();
+                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+                Object.entries(nextValue || {}).forEach(([tenantId, value]) => {
+                    batch.set(collection.doc(tenantId), value, { merge: false });
+                });
+                await batch.commit();
+            })
+            .catch((error) => {
+                console.error('[BusinessConfig] Failed to persist tenant configs:', error?.message || error);
+            });
+        return;
+    }
     const dir = path.dirname(BUSINESS_CONFIG_FILE);
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -200,6 +225,10 @@ function buildMergedConfig(tenantId) {
 }
 
 function getAllTenantConfigs() {
+    if (!tenantConfigOverridesCache && !isGcpBackend(STORAGE_BACKEND)) {
+        tenantConfigOverridesCache = loadTenantConfigFile();
+        ensureDefaultTenantConfig();
+    }
     const overrides = getTenantConfigOverrides();
     const tenantIds = new Set([DEFAULT_TENANT_ID, ...Object.keys(overrides || {})]);
     const all = {};
@@ -210,6 +239,10 @@ function getAllTenantConfigs() {
 }
 
 function getBusinessConfig(tenantId = DEFAULT_TENANT_ID) {
+    if (!tenantConfigOverridesCache && !isGcpBackend(STORAGE_BACKEND)) {
+        tenantConfigOverridesCache = loadTenantConfigFile();
+        ensureDefaultTenantConfig();
+    }
     const normalizedTenantId = normalizeTenantId(tenantId);
     return buildMergedConfig(normalizedTenantId);
 }
@@ -229,25 +262,52 @@ function saveTenantConfig(tenantId, partialConfig = {}) {
 function ensureDefaultTenantConfig() {
     const all = getTenantConfigOverrides();
     if (!all[DEFAULT_TENANT_ID]) {
-        const defaults = getTenantConfigOverrides();
-        defaults[DEFAULT_TENANT_ID] = {
+        const defaultPersona = isGcpBackend(STORAGE_BACKEND)
+            ? {
+                ...DEFAULT_BUSINESS_CONFIG.persona,
+                ceo_email: null,
+                ceo_phone: null,
+                ceo_phone_verified_at: null,
+                name: null,
+            }
+            : DEFAULT_BUSINESS_CONFIG.persona;
+        saveTenantConfig(DEFAULT_TENANT_ID, {
             tenant_id: DEFAULT_TENANT_ID,
             business_name: DEFAULT_BUSINESS_CONFIG.business_name,
-            persona: DEFAULT_BUSINESS_CONFIG.persona,
+            persona: defaultPersona,
             property: DEFAULT_BUSINESS_CONFIG.property,
             rates: DEFAULT_BUSINESS_CONFIG.rates,
             finance: DEFAULT_BUSINESS_CONFIG.finance,
-        };
-        writeTenantConfigFile(defaults);
+        });
     }
+}
+
+async function initialize() {
+    if (tenantConfigOverridesCache && typeof tenantConfigOverridesCache === 'object') {
+        return;
+    }
+
+    if (!isGcpBackend(STORAGE_BACKEND)) {
+        tenantConfigOverridesCache = loadTenantConfigFile();
+        ensureDefaultTenantConfig();
+        return;
+    }
+
+    const collection = getFirestore().collection(withCollectionPrefix('tenant_configs'));
+    const snapshot = await collection.get();
+    const loaded = {};
+    snapshot.docs.forEach((doc) => {
+        loaded[doc.id] = doc.data();
+    });
+    tenantConfigOverridesCache = loaded;
+    ensureDefaultTenantConfig();
 }
 
 const BusinessConfig = cloneConfig(DEFAULT_BUSINESS_CONFIG);
 
-ensureDefaultTenantConfig();
-
 module.exports = {
     ...DEFAULT_BUSINESS_CONFIG,
+    initialize,
     getBusinessConfig,
     getAllTenantConfigs,
     saveTenantConfig,

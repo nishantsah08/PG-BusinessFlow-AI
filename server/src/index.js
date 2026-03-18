@@ -14,6 +14,7 @@ const CommunicationsAI = require('./agents/CommunicationsAI');
 const TimeAuthorityService = require('./services/TimeAuthorityService');
 const PhoneNormalizationService = require('./services/PhoneNormalizationService');
 const OtpChallengeService = require('./services/OtpChallengeService');
+const CommunicationsEventBus = require('./services/CommunicationsEventBus');
 const BusinessConfig = require('./config/business');
 const WorkflowStore = require('./storage/WorkflowStore');
 const ImageStore = require('./storage/ImageStore');
@@ -87,16 +88,24 @@ app.use((req, _res, next) => {
 });
 
 const fs = require('fs');
-const IMAGE_DIR = path.join(__dirname, '..', '..', 'images');
+const IMAGE_STORAGE_ROOT = process.env.K_SERVICE
+    ? path.join(__dirname, '..')
+    : path.join(__dirname, '..', '..');
+const IMAGE_DIR = process.env.IMAGE_DIR || path.join(IMAGE_STORAGE_ROOT, 'images');
 if (!fs.existsSync(IMAGE_DIR)) fs.mkdirSync(IMAGE_DIR, { recursive: true });
 const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'local';
 const MIN_IMAGE_BYTES = 1024;
-const workflowStore = new WorkflowStore({ backend: STORAGE_BACKEND });
-const imageStore = new ImageStore({ backend: STORAGE_BACKEND, imageDir: IMAGE_DIR });
+const workflowStore = MasterAI.getWorkflowStore();
+const imageStore = new ImageStore({
+    backend: STORAGE_BACKEND,
+    imageDir: IMAGE_DIR,
+    publicBaseUrl: process.env.BACKEND_PUBLIC_BASE_URL || '',
+});
 const artifactExtractionClient = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
-ensurePredefinedFinancialWorkflows(workflowStore);
 
-app.use('/images', express.static(IMAGE_DIR));
+if (STORAGE_BACKEND === 'local') {
+    app.use('/images', express.static(IMAGE_DIR));
+}
 
 const ADMIN_ADAPTER_POLICY = {
     CRMAgent: new Set([
@@ -585,6 +594,15 @@ app.get('/ready', (_req, res) => {
         required.push('WEBHOOK_VERIFY_TOKEN');
         required.push('WHATSAPP_PHONE_NUMBER_ID');
     }
+    if (STORAGE_BACKEND === 'gcp') {
+        required.push('GCS_BUCKET_NAME');
+        required.push('BACKEND_PUBLIC_BASE_URL');
+    }
+    if (CommunicationsEventBus.isPubSubEnabled()) {
+        required.push('PUBSUB_COMMUNICATIONS_TOPIC');
+        required.push('PUBSUB_PUSH_AUDIENCE');
+        required.push('PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL');
+    }
     required.forEach((k) => {
         if (!process.env[k]) missing.push(k);
     });
@@ -711,17 +729,18 @@ app.post('/api/auth/ceo-phone/start', requireAuth, async (req, res) => {
             },
         });
 
-        WhatsAppSimulatorBus.recordOutbound({
-            to: normalizedPhone,
-            text: { body: `Your PG Business Portal CEO verification OTP is ${challenge.code}. It expires in 10 minutes.` },
-        }, { simulated: true, data: { id: challenge.created_at } });
+        await dispatchCeoOtpChallenge({
+            phone: normalizedPhone,
+            code: challenge.code,
+            createdAt: challenge.created_at,
+        });
 
         return res.json({
             success: true,
             data: {
                 phone: normalizedPhone,
                 expires_at: challenge.expires_at,
-                delivery_channel: 'whatsapp_simulator',
+                delivery_channel: IS_PROD && process.env.ALLOW_EXTERNAL_SEND === 'true' ? 'whatsapp_template' : 'whatsapp_simulator',
                 dev_otp: !IS_PROD ? challenge.code : undefined,
             },
         });
@@ -810,6 +829,15 @@ async function verifyGoogleToken(idToken) {
     const payload = response.data;
     if (!payload || payload.email_verified !== 'true') {
         throw new Error('Unverified Google identity');
+    }
+    const allowedClientIds = new Set(
+        String(process.env.GOOGLE_AUTH_ALLOWED_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '')
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean)
+    );
+    if (allowedClientIds.size > 0 && !allowedClientIds.has(String(payload.aud || '').trim())) {
+        throw new Error('Unexpected Google OAuth client');
     }
     const expMs = (Number(payload.exp || 0) * 1000) || (Date.now() + 300000);
     googleTokenCache.set(idToken, { payload, exp: expMs });
@@ -919,8 +947,30 @@ async function extractArtifactReference(files = []) {
     }
 }
 
-// Image upload endpoint — saves files to disk and returns accessible URLs
-app.post('/api/upload/images', requireAuth, upload.array('images', 20), (req, res) => {
+app.get('/api/storage/file', async (req, res) => {
+    if (STORAGE_BACKEND !== 'gcp') {
+        return res.status(404).json({ success: false, error: 'GCP storage file proxy is disabled.' });
+    }
+    try {
+        const objectPath = String(req.query?.path || '').trim();
+        if (!objectPath) {
+            return res.status(400).json({ success: false, error: 'path query param is required' });
+        }
+        const file = await imageStore.readFile(objectPath);
+        if (!file) {
+            return res.status(404).json({ success: false, error: 'File not found' });
+        }
+        res.setHeader('Content-Type', file.contentType);
+        res.setHeader('Cache-Control', file.cacheControl);
+        return res.send(file.buffer);
+    } catch (error) {
+        console.error('Storage File Proxy Error:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Image upload endpoint — saves files to storage and returns accessible URLs
+app.post('/api/upload/images', requireAuth, upload.array('images', 20), async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ success: false, error: 'No files provided' });
@@ -936,7 +986,7 @@ app.post('/api/upload/images', requireAuth, upload.array('images', 20), (req, re
                 skipped.push({ name: f.originalname, reason: 'too-small' });
                 continue;
             }
-            urls.push(imageStore.saveBuffer(f.buffer, f.originalname, 'prop'));
+            urls.push(await imageStore.saveBuffer(f.buffer, f.originalname, 'prop'));
         }
         res.json({ success: true, data: { urls, skipped } });
     } catch (error) {
@@ -957,7 +1007,7 @@ app.post('/api/upload/artifacts', requireAuth, upload.array('artifacts', 20), as
                 skipped.push({ name: file?.originalname || 'unknown', reason: 'empty-file' });
                 continue;
             }
-            urls.push(imageStore.saveBuffer(file.buffer, file.originalname, 'artifact'));
+            urls.push(await imageStore.saveBuffer(file.buffer, file.originalname, 'artifact'));
         }
         const extractedReference = await extractArtifactReference(req.files);
         res.json({ success: true, data: { urls, skipped, extracted_reference: extractedReference } });
@@ -967,18 +1017,66 @@ app.post('/api/upload/artifacts', requireAuth, upload.array('artifacts', 20), as
     }
 });
 
-// Initialize Agents
-const propertyAI = new PropertyAI();
-const crmAgent = new CRMAgent();
-const hrAgent = new HRAgent({ crmAgent: crmAgent });
-const financeAI = new FinanceAI();
-const commsAI = new CommunicationsAI();
+// Initialize Agents during startup after storage is hydrated.
+let propertyAI = null;
+let crmAgent = null;
+let hrAgent = null;
+let financeAI = null;
+let commsAI = null;
+let masterAI = null;
+let allAgents = [];
 
-// Master AI knows about everyone else
-const masterAI = new MasterAI([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
-masterAI.attachAgentListeners([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
+async function dispatchCeoOtpChallenge({ phone, code, createdAt }) {
+    const templateName = String(process.env.WHATSAPP_CEO_OTP_TEMPLATE_NAME || 'otp_en').trim();
+    const languageCode = String(process.env.WHATSAPP_CEO_OTP_TEMPLATE_LANGUAGE || 'en_US').trim();
 
-const allAgents = [masterAI, propertyAI, crmAgent, hrAgent, financeAI, commsAI];
+    if (!IS_PROD || process.env.ALLOW_EXTERNAL_SEND !== 'true') {
+        WhatsAppSimulatorBus.recordOutbound({
+            to: phone,
+            text: { body: `Your PG Business Portal CEO verification OTP is ${code}. It expires in 10 minutes.` },
+        }, { simulated: true, data: { id: createdAt } });
+        return { status: 'success', simulated: true };
+    }
+
+    const result = await commsAI.callTool('send_template_message', {
+        recipient_phone: phone,
+        template_name: templateName,
+        language_code: languageCode,
+        components: [
+            {
+                type: 'body',
+                parameters: [
+                    {
+                        type: 'text',
+                        text: String(code),
+                    },
+                ],
+            },
+            {
+                type: 'button',
+                sub_type: 'url',
+                index: '0',
+                parameters: [
+                    {
+                        type: 'text',
+                        text: String(code),
+                    },
+                ],
+            },
+        ],
+    });
+
+    if (result?.status !== 'success') {
+        const rawError = result?.error;
+        const providerMessage = rawError?.error?.error_data?.details
+            || rawError?.error?.message
+            || rawError?.message
+            || (typeof rawError === 'string' ? rawError : null);
+        throw new Error(providerMessage || 'Unable to dispatch CEO OTP template.');
+    }
+
+    return result;
+}
 
 async function upsertTenantCeoCrmProfile(tenantId, owner = {}) {
     const normalizedTenantId = normalizeTenantIdFromRequest({ headers: { 'x-tenant-id': tenantId } });
@@ -1080,7 +1178,10 @@ async function resolveTenantIdByPhone(phone) {
 }
 
 async function seedSystemDemoData() {
-    if (process.env.SEED_DEMO_DATA === 'false') return;
+    const explicitSeed = process.env.SEED_DEMO_DATA;
+    const shouldSeed = explicitSeed === 'true'
+        || (!IS_PROD && STORAGE_BACKEND === 'local' && explicitSeed !== 'false');
+    if (!shouldSeed) return;
     if (crmAgent.leads.size > 0 || propertyAI.properties.length > 0 || hrAgent.staff.length > 0 || financeAI.transactions.length > 0) {
         return;
     }
@@ -1433,25 +1534,21 @@ async function seedSystemDemoData() {
     console.log('[Demo Seed] System demo data initialized.');
 }
 
-(async () => {
-    await syncExistingTenantOwnerProfilesToCrm();
-    await seedSystemDemoData();
-})();
-
 // SSE Event Clients
 let sseClients = [];
 let recentEvents = [];
 
-// Subscribe to MasterAI internal events
-masterAI.on('system_event', (event) => {
-    recentEvents.push(event);
-    if (recentEvents.length > 50) recentEvents.shift();
+function attachSystemEventListeners() {
+    if (!masterAI) return;
+    masterAI.on('system_event', (event) => {
+        recentEvents.push(event);
+        if (recentEvents.length > 50) recentEvents.shift();
 
-    // Forward to all connected SSE clients
-    sseClients.forEach(client => {
-        client.res.write(`data: ${JSON.stringify(event)}\n\n`);
+        sseClients.forEach(client => {
+            client.res.write(`data: ${JSON.stringify(event)}\n\n`);
+        });
     });
-});
+}
 
 // Periodic heartbeat to keep connections alive
 setInterval(() => {
@@ -1532,7 +1629,7 @@ const chatHandler = async (req, res) => {
                     continue;
                 }
                 // Save to disk (Phase 1: local file storage per implementation_plan.md)
-                const savedUrl = imageStore.saveBuffer(f.buffer, f.originalname, 'chat_upload');
+                const savedUrl = await imageStore.saveBuffer(f.buffer, f.originalname, 'chat_upload');
                 savedUrls.push(savedUrl);
             }
 
@@ -2225,6 +2322,17 @@ async function processIncomingWhatsAppPayload(payload) {
     return { inboundEvent };
 }
 
+async function enqueueIncomingWhatsAppPayload(payload) {
+    const envelope = {
+        kind: 'whatsapp_webhook_received',
+        payload,
+        received_at: new Date().toISOString(),
+    };
+    return CommunicationsEventBus.publishJsonMessage(envelope, {
+        source: 'whatsapp_webhook',
+    });
+}
+
 // 3.1 WhatsApp Simulator (Debug) - send a synthetic inbound message into official webhook flow.
 app.post('/api/simulator/whatsapp/send', requireDebugAccess, async (req, res) => {
     try {
@@ -2323,6 +2431,11 @@ app.get('/api/webhooks/whatsapp', (req, res) => {
 // 5. WhatsApp Webhook (Incoming Events)
 app.post('/api/webhooks/whatsapp', async (req, res) => {
     try {
+        if (CommunicationsEventBus.isPubSubEnabled()) {
+            const published = await enqueueIncomingWhatsAppPayload(req.body);
+            console.log('Queued WhatsApp webhook event to Pub/Sub', published);
+            return res.sendStatus(200);
+        }
         await processIncomingWhatsAppPayload(req.body);
         res.sendStatus(200);
     } catch (error) {
@@ -2331,6 +2444,48 @@ app.post('/api/webhooks/whatsapp', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.post('/api/internal/events/whatsapp', async (req, res) => {
+    try {
+        if (!CommunicationsEventBus.isPubSubEnabled()) {
+            return res.status(409).json({ success: false, error: 'Communications Pub/Sub backend is not enabled.' });
+        }
+        await CommunicationsEventBus.verifyPushRequest(req);
+        const envelope = CommunicationsEventBus.decodePushEnvelope(req.body);
+        if (envelope?.kind !== 'whatsapp_webhook_received') {
+            return res.status(400).json({ success: false, error: 'Unsupported internal event kind.' });
+        }
+        await processIncomingWhatsAppPayload(envelope.payload || {});
+        return res.sendStatus(204);
+    } catch (error) {
+        console.error('Internal WhatsApp Event Error:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+async function startServer() {
+    await BusinessConfig.initialize();
+    await MasterAI.initializeWorkflowStore();
+    ensurePredefinedFinancialWorkflows(workflowStore);
+
+    propertyAI = new PropertyAI();
+    crmAgent = new CRMAgent();
+    hrAgent = new HRAgent({ crmAgent });
+    financeAI = new FinanceAI();
+    commsAI = new CommunicationsAI();
+    masterAI = new MasterAI([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
+    masterAI.attachAgentListeners([propertyAI, crmAgent, hrAgent, financeAI, commsAI]);
+    allAgents = [masterAI, propertyAI, crmAgent, hrAgent, financeAI, commsAI];
+    attachSystemEventListeners();
+
+    await syncExistingTenantOwnerProfilesToCrm();
+    await seedSystemDemoData();
+
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+}
+
+startServer().catch((error) => {
+    console.error('Server startup failed:', error);
+    process.exit(1);
 });
